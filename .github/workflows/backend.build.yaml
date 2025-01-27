@@ -19,7 +19,9 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./backend
-        run: go get .
+        run: |
+          go get .
+          go get -u github.com/swaggo/swag/cmd/swag
 
       - name: Build
         working-directory: ./backend
@@ -28,3 +30,7 @@ jobs:
       - name: Test with the Go CLI
         working-directory: ./backend
         run: go test
+
+      - name: Build Swagger Documentation
+        working-directory: ./backend
+        run: swag init
