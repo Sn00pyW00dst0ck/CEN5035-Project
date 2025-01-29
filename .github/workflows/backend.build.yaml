@@ -20,7 +20,7 @@ jobs:
       - name: Build Swagger Documentation
         working-directory: ./backend
         run: |
-          go get -u github.com/swaggo/swag/cmd/swag
+          go install github.com/swaggo/swag/cmd/swag@latest
           swag init
       
       - name: Install dependencies
