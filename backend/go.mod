@@ -37,7 +37,7 @@ require (
 	github.com/swaggest/swgui v1.8.2
 	github.com/swaggo/files/v2 v2.0.0 // indirect
 	github.com/swaggo/http-swagger v1.3.4
-	github.com/swaggo/swag v1.16.4 // indirect
+	github.com/swaggo/swag v1.16.4
 	golang.org/x/tools v0.29.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
