@@ -17,6 +17,12 @@ jobs:
         with:
           go-version: '1.21.x'
 
+      - name: Build Swagger Documentation
+        working-directory: ./backend
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init
+      
       - name: Install dependencies
         working-directory: ./backend
         run: go get .

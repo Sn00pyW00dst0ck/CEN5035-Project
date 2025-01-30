@@ -50,6 +50,9 @@ This template deploys a base ready-to-use Gorilla Mux app.
 
 - Start coding!
 
+- To build docs: `swag init` (then navigate: http://localhost:3000/docs/index.html)
+    - To install swag, see this link: https://github.com/swaggo/swag/tree/master
+
 ## Notes
 
 - The http server listens on port `3000` if no environment variable `PORT` is found, and once on Railway a `PORT` variable is automatically generated, and `EnvPortOr` will use that `PORT` instead of `3000`.
@@ -57,3 +60,4 @@ This template deploys a base ready-to-use Gorilla Mux app.
 ### Accredation
 
 https://github.com/railwayapp-templates/go-mux
+

@@ -7,7 +7,26 @@ import (
 	"os"
 )
 
-// main entrypoint
+// @title Sector Swagger API
+// @version 1.0
+// @description This is the Sector server API.
+
+// @contact.name API Support
+// @contact.url
+// @contact.email
+
+// @license.name MIT
+// @license.url https://opensource.org/license/mit
+
+// @accept json
+// @produce json
+
+// @schemes http https
+
+// @host localhost:3000
+// @BasePath /
+
+// Runs the server.
 func main() {
 	port := tools.EnvPortOr("3000")
 
