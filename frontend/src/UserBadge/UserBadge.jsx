@@ -1,13 +1,14 @@
-import * as React from 'react';
 import './UserBadge.css'
-import {Avatar, Badge, Box, Icon, Paper, Stack, styled, ThemeProvider} from "@mui/material";
+import {Avatar, Badge, Paper, Stack} from "@mui/material";
 function UserBadge() {
 
     return (
-        <Paper elevation={3} className="test">
+        <Paper elevation={75} style={{display: "block", height: "fit-content", width: "inherit", margin: ".5rem"}} className="UserBadgeContainer" sx={{
+            borderRadius: 10
+        }}>
             <Stack direction = "row" spacing ={2}>
-                <Badge color="primary" badgecontent=" " variant ="dot">
-                    <Avatar className="test" alt = "test"></Avatar>
+                <Badge style={{margin: "2px"}} color="primary" badgecontent=" " variant ="dot">
+                    <Avatar alt = "test"></Avatar>
                 </Badge>
 
                 <div>

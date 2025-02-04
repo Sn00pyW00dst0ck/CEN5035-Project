@@ -1,22 +1,22 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-import UserBadge from "./UserBadge/UserBadge.jsx";
+
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import MainScreen from "./MainScreen/MainScreen.jsx";
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-    <>
       <div>
-        <UserBadge/>
-          <UserBadge/>
-          <UserBadge/>
-          <UserBadge/>
-          <UserBadge/>
+        <ThemeProvider theme={darkTheme}>
+          <MainScreen/>
+        </ThemeProvider>
       </div>
-    </>
   )
 }
 
