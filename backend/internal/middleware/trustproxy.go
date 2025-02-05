@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"app/internal/logger"
 	"fmt"
 	"net"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"go.uber.org/zap"
 	"golang.org/x/exp/slog"
 )
 
@@ -44,11 +44,11 @@ var xForwardedHost = "X-Forwarded-Host"
 // TrustProxy checks if the request IP matches one of the provided ranges/IPs
 // then inspects common reverse proxy headers and sets the corresponding
 // fields in the HTTP request struct for use by middleware or handlers that are next
-func TrustProxy(trustedIPs []string) func(http.Handler) http.Handler {
+func TrustProxy(trustedIPs []string, logger *zap.Logger) func(http.Handler) http.Handler {
 	// parse passed in trusted IPs into a 'netip.Prefix' slice
 	parsedIPs, err := parseIPRanges(trustedIPs)
 	if err != nil {
-		logger.StderrWithSource.Error(err.Error())
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
@@ -57,7 +57,12 @@ func TrustProxy(trustedIPs []string) func(http.Handler) http.Handler {
 			// check if RemoteAddr is trusted
 			trusted, err := isTrustedIP(r.RemoteAddr, parsedIPs)
 			if err != nil {
-				logger.StdoutWithSource.Warn(err.Error(), slog.String("ip", r.RemoteAddr))
+				logger.Warn(
+					strings.Join([]string{
+						err.Error(),
+						slog.String("ip", r.RemoteAddr).Value.String(),
+					}, ""),
+				)
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}

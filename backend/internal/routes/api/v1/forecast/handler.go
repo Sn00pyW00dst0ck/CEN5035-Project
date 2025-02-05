@@ -1,16 +1,24 @@
 package forecast
 
 import (
-	"app/internal/logger"
 	"app/internal/responder"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
+type ForcastHandler struct {
+	Logger *zap.Logger
+}
+
+func NewForcastHandler(logger *zap.Logger) *ForcastHandler {
+	return &ForcastHandler{Logger: logger}
+}
+
 // mock api response
-func Handler(w http.ResponseWriter, r *http.Request) {
+func (h *ForcastHandler) GetThreeDayForcastHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	msg := []map[string]string{}
@@ -26,6 +34,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := responder.JSONPretty(w, msg, http.StatusOK); err != nil {
-		logger.StderrWithSource.Error(err.Error())
+		h.Logger.Error(err.Error())
 	}
 }

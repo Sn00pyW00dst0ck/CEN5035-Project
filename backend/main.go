@@ -1,9 +1,12 @@
 package main
 
 import (
+	"app/internal/database"
 	"app/internal/logger"
 	"app/internal/server"
 	"app/internal/tools"
+	"context"
+	"log"
 	"os"
 )
 
@@ -30,11 +33,29 @@ import (
 func main() {
 	port := tools.EnvPortOr("3000")
 
-	logger.Stdout.Info("starting server on port " + port[1:])
+	// Setup logger to log everything to a file.
+	logger, err := logger.NewLogger("log.txt")
+	if err != nil {
+		log.Panicln(err)
+	}
 
-	// start listening on port
-	if err := server.StartServer(port); err != nil {
-		logger.Stderr.Error(err.Error())
+	// Startup the database.
+	db, err := database.NewDatabase(context.Background(), "/orbitdb/bafyreiejrtaennxufa3wvkdvyoj6ywq6nid3lukdqcnx2fc33tckzjzbke/sectordb", "cache", logger)
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer db.Disconnect()
+
+	err = db.Connect(func(address string) {
+		log.Println("Connected: ", address)
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	// Start listening on port.
+	if err := server.StartServer(port, db, logger); err != nil {
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 }
