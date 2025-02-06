@@ -32,7 +32,7 @@ func main() {
 	// Setup the gorilla mux server.
 	// Use validation middleware to check all requests against the OpenAPI schema.
 	// Then define the sectorAPI as the one to handle that schema.
-	r := mux.NewRouter()
+	r := mux.NewRouter().StrictSlash(true)
 	r.Use(nethttp_middleware.OapiRequestValidator(swagger))
 	r.Use(middleware.RequestLogger(sectorAPI.Logger))
 	api.HandlerFromMux(sectorAPI, r)
