@@ -2,6 +2,7 @@ package main
 
 import (
 	"app/internal/api"
+	"app/internal/middleware"
 	"context"
 	"flag"
 	"log"
@@ -9,7 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	middleware "github.com/oapi-codegen/nethttp-middleware"
+	nethttp_middleware "github.com/oapi-codegen/nethttp-middleware"
 )
 
 func main() {
@@ -32,13 +33,14 @@ func main() {
 	// Use validation middleware to check all requests against the OpenAPI schema.
 	// Then define the sectorAPI as the one to handle that schema.
 	r := mux.NewRouter()
-	r.Use(middleware.OapiRequestValidator(swagger))
+	r.Use(nethttp_middleware.OapiRequestValidator(swagger))
+	r.Use(middleware.RequestLogger(sectorAPI.Logger))
 	api.HandlerFromMux(sectorAPI, r)
 
 	// Serve HTTP
 	s := &http.Server{
 		Handler: r,
-		Addr:    net.JoinHostPort("0.0.0.0", *port),
+		Addr:    net.JoinHostPort("127.0.0.1", *port),
 	}
 	log.Fatal(s.ListenAndServe())
 }

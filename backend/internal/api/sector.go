@@ -12,8 +12,8 @@ import (
 )
 
 type SectorAPI struct {
-	logger *zap.Logger
-	db     *database.Database
+	Logger *zap.Logger
+	DB     *database.Database
 }
 
 // GetHealth implements ServerInterface.
@@ -55,7 +55,7 @@ func NewSector(ctx context.Context, logfile, dbCache, dbConnectionString string)
 	}
 
 	return &SectorAPI{
-		logger: logger,
-		db:     db,
+		Logger: logger,
+		DB:     db,
 	}
 }
