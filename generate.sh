@@ -39,6 +39,7 @@ echo -n "   "
 check_command npx
 
 echo "Generating Backend Server..."
+touch backend/internal/api/sector.gen.go
 oapi-codegen --config=models/config.yaml models/schema.yaml
 
 echo "Generating Frontend Types..."
