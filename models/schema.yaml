@@ -1,8 +1,33 @@
 # Define the schemas for the structs.
 openapi: 3.0.0
 info:
-  title: Shared Models
+  title: Sector
   version: 1.0.0
+  description: The Rest-like API for the Sector application.
+
+paths:
+  "/":
+    get:
+      summary: Root Endpoint
+      operationId: GetRoot
+      responses:
+        "200":
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+  "/health":
+    get:
+      summary: Health Check
+      operationId: GetHealth
+      responses:
+        "200":
+          description: API is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
 
 components:
   schemas:

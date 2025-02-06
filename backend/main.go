@@ -1,61 +1,44 @@
 package main
 
 import (
-	"app/internal/database"
-	"app/internal/logger"
-	"app/internal/server"
-	"app/internal/tools"
+	"app/internal/api"
 	"context"
+	"flag"
 	"log"
-	"os"
+	"net"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	middleware "github.com/oapi-codegen/nethttp-middleware"
 )
 
-// @title Sector Swagger API
-// @version 1.0
-// @description This is the Sector server API.
-
-// @contact.name API Support
-// @contact.url
-// @contact.email
-
-// @license.name MIT
-// @license.url https://opensource.org/license/mit
-
-// @accept json
-// @produce json
-
-// @schemes http https
-
-// @host localhost:3000
-// @BasePath /
-
-// Runs the server.
 func main() {
-	port := tools.EnvPortOr("3000")
+	port := flag.String("port", "3000", "Port for HTTP server")
+	flag.Parse()
 
-	// Setup logger to log everything to a file.
-	logger, err := logger.NewLogger("log.txt")
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	// Startup the database.
-	db, err := database.NewDatabase(context.Background(), "/orbitdb/bafyreiejrtaennxufa3wvkdvyoj6ywq6nid3lukdqcnx2fc33tckzjzbke/sectordb", "cache", logger)
-	if err != nil {
-		log.Panicln(err)
-	}
-	defer db.Disconnect()
-
-	err = db.Connect(func(address string) {
-		log.Println("Connected: ", address)
-	})
+	// Setup the swagger docs.
+	swagger, err := api.GetSwagger()
 	if err != nil {
 		panic(err)
 	}
+	// Clear out the servers array in the swagger spec, that skips validating
+	// that server names match. We don't know how this thing will be run.
+	swagger.Servers = nil
 
-	// Start listening on port.
-	if err := server.StartServer(port, db, logger); err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
+	// Create an instance of the handler which satisfies the generated interface
+	sectorAPI := api.NewSector(context.Background(), "log.txt", "cache", "/orbitdb/bafyreiejrtaennxufa3wvkdvyoj6ywq6nid3lukdqcnx2fc33tckzjzbke/sectordb")
+
+	// Setup the gorilla mux server.
+	// Use validation middleware to check all requests against the OpenAPI schema.
+	// Then define the sectorAPI as the one to handle that schema.
+	r := mux.NewRouter()
+	r.Use(middleware.OapiRequestValidator(swagger))
+	api.HandlerFromMux(sectorAPI, r)
+
+	// Serve HTTP
+	s := &http.Server{
+		Handler: r,
+		Addr:    net.JoinHostPort("0.0.0.0", *port),
 	}
+	log.Fatal(s.ListenAndServe())
 }
