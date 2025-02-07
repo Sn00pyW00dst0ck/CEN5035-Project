@@ -55,11 +55,3 @@ for VERSION in "${VERSIONS[@]}"; do
 
     echo "$VERSION generation complete!"
 done
-
-#
-# echo "Generating Backend V1 Server API..."
-# touch backend/internal/api/$VERSION/sector.gen.go
-# oapi-codegen --config=models/config.yaml models/schema.yaml
-# 
-# echo "Generating Frontend Types..."
-# npx openapi-typescript models/schema.yaml -o frontend/src/types/api.ts
