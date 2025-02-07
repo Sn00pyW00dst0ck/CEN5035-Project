@@ -4,23 +4,14 @@ import Members from "./Members/Members.jsx";
 
 function ServerAndMembers() {
     return(
-        <div>
             <Paper elevation={3} sx={{
                 borderRadius: 7.5
-            }} style={{ display: "flex", width: "calc(75vw - 4rem)", height: "calc(100vh - 2rem)", margin: "1rem"}}>
+            }} style={{ display: "flex", margin: "1rem", width: "100%"}}>
 
-
-                <div style={{display: "block", width: "100%", height: "100%"}}>
-                    <ActiveServer/>
-                </div>
-
-                <div style={{marginLeft: "auto", marginRight: "0"}}>
-                    <Members/>
-                </div>
+                <ActiveServer/>
+                <Members/>
 
             </Paper>
-        </div>
-
     )
 }
 

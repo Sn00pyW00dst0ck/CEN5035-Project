@@ -1,20 +1,20 @@
 import './UserBadge.css'
 import {Avatar, Badge, Paper, Stack} from "@mui/material";
-function UserBadge() {
+function UserBadge(props) {
 
     return (
-        <Paper elevation={75} style={{display: "block", height: "fit-content", width: "inherit", margin: ".5rem"}} className="UserBadgeContainer" sx={{
+        <Paper elevation={75} style={{display: "flex", margin: ".5rem", marginBottom: "0"}} className="UserBadgeContainer" sx={{
             borderRadius: 10
         }}>
             <Stack direction = "row" spacing ={2}>
-                <Badge style={{margin: "2px"}} color="primary" badgecontent=" " variant ="dot">
-                    <Avatar alt = "test"></Avatar>
+                <Badge invisible={!props.online} style={{margin: "2px"}} color="primary" badgecontent=" " variant ="dot">
+                    <Avatar src ={props.img} alt = "test"></Avatar>
                 </Badge>
 
                 <div>
-                    <h3>Username</h3>
+                    <h3>{props.user}</h3>
 
-                    <h6>Status</h6>
+                    <h6>{props.status}</h6>
                 </div>
             </Stack>
         </Paper>

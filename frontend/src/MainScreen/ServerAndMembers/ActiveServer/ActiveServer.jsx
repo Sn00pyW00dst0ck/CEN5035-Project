@@ -2,7 +2,7 @@ import {Paper} from "@mui/material";
 
 function ActiveServer() {
     return (
-        <div style={{ display: "flex", height:"inherit", width: "inherit"}}>
+        <div style={{ display: "flex", height: "100%", width: "100%" , marginLeft: "0", marginRight: "0"}}>
 
             <Paper elevation={100} sx={{
                 borderRadius: 7.5,
