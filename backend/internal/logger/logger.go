@@ -1,31 +1,32 @@
 package logger
 
 import (
+	"net/url"
 	"os"
+	"runtime"
 
-	"golang.org/x/exp/slog"
+	"go.uber.org/zap"
 )
 
-var (
-	stdoutHandler = slog.NewJSONHandler(os.Stdout, nil)
-	//enable source
-	stdoutHandlerWithSource = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		AddSource: true,
-	})
+// Create a new logger that will log to the given file.
+func NewLogger(filename string) (*zap.Logger, error) {
+	if runtime.GOOS == "windows" {
+		zap.RegisterSink("winfile", func(u *url.URL) (zap.Sink, error) {
+			return os.OpenFile(u.Path[1:], os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+		})
+	}
 
-	stderrHandler = slog.NewJSONHandler(os.Stderr, nil)
-	// enable source
-	stderrHandlerWithSource = slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		AddSource: true,
-	})
+	cfg := zap.NewDevelopmentConfig()
+	if runtime.GOOS == "windows" {
+		cfg.OutputPaths = []string{
+			"stdout",
+			"winfile:///" + filename,
+		}
+	} else {
+		cfg.OutputPaths = []string{
+			filename,
+		}
+	}
 
-	// sends logs to stdout
-	Stdout = slog.New(stdoutHandler)
-	// sends logs to stdout with source info
-	StdoutWithSource = slog.New(stdoutHandlerWithSource)
-
-	// sends logs to stderr
-	Stderr = slog.New(stderrHandler)
-	// sends logs to stderr with source info
-	StderrWithSource = slog.New(stderrHandlerWithSource)
-)
+	return cfg.Build()
+}

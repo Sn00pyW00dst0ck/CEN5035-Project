@@ -25,3 +25,7 @@ go.work.sum
 .env
 
 /docs
+
+# Files created by running the application
+/cache
+log.txt

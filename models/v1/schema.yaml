@@ -1,0 +1,95 @@
+# Define the schemas for the structs.
+openapi: 3.0.0
+info:
+  title: Sector
+  version: 1.0.0
+  description: The Rest-like API for the Sector application.
+  servers:
+  - url: /v1/api
+
+paths:
+  "/":
+    get:
+      summary: Root Endpoint
+      operationId: GetRoot
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+  "/health":
+    get:
+      summary: Health Check
+      operationId: GetHealth
+      responses:
+        "200":
+          description: API is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  schemas:
+    Account:
+      description: User Account Details.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+      required: 
+        - id
+        - name
+        - email
+    
+    AccountFilter:
+      description: User account filtering/searching options.
+      type: object
+      properties:
+        name: 
+          type: string
+          example: John Doe
+
+    Group:
+      description: A group chat/server of users.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: ""
+        name: 
+          type: string
+          example: Testing Group
+        description: 
+          type: string
+          example: This is a testing group. 
+        members:
+          type: array
+          items:
+            type: string
+          example: ["550e8400-e29b-41d4-a716-446655440000"]
+      required: 
+        - id
+        - name
+        - description
+        - members
+
+    GroupFilter:
+      description: Group filtering/searching options.
+      type: object
+      properties:
+        name: 
+          type: string
+          example: Testing Group
