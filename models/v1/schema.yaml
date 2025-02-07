@@ -4,6 +4,8 @@ info:
   title: Sector
   version: 1.0.0
   description: The Rest-like API for the Sector application.
+  servers:
+  - url: /v1/api
 
 paths:
   "/":
@@ -14,9 +16,9 @@ paths:
         "200":
           description: Success
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
+                type: object
   "/health":
     get:
       summary: Health Check

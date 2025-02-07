@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
-package: api
-output: ./backend/internal/api/sector.gen.go
+package: v1
+output: ./backend/internal/api/v1/sector.gen.go
 generate:
   gorilla-server: true
   models: true

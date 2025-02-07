@@ -38,9 +38,28 @@ check_command npm
 echo -n "   "
 check_command npx
 
-echo "Generating Backend Server..."
-touch backend/internal/api/sector.gen.go
-oapi-codegen --config=models/config.yaml models/schema.yaml
 
-echo "Generating Frontend Types..."
-npx openapi-typescript models/schema.yaml -o frontend/src/types/api.ts
+VERSIONS=("v1")
+
+for VERSION in "${VERSIONS[@]}"; do
+    echo "Generating API for $VERSION..."
+
+    # Go server generation
+    echo "Generating Backend $VERSION Server API..."
+    touch backend/internal/api/$VERSION/sector.gen.go
+    oapi-codegen --config=models/$VERSION/config.yaml models/$VERSION/schema.yaml
+
+    # TypeScript client generation
+    echo "Generating Frontend $VERSION Types..."
+    npx openapi-typescript models/$VERSION/schema.yaml -o frontend/src/types/$VERSION/api.gen.ts
+
+    echo "$VERSION generation complete!"
+done
+
+#
+# echo "Generating Backend V1 Server API..."
+# touch backend/internal/api/$VERSION/sector.gen.go
+# oapi-codegen --config=models/config.yaml models/schema.yaml
+# 
+# echo "Generating Frontend Types..."
+# npx openapi-typescript models/schema.yaml -o frontend/src/types/api.ts
