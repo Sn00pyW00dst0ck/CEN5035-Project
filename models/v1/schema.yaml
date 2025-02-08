@@ -30,6 +30,53 @@ paths:
             text/plain:
               schema:
                 type: string
+  "/account/{id}":
+    get: 
+      summary: Get Account By ID
+      operationID: GetAccountByID
+      parameters:
+        - in: path
+          name: id
+          description: ID of account to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses: 
+        "200":
+          description: Account with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+    delete:
+      summary: Delete Account By ID
+      operationID: DeleteAccountByID
+      parameters:
+        - in: path
+          name: id
+          description: ID of account to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses: 
+        "200":
+          description: Account was deleted.
+          content:
+            text/plain:
+              schema:
+                type: string
+    # TODO: PUT/POST request at this endpoint for updating or creating an account.
+
+  # TODO: below should be a route that takes a POST request of AccountFilter object and returns a list of accounts that satisfies the request 
+  #       maybe we paginate the response? maybe not.
+  #"/account/search":
+  #  post: 
+
+  # TODO: similar endpoints to above for groups and other data types.
 
 components:
   schemas:

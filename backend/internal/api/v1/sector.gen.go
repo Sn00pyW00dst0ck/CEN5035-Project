@@ -15,6 +15,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -48,6 +49,12 @@ type ServerInterface interface {
 	// Root Endpoint
 	// (GET /)
 	GetRoot(w http.ResponseWriter, r *http.Request)
+	// Delete Account By ID
+	// (DELETE /account/{id})
+	DeleteAccountByID(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Get Account By ID
+	// (GET /account/{id})
+	GetAccountByID(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// Health Check
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
@@ -67,6 +74,56 @@ func (siw *ServerInterfaceWrapper) GetRoot(w http.ResponseWriter, r *http.Reques
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetRoot(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteAccountByID operation middleware
+func (siw *ServerInterfaceWrapper) DeleteAccountByID(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", mux.Vars(r)["id"], &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteAccountByID(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAccountByID operation middleware
+func (siw *ServerInterfaceWrapper) GetAccountByID(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", mux.Vars(r)["id"], &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAccountByID(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -205,6 +262,10 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 
 	r.HandleFunc(options.BaseURL+"/", wrapper.GetRoot).Methods("GET")
 
+	r.HandleFunc(options.BaseURL+"/account/{id}", wrapper.DeleteAccountByID).Methods("DELETE")
+
+	r.HandleFunc(options.BaseURL+"/account/{id}", wrapper.GetAccountByID).Methods("GET")
+
 	r.HandleFunc(options.BaseURL+"/health", wrapper.GetHealth).Methods("GET")
 
 	return r
@@ -213,16 +274,19 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6SUTW/bMAyG/4rAsxM7ndNtPq1Y99GdhrY7FT0oMhMptT4m0UWDIP99kGx0Tp2sKXZJ",
-	"ZOkl9fAloS0Iq501aChAtYUgJGqelhdC2NZQXNYYhFeOlDVQwa+AnvWn7BKJqyZMIQPnrUNPClM4aq6a",
-	"tHji2jUIFaytNJ/6z6mwGjJYWq85QdXLM6CNi9JAXpkV7DJQ9X6S+bzAD2VRTPDs42JSzupywt/Pzidl",
-	"eX4+n5dlURTFMHHbqvpQXsM17mf+YaVhlxbH6l0GHn+3ymMN1R2khCk+67nvn0PsYo2C4gW9Q19VQ+iP",
-	"uMh7F5dJpMwqD8i9kMqsmE3KA86+kXwE9s3b1o2BLtgqHjAhOeUB/SN6ZpesDegPQOzFDllupQpMBcYZ",
-	"YaBYSEo7PaW3p/RNo16gD3uBd6dNxX0GilCn2FHefoN7zzeH5+O2r6fz7y1DMjTrbwX3x3pzbGTS4f/O",
-	"yutVvICKW8os7ZjnViK7xkCTRj0gu/h5xZbWM5LIblCQ9Yw71yjBozyidUMVoLrbQusbqCB/nOXcKdhF",
-	"LxQlwC4WMoja7qLZtJgW0R7r0ER9Be/SVgaOk0yV5vFnhem9ig6kW6/qaBvStbUEsT/BWRM6a86KIv4J",
-	"awi7Z26Am69DN9jdgziYmKEt+3bctEJgCMnD0GrN/QYqiFezL6Z2VhlKZ7lE3pD8F+/3TvEqMeET5a7h",
-	"6jDrc1NHrLFZKrCOZPMCubudfZYoHmLw7k8AAAD//2HIpUImBgAA",
+	"H4sIAAAAAAAC/9xWwVLjOBD9FVXvHp3YYRN216eF9QyTOVHAnCgOQu7EAlvSSG2GVCr/PiXJgSQOAWpm",
+	"LnMBR+puvX7vqe0lCN0YrVCRg3wJTlTY8PB4IoRuFfnHEp2w0pDUCnL44tCybpcVSFzWbggJGKsNWpIY",
+	"0rHhsg4Pj7wxNUIOd7pS/3U/h0I3kMBM24YT5F14ArQwPtSRlWoOqwRkuV1kMsnwn3GWDfDo39vBeFSO",
+	"B/zv0fFgPD4+nkzG4yzLss3CbSvLfXUVb3C78mddKVZo7EevErD4tZUWS8ivIRQM+UmH++YpRd/eoSB/",
+	"QMfQR1kT2hdY5B2LsxAk1Tx1yK2opJozHSL3MPtO5D1gZ1a3pg/ohM39BhMVp9ShfUDL9Iy1Du0eEFu5",
+	"m1iuKumYdIwzQke+kVB2+BZt36Jbg80tWreVeP02V9wkIAmbkNur2y1wa/livz+uun4if+8xySZZzx3c",
+	"vKTNS5YJmz/qlde72AHll6Sa6T6eqwrZBToa1PIe2cn5lM20ZVQhu0RB2jJuTC0F9+EeWjSVg/x6Ca2t",
+	"IYf0YZRyI2HluZAUAMZcSMDHxoNGw2yYeXq0QeXjc/grLCVgOFWh09T/mWOYV56BcOq09LQhXWhN4PVx",
+	"RisXqTnKMv9PaEUYx9wG3PTORWPHgbjhmE1atum4bIVA5wKHrm0abheQgz+afVCl0VJR2Eu7W58uZbmK",
+	"rNZIuA28gByKsN7NkdPFtIBkp7V9EYZb3iCtid7GOC38nV6PHdJsjuSlkX7Tc7k2bR4N/Oxosi0mG3T8",
+	"7InsLfCKPoSPlJqay/3KPFXqKbN+WX3jjkWyy+GOTJHJp9fa6YJNC++4nqOK6KhDqvS2f19JDl+ZPy3O",
+	"IIc/0uePjLT7wkjXnxeH5JJUMWdQyJnEkk2LXdHOkHYV8/erQl5TdWgefIoRv9Bx51P/EoxIFjuw4+ns",
+	"/wrFvU9efQ8AAP//WgXOUIYJAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

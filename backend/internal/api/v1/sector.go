@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"berty.tech/go-orbit-db/iface"
+	"github.com/oapi-codegen/runtime/types"
 	"go.uber.org/zap"
 )
 
@@ -16,9 +18,30 @@ type SectorAPI struct {
 	DB     *database.Database
 }
 
+// DeleteAccountByID implements ServerInterface.
+func (s *SectorAPI) DeleteAccountByID(w http.ResponseWriter, r *http.Request, id types.UUID) {
+	_, err := s.DB.Store.Delete(context.Background(), id.String())
+	if err != nil {
+		panic(err)
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetAccountByID implements ServerInterface.
+func (s *SectorAPI) GetAccountByID(w http.ResponseWriter, r *http.Request, id types.UUID) {
+	account, err := s.DB.Store.Get(context.Background(), id.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		panic(err)
+	}
+	// TODO: might need to do other things to get account return type to work with the openapi validation.
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(account)
+}
+
 // GetHealth implements ServerInterface.
 func (s *SectorAPI) GetHealth(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 // GetRoot implements ServerInterface.

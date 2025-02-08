@@ -45,7 +45,7 @@ func main() {
 
 	// Subrouter to validate requests to the /v1/api/
 	v1.HandlerWithOptions(sectorAPI, v1.GorillaServerOptions{
-		BaseURL:     "/v1/api/",
+		BaseURL:     "/v1/api",
 		BaseRouter:  r,
 		Middlewares: []v1.MiddlewareFunc{oapimiddleware.OapiRequestValidator(swaggerV1)},
 	})
