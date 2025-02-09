@@ -137,6 +137,7 @@ export interface components {
             members: string[];
             channels: string[];
         };
+        /** @description A set of messages within a Group, typically organized by topic. */
         Channel: {
             /** Format: uuid */
             id: string;
@@ -144,9 +145,12 @@ export interface components {
             created_at?: string;
             /** @example Main */
             name: string;
+            /** @example General conversations go here. */
+            description?: string;
             messages: string[];
             pinned_messages: string[];
         };
+        /** @description A message that is sent in a group. */
         Message: {
             /** Format: uuid */
             id: string;
@@ -155,6 +159,46 @@ export interface components {
             /** Format: uuid */
             author: string;
             body: string;
+        };
+        /** @description An object that is posted to the backend to query for accounts based on filter criteria. */
+        AccountFilter: {
+            ids?: string[];
+            /** Format: date-time */
+            from?: string;
+            /** Format: date-time */
+            until?: string;
+            username?: string;
+        };
+        /** @description An object that is posted to the backend to query for groups based on filter criteria. */
+        GroupFilter: {
+            id?: string[];
+            /** Format: date-time */
+            from?: string;
+            /** Format: date-time */
+            until?: string;
+            /** @example Testing */
+            name?: string;
+        };
+        /** @description An object that is posted to the backend to query for channels based on filter criteria. */
+        ChannelFilter: {
+            id?: string[];
+            /** Format: date-time */
+            from?: string;
+            /** Format: date-time */
+            until?: string;
+            /** @example Main */
+            name?: string;
+        };
+        /** @description An object that is posted to the backend to query for messages based on filter criteria. */
+        MessageFilter: {
+            id?: string[];
+            /** Format: date-time */
+            from?: string;
+            /** Format: date-time */
+            until?: string;
+            /** Format: uuid */
+            author?: string;
+            body?: string;
         };
     };
     responses: never;

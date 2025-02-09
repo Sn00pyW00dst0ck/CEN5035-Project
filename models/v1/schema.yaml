@@ -136,6 +136,8 @@ components:
         - channels
 
     Channel:
+      description: A set of messages within a Group, typically organized by topic.
+      type: object
       properties:
         id: 
           type: string
@@ -146,6 +148,9 @@ components:
         name:
           type: string
           example: Main  
+        description: 
+          type: string
+          example: General conversations go here.
         messages:
           type: array
           items: 
@@ -163,6 +168,8 @@ components:
         - pinned_messages
     
     Message:
+      description: A message that is sent in a group.
+      type: object
       properties:
         id: 
           type: string
@@ -179,5 +186,81 @@ components:
         - id
         - author
         - body
-        
-    # TODO: filter types for the above for easy searching...
+    
+    AccountFilter: 
+      description: An object that is posted to the backend to query for accounts based on filter criteria.
+      type: object
+      properties:
+        ids:
+          type: array
+          items: 
+            type: string
+            format: uuid
+        from:   # Accounts created from this date
+          type: string
+          format: date-time
+        until:     # Accounts created until this date.
+          type: string
+          format: date-time
+        username: 
+          type: string
+          exmaple: John
+    
+    GroupFilter:
+      description: An object that is posted to the backend to query for groups based on filter criteria.
+      type: object
+      properties:
+        id:
+          type: array
+          items: 
+            type: string
+            format: uuid
+        from:
+          type: string
+          format: date-time
+        until:
+          type: string
+          format: date-time
+        name: 
+          type: string
+          example: Testing
+      
+    ChannelFilter:
+      description: An object that is posted to the backend to query for channels based on filter criteria.
+      type: object
+      properties:
+        id:
+          type: array
+          items:
+            type: string
+            format: uuid
+        from:
+          type: string
+          format: date-time
+        until:
+          type: string
+          format: date-time
+        name: 
+          type: string
+          example: Main
+    
+    MessageFilter:
+      description: An object that is posted to the backend to query for messages based on filter criteria.
+      type: object
+      properties:
+        id:
+          type: array
+          items:
+            type: string
+            format: uuid
+        from:
+          type: string
+          format: date-time
+        until:
+          type: string
+          format: date-time
+        author: 
+          type: string
+          format: uuid
+        body: 
+          type: string

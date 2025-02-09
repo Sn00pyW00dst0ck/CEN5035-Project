@@ -28,13 +28,30 @@ type Account struct {
 	Username   string             `json:"username"`
 }
 
-// Channel defines model for Channel.
+// AccountFilter An object that is posted to the backend to query for accounts based on filter criteria.
+type AccountFilter struct {
+	From     *time.Time            `json:"from,omitempty"`
+	Ids      *[]openapi_types.UUID `json:"ids,omitempty"`
+	Until    *time.Time            `json:"until,omitempty"`
+	Username *string               `json:"username,omitempty"`
+}
+
+// Channel A set of messages within a Group, typically organized by topic.
 type Channel struct {
 	CreatedAt      *time.Time           `json:"created_at,omitempty"`
+	Description    *string              `json:"description,omitempty"`
 	Id             openapi_types.UUID   `json:"id"`
 	Messages       []openapi_types.UUID `json:"messages"`
 	Name           string               `json:"name"`
 	PinnedMessages []openapi_types.UUID `json:"pinned_messages"`
+}
+
+// ChannelFilter An object that is posted to the backend to query for channels based on filter criteria.
+type ChannelFilter struct {
+	From  *time.Time            `json:"from,omitempty"`
+	Id    *[]openapi_types.UUID `json:"id,omitempty"`
+	Name  *string               `json:"name,omitempty"`
+	Until *time.Time            `json:"until,omitempty"`
 }
 
 // Group A group chat/server of users.
@@ -47,12 +64,29 @@ type Group struct {
 	Name        string             `json:"name"`
 }
 
-// Message defines model for Message.
+// GroupFilter An object that is posted to the backend to query for groups based on filter criteria.
+type GroupFilter struct {
+	From  *time.Time            `json:"from,omitempty"`
+	Id    *[]openapi_types.UUID `json:"id,omitempty"`
+	Name  *string               `json:"name,omitempty"`
+	Until *time.Time            `json:"until,omitempty"`
+}
+
+// Message A message that is sent in a group.
 type Message struct {
 	Author    openapi_types.UUID `json:"author"`
 	Body      string             `json:"body"`
 	CreatedAt *time.Time         `json:"created_at,omitempty"`
 	Id        openapi_types.UUID `json:"id"`
+}
+
+// MessageFilter An object that is posted to the backend to query for messages based on filter criteria.
+type MessageFilter struct {
+	Author *openapi_types.UUID   `json:"author,omitempty"`
+	Body   *string               `json:"body,omitempty"`
+	From   *time.Time            `json:"from,omitempty"`
+	Id     *[]openapi_types.UUID `json:"id,omitempty"`
+	Until  *time.Time            `json:"until,omitempty"`
 }
 
 // ServerInterface represents all server handlers.
@@ -285,20 +319,23 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9xWzW7jNhB+FWLao2zJWzttdcuuitQFFgiS9BQYAS2NLSYSyZKjNIahdy8oyj+yBMct",
-	"kksvhixyODPfj4ZbSFWplURJFuIt2DTHkjeP12mqKknuMUObGqFJKAkx/GnRsHaVJUhcFHYMAWijNBoS",
-	"2ISnBjlh9sSbE1bKlO4JMk44IlEiBEAbjRCDJSPkGuoAROb24hsvdeFWZrMIf5lG0Qi//LocTSfZdMR/",
-	"nlyNptOrq9lsOo2iKILgcHhViWzoXG3UShT4pEXaKWYpJDeboYjKopG8xG49f6hcskQN1F4HYPCvShjM",
-	"IH6Epoz9Gd0CFvtgtXzGlFy6bzmXEguX7aNQfBeUEq3la59GEJb2oqj2BTeGb9z/PkjfuZCDJAgpMXv6",
-	"iLRDaLdI74/vJ1zUAdwYVem+pK/Z2i2wNOcUWjSvaJhaMcfgkLQ9W90W3kXqv1DZqfIY5IdcWCYs44zQ",
-	"kpBr38D4Eldd4pgSyyUa2wl8vMyPi+BfgNKXz0Pbj2fqIqO11B+DdeggONA15LzvXh195/GKcmUuEudS",
-	"ZZvBbj/NvUMotAW35Sxqt0nIleqr/SFHdoeWRoV4QXZ9O2crZRjlyO4xJWUY17oQKXfbnaK8ISzEj1uo",
-	"TAExhK+TkGsBtYNUUEOcj4UA3F6faDKOxpFrSmmUbn8MPzWvAtCc8gbn0P2ssUHI4d9knWcQww3SnVIE",
-	"rlerlbSemC9R1JhQSUI/no7KDZ+tt4ofZEes7CivT20F91WaorUNqrYqSzcSYnCp2W8y00pIatZC7mde",
-	"uBVZ7VEtkLBbeAIxJM37dkJ+3cwTCE5aG9qhueEl0g7obo3zxH2P2gIYKbZGctQIt+iw3Nkg9mI4qINM",
-	"hcERHB89XZ0E3uGH8I1CXbi5MMTM/qQeM7tLxt/cMg92Nj6hySO5v4583bB54hTXU1TiFXWOld7y/5eS",
-	"85b50eAKYvghPFwOw/ZmGO6uhefoEpQzqzEVK4EZmyenpN0gnTLm/JUjLyg/9z343e/4RMXdzt1Y9ZVs",
-	"Tsr22dm3HNMXF1z/EwAA//8Q+Jx1PgsAAA==",
+	"H4sIAAAAAAAC/9xYX2/bNhD/Kgduj7KldE636S2tt8wDChRt9hQEAU2dLTYSyZKntFqQ7z6QVGwrUhJn",
+	"dQpsL4Ej/rm73x8dqRsmdG20QkWO5TfMiRJrHn6eCKEbRf5ngU5YaUhqxXL2l0ML3SjMkbis3JQlzFht",
+	"0JLEsFxY5ITFJQ87rLSt/S9WcMIJyRpZwqg1yHLmyEq1ZrcJk4Wfi195bSo/cnyc4S+zLJvgq1+Xk9lR",
+	"MZvwn49eT2az16+Pj2ezLMsylmw3bxpZjO1rrF7JCi+NFL1kllJx246taBxaxWvs5/OnLhXM9Ujutwmz",
+	"+LmRFguWn7OQxmaPfgIXm8V6+QkF+XAdmr/LitAOET9REOcClZxAOjDaERZAGqhEWHJxhSr8+7lB28JK",
+	"W+BxTwdL7rAArWAVtgdhJaGVfMjZyur6OWyFRZKwdr1VD9HQPeDW8jaArEhW+8frc1LzLSejfAxAflty",
+	"pbAagRccEugV1OgcX6ODL5JKqYDDqdWNSYBaIwWvqha0XXMl/8YCli2QNlIcRvq9jHY1d4oKLa9AaHWN",
+	"1nE/w8FaQ4kWpw+76Ek27or9Ng6HJnnHpRo1oVQKi8tDhB1zW+e0zfbDgBcPa+KgxhNxz5c03vfi7FkO",
+	"HfNc8M+Y49Z+wENFqUN7jdb7zzt8rJV0gPaqfrLKg7rwrJTO08+B0JFU61jAdJ8utk+HqrFeonW9hef7",
+	"9b+L5BmgDKk/6+qJTO3V2Dqr7YK1rSDZ0nXxkCAOardAxH/JbB3iL+K3d/FlN+a47j24gdahIghNbiPl",
+	"Pk68oVLbvYpe6qId1d+/PwU+EXNMl13CXToXD8NzUP1tDg37K/AQyH5fFX+jMP0jqVZ6CPlZifABHU0q",
+	"eYVw8n4RMPVgf0RB/hhrTCVFOPZ4IGOzcCw/v2GNrVjO0uujlBvJbj3hkoLF4lqWMD83BjqaZtPMl6IN",
+	"Kj8/Zz+FRwkznMoAS+r/rDFo1fMVoi6KcAqjD1oT86pzRisXiXyVZaFBaUUYr0o76aafXGwj8VK1w+Iu",
+	"LH04PjZCoHMBQ9fUtb+e5MyHht9UYbRUFMbS7nSf3sjiNqJaIWE/8TnL2Tw87+4Xb9rFnCX3ShubYbjl",
+	"NdId0P0cF3Pfq7sEvBfWSJ4a6Qc9lnctIo+23PqUbIPJDhyHvul5CTzBD+FXSk3lzztjzGx2GjBzd+H9",
+	"wh1EsIvpPZoikpur8ZsWFnOvuIGi5lFRj7EyGP7/UvK4ZX60uGI5+yHdfqhIu68U6d0nisfoklSCMyjk",
+	"SmIBi/l90k6R7jPm/VUir6h87H3wR5zxgop7v/AtKGbS3ks7Roe3JYorv/j2nwAAAP//dxZj9coRAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
