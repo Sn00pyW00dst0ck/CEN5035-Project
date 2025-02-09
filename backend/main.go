@@ -4,6 +4,7 @@ import (
 	v1 "app/internal/api/v1"
 	"app/internal/middleware"
 	"context"
+	"embed"
 	"encoding/json"
 	"flag"
 	"log"
@@ -14,6 +15,9 @@ import (
 	"github.com/gorilla/mux"
 	oapimiddleware "github.com/oapi-codegen/nethttp-middleware"
 )
+
+//go:embed swagger-ui.html
+var swaggerUI embed.FS
 
 func main() {
 	port := flag.String("port", "3000", "Port for HTTP server")
@@ -41,6 +45,17 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(swaggerV1)
+	})
+
+	// Serve the Swagger UI using a CDN
+	r.HandleFunc("/v1/swagger-ui/", func(w http.ResponseWriter, r *http.Request) {
+		data, err := swaggerUI.ReadFile("swagger-ui.html")
+		if err != nil {
+			http.Error(w, "swagger.html not found", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(data))
 	})
 
 	// Subrouter to validate requests to the /v1/api/
