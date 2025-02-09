@@ -7,10 +7,10 @@ toolchain go1.23.4
 require (
 	berty.tech/go-orbit-db v1.22.1
 	github.com/getkin/kin-openapi v0.124.0
-	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
 	github.com/ipfs/kubo v0.27.0
 	github.com/libp2p/go-libp2p v0.33.0
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/oapi-codegen/runtime v1.1.1
 	go.uber.org/zap v1.27.0
 )

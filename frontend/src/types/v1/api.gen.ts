@@ -38,6 +38,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create or update an account */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Account details to add/update. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            responses: {
+                /** @description Account creation successful. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Account"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/{id}": {
         parameters: {
             query?: never;
@@ -115,7 +156,7 @@ export interface components {
             created_at?: string;
             /** @example John Doe */
             username: string;
-            /** Format: binary */
+            /** Format: base64 */
             profile_pic: string;
         };
         /** @description A group chat/server of users. */

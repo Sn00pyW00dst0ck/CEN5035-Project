@@ -30,6 +30,24 @@ paths:
             text/plain:
               schema:
                 type: string
+  "/account/":
+    post:
+      summary: Create or update an account
+      operationID: PutAccount
+      requestBody:
+        description: Account details to add/update.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        "200":
+          description: Account creation successful.
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
   "/account/{id}":
     get: 
       summary: Get Account By ID
@@ -96,7 +114,7 @@ components:
           example: John Doe
         profile_pic: 
           type: string
-          format: binary
+          format: base64
       required: 
         - id
         - username
