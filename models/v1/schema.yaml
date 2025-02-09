@@ -88,25 +88,19 @@ components:
           type: string
           format: uuid
           example: "550e8400-e29b-41d4-a716-446655440000"
-        name:
+        created_at: 
+          type: string
+          format: date-time
+        username:
           type: string
           example: John Doe
-        email:
+        profile_pic: 
           type: string
-          format: email
-          example: john@example.com
+          format: binary
       required: 
         - id
-        - name
-        - email
-    
-    AccountFilter:
-      description: User account filtering/searching options.
-      type: object
-      properties:
-        name: 
-          type: string
-          example: John Doe
+        - username
+        - profile_pic
 
     Group:
       description: A group chat/server of users.
@@ -116,6 +110,9 @@ components:
           type: string
           format: uuid
           example: ""
+        created_at: 
+          type: string
+          format: date-time
         name: 
           type: string
           example: Testing Group
@@ -127,11 +124,17 @@ components:
           items:
             type: string
           example: ["550e8400-e29b-41d4-a716-446655440000"]
+        channels:
+          type: array
+          items:
+            type: string
+          
       required: 
         - id
         - name
         - description
         - members
+        - channels
 
     GroupFilter:
       description: Group filtering/searching options.

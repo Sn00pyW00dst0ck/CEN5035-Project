@@ -111,18 +111,12 @@ export interface components {
              * @example 550e8400-e29b-41d4-a716-446655440000
              */
             id: string;
+            /** Format: date-time */
+            created_at?: string;
             /** @example John Doe */
-            name: string;
-            /**
-             * Format: email
-             * @example john@example.com
-             */
-            email: string;
-        };
-        /** @description User account filtering/searching options. */
-        AccountFilter: {
-            /** @example John Doe */
-            name?: string;
+            username: string;
+            /** Format: binary */
+            profile_pic: string;
         };
         /** @description A group chat/server of users. */
         Group: {
@@ -131,6 +125,8 @@ export interface components {
              * @example
              */
             id: string;
+            /** Format: date-time */
+            created_at?: string;
             /** @example Testing Group */
             name: string;
             /** @example This is a testing group. */
@@ -139,6 +135,7 @@ export interface components {
              *       "550e8400-e29b-41d4-a716-446655440000"
              *     ] */
             members: string[];
+            channels: string[];
         };
         /** @description Group filtering/searching options. */
         GroupFilter: {

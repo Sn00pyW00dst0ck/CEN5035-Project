@@ -12,6 +12,7 @@ import (
 	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	oapimiddleware "github.com/oapi-codegen/nethttp-middleware"
 )
@@ -67,7 +68,7 @@ func main() {
 
 	// Serve HTTP
 	s := &http.Server{
-		Handler: r,
+		Handler: handlers.CORS()(r),
 		Addr:    net.JoinHostPort("127.0.0.1", *port),
 	}
 	log.Fatal(s.ListenAndServe())
