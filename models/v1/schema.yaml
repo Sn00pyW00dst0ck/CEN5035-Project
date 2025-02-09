@@ -128,7 +128,6 @@ components:
           type: array
           items:
             type: string
-          
       required: 
         - id
         - name
@@ -136,10 +135,49 @@ components:
         - members
         - channels
 
-    GroupFilter:
-      description: Group filtering/searching options.
-      type: object
+    Channel:
       properties:
-        name: 
+        id: 
           type: string
-          example: Testing Group
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        name:
+          type: string
+          example: Main  
+        messages:
+          type: array
+          items: 
+            type: string
+            format: uuid
+        pinned_messages:
+          type: array
+          items: 
+            type: string
+            format: uuid
+      required:
+        - id
+        - name
+        - messages
+        - pinned_messages
+    
+    Message:
+      properties:
+        id: 
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        author: 
+          type: string
+          format: uuid
+        body: 
+          type: string
+      required:
+        - id
+        - author
+        - body
+        
+    # TODO: filter types for the above for easy searching...

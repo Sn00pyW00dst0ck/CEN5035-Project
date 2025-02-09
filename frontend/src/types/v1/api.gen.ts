@@ -137,10 +137,24 @@ export interface components {
             members: string[];
             channels: string[];
         };
-        /** @description Group filtering/searching options. */
-        GroupFilter: {
-            /** @example Testing Group */
-            name?: string;
+        Channel: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            created_at?: string;
+            /** @example Main */
+            name: string;
+            messages: string[];
+            pinned_messages: string[];
+        };
+        Message: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: uuid */
+            author: string;
+            body: string;
         };
     };
     responses: never;

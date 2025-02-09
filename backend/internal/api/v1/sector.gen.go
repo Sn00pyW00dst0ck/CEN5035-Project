@@ -28,6 +28,15 @@ type Account struct {
 	Username   string             `json:"username"`
 }
 
+// Channel defines model for Channel.
+type Channel struct {
+	CreatedAt      *time.Time           `json:"created_at,omitempty"`
+	Id             openapi_types.UUID   `json:"id"`
+	Messages       []openapi_types.UUID `json:"messages"`
+	Name           string               `json:"name"`
+	PinnedMessages []openapi_types.UUID `json:"pinned_messages"`
+}
+
 // Group A group chat/server of users.
 type Group struct {
 	Channels    []string           `json:"channels"`
@@ -38,9 +47,12 @@ type Group struct {
 	Name        string             `json:"name"`
 }
 
-// GroupFilter Group filtering/searching options.
-type GroupFilter struct {
-	Name *string `json:"name,omitempty"`
+// Message defines model for Message.
+type Message struct {
+	Author    openapi_types.UUID `json:"author"`
+	Body      string             `json:"body"`
+	CreatedAt *time.Time         `json:"created_at,omitempty"`
+	Id        openapi_types.UUID `json:"id"`
 }
 
 // ServerInterface represents all server handlers.
@@ -273,19 +285,20 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"Tsr22dm3HNMXF1z/EwAA//8Q+Jx1PgsAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
