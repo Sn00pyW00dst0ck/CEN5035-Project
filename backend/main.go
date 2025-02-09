@@ -11,8 +11,9 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/rs/cors"
+
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	oapimiddleware "github.com/oapi-codegen/nethttp-middleware"
 )
@@ -66,9 +67,14 @@ func main() {
 		Middlewares: []v1.MiddlewareFunc{oapimiddleware.OapiRequestValidator(swaggerV1)},
 	})
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:8000"},
+		AllowCredentials: true,
+	})
+
 	// Serve HTTP
 	s := &http.Server{
-		Handler: handlers.CORS()(r),
+		Handler: c.Handler(r),
 		Addr:    net.JoinHostPort("127.0.0.1", *port),
 	}
 	log.Fatal(s.ListenAndServe())
