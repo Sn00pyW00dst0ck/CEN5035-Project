@@ -87,7 +87,6 @@ paths:
             text/plain:
               schema:
                 type: string
-    # TODO: PUT/POST request at this endpoint for updating or creating an account.
 
   # TODO: below should be a route that takes a POST request of AccountFilter object and returns a list of accounts that satisfies the request 
   #       maybe we paginate the response? maybe not.
