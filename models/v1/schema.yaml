@@ -74,19 +74,15 @@ paths:
       parameters:
         - in: path
           name: id
-          description: ID of account to get.
+          description: ID of account to delete.
           required: true
           schema:
             type: string
             format: uuid
             example: "550e8400-e29b-41d4-a716-446655440000"
       responses: 
-        "200":
+        "204":
           description: Account was deleted.
-          content:
-            text/plain:
-              schema:
-                type: string
 
   # TODO: below should be a route that takes a POST request of AccountFilter object and returns a list of accounts that satisfies the request 
   #       maybe we paginate the response? maybe not.
@@ -114,6 +110,11 @@ components:
         profile_pic: 
           type: string
           format: base64
+        friends:
+          type: array
+          items:
+            type: string
+            format: uuid
       required: 
         - id
         - username

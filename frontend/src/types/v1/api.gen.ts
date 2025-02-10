@@ -118,7 +118,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    /** @description ID of account to get. */
+                    /** @description ID of account to delete. */
                     id: string;
                 };
                 cookie?: never;
@@ -126,13 +126,11 @@ export interface paths {
             requestBody?: never;
             responses: {
                 /** @description Account was deleted. */
-                200: {
+                204: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "text/plain": string;
-                    };
+                    content?: never;
                 };
             };
         };
@@ -158,6 +156,7 @@ export interface components {
             username: string;
             /** Format: base64 */
             profile_pic: string;
+            friends?: string[];
         };
         /** @description A group chat/server of users. */
         Group: {
