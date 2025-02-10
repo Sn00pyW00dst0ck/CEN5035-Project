@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"berty.tech/go-orbit-db/iface"
-	"github.com/mitchellh/mapstructure"
 	"github.com/oapi-codegen/runtime/types"
 	"go.uber.org/zap"
 )
@@ -95,7 +94,7 @@ func NewSector(ctx context.Context, logfile, dbCache, dbConnectionString string)
 	if err != nil {
 		panic(err)
 	}
-	defer db.Disconnect()
+	// defer db.Disconnect() (TODO: FIGURE OUT WHEN TO CALL DISCONNECT)
 
 	err = db.Connect(func(address string) {
 		fmt.Println("Connected: ", address)
@@ -110,8 +109,14 @@ func NewSector(ctx context.Context, logfile, dbCache, dbConnectionString string)
 	}
 }
 
+// Whenever we want to convert a struct to a thing to put into the database use this.
 func StructToMap(obj interface{}) map[string]interface{} {
+	// Marshal struct to JSON
+	data, _ := json.Marshal(obj)
+
+	// Unmarshal JSON into a map
 	var result map[string]interface{}
-	mapstructure.Decode(obj, &result)
+	json.Unmarshal(data, &result)
+
 	return result
 }
