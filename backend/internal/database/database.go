@@ -68,7 +68,7 @@ func (db *Database) init() error {
 
 	storetype := "docstore"
 	db.Logger.Debug("Initializing OrbitDB.Docs ...")
-	db.Store, err = db.OrbitDB.Docs(ctx, db.ConnectionString, &orbitdb.CreateDBOptions{
+	db.Store, err = db.OrbitDB.Docs(ctx, db.URI, &orbitdb.CreateDBOptions{
 		AccessController:  ac,
 		StoreType:         &storetype,
 		StoreSpecificOpts: documentstore.DefaultStoreOptsForMap("id"),
@@ -120,12 +120,12 @@ func (db *Database) connectToPeers() error {
 	return nil
 }
 
-func NewDatabase(ctx context.Context, dbConnectionString string, dbLocalPath string, logger *zap.Logger) (*Database, error) {
+func NewDatabase(ctx context.Context, dbLocalPath string, logger *zap.Logger) (*Database, error) {
 	var err error
 
 	db := new(Database)
 	db.ctx = ctx
-	db.ConnectionString = dbConnectionString
+	db.ConnectionString = db.URI
 	db.LocalPath = dbLocalPath
 	db.Logger = logger
 

@@ -82,7 +82,7 @@ func (s *SectorAPI) GetRoot(w http.ResponseWriter, r *http.Request) {
 var _ ServerInterface = (*SectorAPI)(nil)
 
 // Create a new Sector API instance
-func NewSector(ctx context.Context, logfile, dbCache, dbConnectionString string) *SectorAPI {
+func NewSector(ctx context.Context, logfile, dbCache string) *SectorAPI {
 	// Setup the logger
 	logger, err := logger.NewLogger(logfile)
 	if err != nil {
@@ -90,7 +90,7 @@ func NewSector(ctx context.Context, logfile, dbCache, dbConnectionString string)
 	}
 
 	// Setup the database
-	db, err := database.NewDatabase(ctx, dbConnectionString, dbCache, logger)
+	db, err := database.NewDatabase(ctx, dbCache, logger)
 	if err != nil {
 		panic(err)
 	}
