@@ -36,7 +36,7 @@ func main() {
 	fixSwaggerPrefix("/v1/api", swaggerV1)
 
 	// Create an instance of the handler which satisfies the generated interface
-	sectorAPI := v1.NewSector(context.WithoutCancel(openapi3.NewLoader().Context), "log.txt", "cache", "/orbitdb/bafyreiejrtaennxufa3wvkdvyoj6ywq6nid3lukdqcnx2fc33tckzjzbke/sectordb")
+	sectorAPI := v1.NewSector(context.WithoutCancel(openapi3.NewLoader().Context), "log.txt", "cache")
 
 	// Setup the gorilla mux server with logging.
 	r := mux.NewRouter().StrictSlash(true)
