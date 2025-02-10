@@ -60,7 +60,7 @@ func (db *Database) init() error {
 		},
 	}
 
-	addr, err := db.OrbitDB.DetermineAddress(db.ctx, "database", "docstore", &orbitdb.DetermineAddressOptions{})
+	addr, err := db.OrbitDB.DetermineAddress(db.ctx, "sectordb", "docstore", &orbitdb.DetermineAddressOptions{})
 	if err != nil {
 		return err
 	}

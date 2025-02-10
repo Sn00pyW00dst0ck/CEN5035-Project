@@ -38,6 +38,107 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create or update an account */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Account details to add/update. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            responses: {
+                /** @description Account creation successful. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Account"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Account By ID */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of account to get. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Account with specified ID. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Account"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Delete Account By ID */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of account to delete. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Account was deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -49,18 +150,13 @@ export interface components {
              * @example 550e8400-e29b-41d4-a716-446655440000
              */
             id: string;
+            /** Format: date-time */
+            created_at?: string;
             /** @example John Doe */
-            name: string;
-            /**
-             * Format: email
-             * @example john@example.com
-             */
-            email: string;
-        };
-        /** @description User account filtering/searching options. */
-        AccountFilter: {
-            /** @example John Doe */
-            name?: string;
+            username: string;
+            /** Format: base64 */
+            profile_pic: string;
+            friends?: string[];
         };
         /** @description A group chat/server of users. */
         Group: {
@@ -69,6 +165,8 @@ export interface components {
              * @example
              */
             id: string;
+            /** Format: date-time */
+            created_at?: string;
             /** @example Testing Group */
             name: string;
             /** @example This is a testing group. */
@@ -77,11 +175,70 @@ export interface components {
              *       "550e8400-e29b-41d4-a716-446655440000"
              *     ] */
             members: string[];
+            channels: string[];
         };
-        /** @description Group filtering/searching options. */
+        /** @description A set of messages within a Group, typically organized by topic. */
+        Channel: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            created_at?: string;
+            /** @example Main */
+            name: string;
+            /** @example General conversations go here. */
+            description?: string;
+            messages: string[];
+            pinned_messages: string[];
+        };
+        /** @description A message that is sent in a group. */
+        Message: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: uuid */
+            author: string;
+            body: string;
+        };
+        /** @description An object that is posted to the backend to query for accounts based on filter criteria. */
+        AccountFilter: {
+            ids?: string[];
+            /** Format: date-time */
+            from?: string;
+            /** Format: date-time */
+            until?: string;
+            username?: string;
+        };
+        /** @description An object that is posted to the backend to query for groups based on filter criteria. */
         GroupFilter: {
-            /** @example Testing Group */
+            id?: string[];
+            /** Format: date-time */
+            from?: string;
+            /** Format: date-time */
+            until?: string;
+            /** @example Testing */
             name?: string;
+        };
+        /** @description An object that is posted to the backend to query for channels based on filter criteria. */
+        ChannelFilter: {
+            id?: string[];
+            /** Format: date-time */
+            from?: string;
+            /** Format: date-time */
+            until?: string;
+            /** @example Main */
+            name?: string;
+        };
+        /** @description An object that is posted to the backend to query for messages based on filter criteria. */
+        MessageFilter: {
+            id?: string[];
+            /** Format: date-time */
+            from?: string;
+            /** Format: date-time */
+            until?: string;
+            /** Format: uuid */
+            author?: string;
+            body?: string;
         };
     };
     responses: never;

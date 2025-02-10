@@ -12,42 +12,101 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Account User Account Details.
 type Account struct {
-	Email openapi_types.Email `json:"email"`
-	Id    openapi_types.UUID  `json:"id"`
-	Name  string              `json:"name"`
+	CreatedAt  *time.Time            `json:"created_at,omitempty"`
+	Friends    *[]openapi_types.UUID `json:"friends,omitempty"`
+	Id         openapi_types.UUID    `json:"id"`
+	ProfilePic string                `json:"profile_pic"`
+	Username   string                `json:"username"`
 }
 
-// AccountFilter User account filtering/searching options.
+// AccountFilter An object that is posted to the backend to query for accounts based on filter criteria.
 type AccountFilter struct {
-	Name *string `json:"name,omitempty"`
+	From     *time.Time            `json:"from,omitempty"`
+	Ids      *[]openapi_types.UUID `json:"ids,omitempty"`
+	Until    *time.Time            `json:"until,omitempty"`
+	Username *string               `json:"username,omitempty"`
+}
+
+// Channel A set of messages within a Group, typically organized by topic.
+type Channel struct {
+	CreatedAt      *time.Time           `json:"created_at,omitempty"`
+	Description    *string              `json:"description,omitempty"`
+	Id             openapi_types.UUID   `json:"id"`
+	Messages       []openapi_types.UUID `json:"messages"`
+	Name           string               `json:"name"`
+	PinnedMessages []openapi_types.UUID `json:"pinned_messages"`
+}
+
+// ChannelFilter An object that is posted to the backend to query for channels based on filter criteria.
+type ChannelFilter struct {
+	From  *time.Time            `json:"from,omitempty"`
+	Id    *[]openapi_types.UUID `json:"id,omitempty"`
+	Name  *string               `json:"name,omitempty"`
+	Until *time.Time            `json:"until,omitempty"`
 }
 
 // Group A group chat/server of users.
 type Group struct {
+	Channels    []string           `json:"channels"`
+	CreatedAt   *time.Time         `json:"created_at,omitempty"`
 	Description string             `json:"description"`
 	Id          openapi_types.UUID `json:"id"`
 	Members     []string           `json:"members"`
 	Name        string             `json:"name"`
 }
 
-// GroupFilter Group filtering/searching options.
+// GroupFilter An object that is posted to the backend to query for groups based on filter criteria.
 type GroupFilter struct {
-	Name *string `json:"name,omitempty"`
+	From  *time.Time            `json:"from,omitempty"`
+	Id    *[]openapi_types.UUID `json:"id,omitempty"`
+	Name  *string               `json:"name,omitempty"`
+	Until *time.Time            `json:"until,omitempty"`
 }
+
+// Message A message that is sent in a group.
+type Message struct {
+	Author    openapi_types.UUID `json:"author"`
+	Body      string             `json:"body"`
+	CreatedAt *time.Time         `json:"created_at,omitempty"`
+	Id        openapi_types.UUID `json:"id"`
+}
+
+// MessageFilter An object that is posted to the backend to query for messages based on filter criteria.
+type MessageFilter struct {
+	Author *openapi_types.UUID   `json:"author,omitempty"`
+	Body   *string               `json:"body,omitempty"`
+	From   *time.Time            `json:"from,omitempty"`
+	Id     *[]openapi_types.UUID `json:"id,omitempty"`
+	Until  *time.Time            `json:"until,omitempty"`
+}
+
+// PutAccountJSONRequestBody defines body for PutAccount for application/json ContentType.
+type PutAccountJSONRequestBody = Account
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Root Endpoint
 	// (GET /)
 	GetRoot(w http.ResponseWriter, r *http.Request)
+	// Create or update an account
+	// (POST /account/)
+	PutAccount(w http.ResponseWriter, r *http.Request)
+	// Delete Account By ID
+	// (DELETE /account/{id})
+	DeleteAccountByID(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Get Account By ID
+	// (GET /account/{id})
+	GetAccountByID(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// Health Check
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
@@ -67,6 +126,70 @@ func (siw *ServerInterfaceWrapper) GetRoot(w http.ResponseWriter, r *http.Reques
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetRoot(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutAccount operation middleware
+func (siw *ServerInterfaceWrapper) PutAccount(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutAccount(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteAccountByID operation middleware
+func (siw *ServerInterfaceWrapper) DeleteAccountByID(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", mux.Vars(r)["id"], &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteAccountByID(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAccountByID operation middleware
+func (siw *ServerInterfaceWrapper) GetAccountByID(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", mux.Vars(r)["id"], &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAccountByID(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -205,6 +328,12 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 
 	r.HandleFunc(options.BaseURL+"/", wrapper.GetRoot).Methods("GET")
 
+	r.HandleFunc(options.BaseURL+"/account/", wrapper.PutAccount).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/account/{id}", wrapper.DeleteAccountByID).Methods("DELETE")
+
+	r.HandleFunc(options.BaseURL+"/account/{id}", wrapper.GetAccountByID).Methods("GET")
+
 	r.HandleFunc(options.BaseURL+"/health", wrapper.GetHealth).Methods("GET")
 
 	return r
@@ -213,16 +342,25 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"sIN3OCswvXXGq38CAAD///VXbJGHEwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -30,6 +30,66 @@ paths:
             text/plain:
               schema:
                 type: string
+  "/account/":
+    post:
+      summary: Create or update an account
+      operationID: PutAccount
+      requestBody:
+        description: Account details to add/update.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        "200":
+          description: Account creation successful.
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+  "/account/{id}":
+    get: 
+      summary: Get Account By ID
+      operationID: GetAccountByID
+      parameters:
+        - in: path
+          name: id
+          description: ID of account to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses: 
+        "200":
+          description: Account with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+    delete:
+      summary: Delete Account By ID
+      operationID: DeleteAccountByID
+      parameters:
+        - in: path
+          name: id
+          description: ID of account to delete.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses: 
+        "204":
+          description: Account was deleted.
+
+  # TODO: below should be a route that takes a POST request of AccountFilter object and returns a list of accounts that satisfies the request 
+  #       maybe we paginate the response? maybe not.
+  #"/account/search":
+  #  post: 
+
+  # TODO: similar endpoints to above for groups and other data types.
 
 components:
   schemas:
@@ -41,25 +101,24 @@ components:
           type: string
           format: uuid
           example: "550e8400-e29b-41d4-a716-446655440000"
-        name:
+        created_at: 
+          type: string
+          format: date-time
+        username:
           type: string
           example: John Doe
-        email:
+        profile_pic: 
           type: string
-          format: email
-          example: john@example.com
+          format: base64
+        friends:
+          type: array
+          items:
+            type: string
+            format: uuid
       required: 
         - id
-        - name
-        - email
-    
-    AccountFilter:
-      description: User account filtering/searching options.
-      type: object
-      properties:
-        name: 
-          type: string
-          example: John Doe
+        - username
+        - profile_pic
 
     Group:
       description: A group chat/server of users.
@@ -69,6 +128,9 @@ components:
           type: string
           format: uuid
           example: ""
+        created_at: 
+          type: string
+          format: date-time
         name: 
           type: string
           example: Testing Group
@@ -80,16 +142,143 @@ components:
           items:
             type: string
           example: ["550e8400-e29b-41d4-a716-446655440000"]
+        channels:
+          type: array
+          items:
+            type: string
       required: 
         - id
         - name
         - description
         - members
+        - channels
 
-    GroupFilter:
-      description: Group filtering/searching options.
+    Channel:
+      description: A set of messages within a Group, typically organized by topic.
       type: object
       properties:
+        id: 
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        name:
+          type: string
+          example: Main  
+        description: 
+          type: string
+          example: General conversations go here.
+        messages:
+          type: array
+          items: 
+            type: string
+            format: uuid
+        pinned_messages:
+          type: array
+          items: 
+            type: string
+            format: uuid
+      required:
+        - id
+        - name
+        - messages
+        - pinned_messages
+    
+    Message:
+      description: A message that is sent in a group.
+      type: object
+      properties:
+        id: 
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        author: 
+          type: string
+          format: uuid
+        body: 
+          type: string
+      required:
+        - id
+        - author
+        - body
+    
+    AccountFilter: 
+      description: An object that is posted to the backend to query for accounts based on filter criteria.
+      type: object
+      properties:
+        ids:
+          type: array
+          items: 
+            type: string
+            format: uuid
+        from:   # Accounts created from this date
+          type: string
+          format: date-time
+        until:     # Accounts created until this date.
+          type: string
+          format: date-time
+        username: 
+          type: string
+          exmaple: John
+    
+    GroupFilter:
+      description: An object that is posted to the backend to query for groups based on filter criteria.
+      type: object
+      properties:
+        id:
+          type: array
+          items: 
+            type: string
+            format: uuid
+        from:
+          type: string
+          format: date-time
+        until:
+          type: string
+          format: date-time
         name: 
           type: string
-          example: Testing Group
+          example: Testing
+      
+    ChannelFilter:
+      description: An object that is posted to the backend to query for channels based on filter criteria.
+      type: object
+      properties:
+        id:
+          type: array
+          items:
+            type: string
+            format: uuid
+        from:
+          type: string
+          format: date-time
+        until:
+          type: string
+          format: date-time
+        name: 
+          type: string
+          example: Main
+    
+    MessageFilter:
+      description: An object that is posted to the backend to query for messages based on filter criteria.
+      type: object
+      properties:
+        id:
+          type: array
+          items:
+            type: string
+            format: uuid
+        from:
+          type: string
+          format: date-time
+        until:
+          type: string
+          format: date-time
+        author: 
+          type: string
+          format: uuid
+        body: 
+          type: string

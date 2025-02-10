@@ -11,6 +11,8 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/rs/cors"
+
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
 	oapimiddleware "github.com/oapi-codegen/nethttp-middleware"
@@ -34,7 +36,7 @@ func main() {
 	fixSwaggerPrefix("/v1/api", swaggerV1)
 
 	// Create an instance of the handler which satisfies the generated interface
-	sectorAPI := v1.NewSector(context.Background(), "log.txt", "cache", "/orbitdb/bafyreiejrtaennxufa3wvkdvyoj6ywq6nid3lukdqcnx2fc33tckzjzbke/sectordb")
+	sectorAPI := v1.NewSector(context.WithoutCancel(openapi3.NewLoader().Context), "log.txt", "cache", "/orbitdb/bafyreiejrtaennxufa3wvkdvyoj6ywq6nid3lukdqcnx2fc33tckzjzbke/sectordb")
 
 	// Setup the gorilla mux server with logging.
 	r := mux.NewRouter().StrictSlash(true)
@@ -60,14 +62,19 @@ func main() {
 
 	// Subrouter to validate requests to the /v1/api/
 	v1.HandlerWithOptions(sectorAPI, v1.GorillaServerOptions{
-		BaseURL:     "/v1/api/",
+		BaseURL:     "/v1/api",
 		BaseRouter:  r,
 		Middlewares: []v1.MiddlewareFunc{oapimiddleware.OapiRequestValidator(swaggerV1)},
 	})
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:8000"},
+		AllowCredentials: true,
+	})
+
 	// Serve HTTP
 	s := &http.Server{
-		Handler: r,
+		Handler: c.Handler(r),
 		Addr:    net.JoinHostPort("127.0.0.1", *port),
 	}
 	log.Fatal(s.ListenAndServe())

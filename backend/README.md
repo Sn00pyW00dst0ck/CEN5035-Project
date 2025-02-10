@@ -2,7 +2,10 @@
 
 ## How to use
 
-Follow the `kubo` installation instructions for your operating system located [here](https://docs.ipfs.tech/install/command-line/#install-official-binary-distributions).
+Follow the `kubo` installation instructions for your operating system. Kubo version 0.27.0 must be used. We highly recommend utilizing the [ipfs-update](https://docs.ipfs.tech/how-to/ipfs-updater/) tool to install this version of kubo. 
+
+> [!Warning]
+> Ensure that kubo version 0.27.0 is utilized, otherwise you may need to install migration tooling to run the databse.
 
 If you haven't used IPFS so far, initialize the IPFS repository using the following command:
 
