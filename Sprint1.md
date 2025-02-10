@@ -1,1 +1,9 @@
-https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues
+Our user stories, progress, and goals are stored in our repository's issues section (https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues). For your convenience, a summary has been provided below.
+
+Frontend:
+
+Sprint 1 focused on defining and beginning to implement the frontend. We had three major objectives: identify what features Sector should provide users, create wireframes for how the application should appear to users, and begin implementation of said pages in React. Being that the backend needed to be built largely before we could implement communication between the two, we decided to save frontend-backend interaction until sprint 2. 
+
+In the first week, we met with the backend engineers and discussed user stories (https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues?q=label%3A%22user%20story%22). Using these stories, we designed wireframe representations of the main and login pages (https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues/3). After discussion in a second meeting with the team, we were satisfied with the main page wireframe and began building it in React. 
+
+In a frontend only meeting, we discussed which React component libraries we wanted to use and settled on MUI due to its comprehensiveness and simplicity. A default React template was built, followed by the definition of page layout and elements. Modularity was prioritized so that common elements like user badges could be reused in several contexts, such as the local user's badge and in the member list for servers. It currently features a server selection window, message window, and server member window. Although not complete, the main page closely follows our wireframe designs and scales appropriately to various desktop environments (https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues/30#issuecomment-2649268217). In addition, we have spoken with the backend developers on what information we want to be available at endpoints and how to access them.
