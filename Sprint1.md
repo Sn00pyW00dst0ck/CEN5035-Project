@@ -1,4 +1,51 @@
-Our user stories, progress, and goals are stored in our repository's issues section (https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues). For your convenience, a summary has been provided below.
+## Sprint 1 : SECTOR
+
+## User Stories :
+
+Our user stories, progress, and goals are stored in our repository's issues section (https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues). For your convenience, a summary has been provided below :
+
+1. **Search Bar**  
+   *As a user, I would like to be able to search for a particular message or content within the application to quickly find relevant information.*  
+
+2. **Toggle between Light and Dark Mode**  
+   *As a user, I would like to switch between light and dark modes for better visual comfort and accessibility.*  
+
+3. **User Profile and Customization**  
+   *As a user, I would like to customize my profile by updating my name, avatar, and other personal details to personalize my experience.*  
+
+4. **User Personalized Status**  
+   *As a user, I would like to set a personalized status so others can see my current availability or custom message.*  
+
+5. **Block Users**  
+   *As a user, I would like to block other users to prevent unwanted interactions and maintain my privacy.*  
+
+6. **Read Receipt**  
+   *As a user, I would like to see when my messages have been read by the recipient to confirm communication status.*  
+
+7. **See other Online Group Members**  
+   *As a user, I would like to see which members of my group are currently online to know who is available for conversation.*  
+
+8. **Multimedia Support in Messages**  
+   *As a user, I would like to send and receive multimedia content, such as images and videos, within messages to enhance communication.*  
+
+9. **Group Sharing via QR Code**  
+   *As a user, I would like to generate and scan QR codes to easily invite others to my group.*  
+
+10. **"Login" to same account from multiple devices**  
+   *As a user, I would like to log in to my account from multiple devices so I can access my messages and settings from anywhere.*  
+
+11. **Login**  
+   *As a user, I would like to securely log into the application to access my account and personalized settings.*  
+
+12. **Message Verification**  
+   *As a user, I would like to verify the authenticity of messages to ensure they have not been tampered with.*  
+
+13. **Group Chats**  
+   *As a user, I would like to participate in group chats so I can communicate with multiple people at once.*  
+
+14. **Login Capabilities**  
+   *As a user, I would like a reliable login system that securely authenticates my credentials and grants access to my account.*  
+
 
 ## Frontend:
 
