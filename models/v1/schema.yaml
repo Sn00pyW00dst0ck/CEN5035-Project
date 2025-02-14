@@ -11,6 +11,8 @@ paths:
   "/":
     get:
       summary: Root Endpoint
+      tags: 
+        - Misc.
       operationId: GetRoot
       responses:
         "200":
@@ -22,6 +24,8 @@ paths:
   "/health":
     get:
       summary: Health Check
+      tags: 
+        - Misc.
       operationId: GetHealth
       responses:
         "200":
@@ -33,6 +37,8 @@ paths:
   "/account/":
     post:
       summary: Create or update an account
+      tags: 
+        - Account
       operationID: PutAccount
       requestBody:
         description: Account details to add/update.
@@ -51,6 +57,8 @@ paths:
   "/account/{id}":
     get: 
       summary: Get Account By ID
+      tags: 
+        - Account
       operationID: GetAccountByID
       parameters:
         - in: path
@@ -70,6 +78,8 @@ paths:
                 $ref: '#/components/schemas/Account'
     delete:
       summary: Delete Account By ID
+      tags: 
+        - Account
       operationID: DeleteAccountByID
       parameters:
         - in: path
@@ -83,11 +93,29 @@ paths:
       responses: 
         "204":
           description: Account was deleted.
+  "/account/search":
+    post:
+      summary: Search for accounts satisfying various properties.
+      tags: 
+        - Account
+      operationID: SearchAccounts
+      requestBody:
+        description: Account searching parameters.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountFilter'
+      responses:
+        "200":
+          description: Query completed successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
 
-  # TODO: below should be a route that takes a POST request of AccountFilter object and returns a list of accounts that satisfies the request 
-  #       maybe we paginate the response? maybe not.
-  #"/account/search":
-  #  post: 
 
   # TODO: similar endpoints to above for groups and other data types.
 
@@ -110,11 +138,6 @@ components:
         profile_pic: 
           type: string
           format: base64
-        friends:
-          type: array
-          items:
-            type: string
-            format: uuid
       required: 
         - id
         - username
@@ -210,17 +233,21 @@ components:
       type: object
       properties:
         ids:
+          description: Get accounts that have an id within this list of ids.
           type: array
           items: 
             type: string
             format: uuid
-        from:   # Accounts created from this date
+        from:
+          description: Get accounts created from this date.
           type: string
           format: date-time
-        until:     # Accounts created until this date.
+        until:
+          description: Get accounts created from this date.
           type: string
           format: date-time
         username: 
+          description: Get accounts that (fuzzily) match the provided username.
           type: string
           exmaple: John
     

@@ -22,19 +22,25 @@ import (
 
 // Account User Account Details.
 type Account struct {
-	CreatedAt  *time.Time            `json:"created_at,omitempty"`
-	Friends    *[]openapi_types.UUID `json:"friends,omitempty"`
-	Id         openapi_types.UUID    `json:"id"`
-	ProfilePic string                `json:"profile_pic"`
-	Username   string                `json:"username"`
+	CreatedAt  *time.Time         `json:"created_at,omitempty"`
+	Id         openapi_types.UUID `json:"id"`
+	ProfilePic string             `json:"profile_pic"`
+	Username   string             `json:"username"`
 }
 
 // AccountFilter An object that is posted to the backend to query for accounts based on filter criteria.
 type AccountFilter struct {
-	From     *time.Time            `json:"from,omitempty"`
-	Ids      *[]openapi_types.UUID `json:"ids,omitempty"`
-	Until    *time.Time            `json:"until,omitempty"`
-	Username *string               `json:"username,omitempty"`
+	// From Get accounts created from this date.
+	From *time.Time `json:"from,omitempty"`
+
+	// Ids Get accounts that have an id within this list of ids.
+	Ids *[]openapi_types.UUID `json:"ids,omitempty"`
+
+	// Until Get accounts created from this date.
+	Until *time.Time `json:"until,omitempty"`
+
+	// Username Get accounts that (fuzzily) match the provided username.
+	Username *string `json:"username,omitempty"`
 }
 
 // Channel A set of messages within a Group, typically organized by topic.
@@ -93,6 +99,9 @@ type MessageFilter struct {
 // PutAccountJSONRequestBody defines body for PutAccount for application/json ContentType.
 type PutAccountJSONRequestBody = Account
 
+// SearchAccountsJSONRequestBody defines body for SearchAccounts for application/json ContentType.
+type SearchAccountsJSONRequestBody = AccountFilter
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Root Endpoint
@@ -101,6 +110,9 @@ type ServerInterface interface {
 	// Create or update an account
 	// (POST /account/)
 	PutAccount(w http.ResponseWriter, r *http.Request)
+	// Search for accounts satisfying various properties.
+	// (POST /account/search)
+	SearchAccounts(w http.ResponseWriter, r *http.Request)
 	// Delete Account By ID
 	// (DELETE /account/{id})
 	DeleteAccountByID(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
@@ -140,6 +152,20 @@ func (siw *ServerInterfaceWrapper) PutAccount(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PutAccount(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SearchAccounts operation middleware
+func (siw *ServerInterfaceWrapper) SearchAccounts(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SearchAccounts(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -330,6 +356,8 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 
 	r.HandleFunc(options.BaseURL+"/account/", wrapper.PutAccount).Methods("POST")
 
+	r.HandleFunc(options.BaseURL+"/account/search", wrapper.SearchAccounts).Methods("POST")
+
 	r.HandleFunc(options.BaseURL+"/account/{id}", wrapper.DeleteAccountByID).Methods("DELETE")
 
 	r.HandleFunc(options.BaseURL+"/account/{id}", wrapper.GetAccountByID).Methods("GET")
@@ -342,25 +370,28 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RYUVPjNhD+KztqH53EXANt/XaQlqYzN8Pc0SeGYRR7HeuwJZ205s5l8t87kpwQxwZC",
-	"yTHtC+NYXu3u9+2n1XLPUlVpJVGSZck9s2mBFfeP79NU1ZLcY4Y2NUKTUJIl7C+LBtpVmCFxUdoxi5g2",
-	"SqMhgd48NcgJsxvud8iVqdwTyzjhiESFLGLUaGQJs2SEXLJVxHIjUGbeXBBWtmNZ1yIbMmpfcGN4436L",
-	"zJnhN17p0i0cH8f4yzSOR/ju18VoepRNR/zno5PRdHpycnw8ncZxHLPoeT/aqFyUeKNF2olrwS2eTIcs",
-	"aotG8gq78fypCgkzNQDAKmIGv9TCYMaSK+bD2OzRDeB6Y6wWnzEl566l5HdREpo+be8lhG+BCk4gLGhl",
-	"CTMgBVQgLHh6i9L//FKjaSBXBnjY04LLMgMlIffbQ2oEoRG8T3xuVLU/5eK1dNeSRLm/vy4nFX/gZJCP",
-	"HshnBZcSywF4wSKByqFCa/kSLXwVVAgJHM6NqnUE1GiR8rJsQJkll+JvzGDRACkt0sPopxPRds2do0TD",
-	"S0iVvENjufvCwlJBgQbHw7zsxcY62ddx2BfJBy7koAiFlJjdHMLtkNpapW227zu8frwmDiq8NOz5PYX3",
-	"Vpy9SKFDmvP6GVLc0i04qGhi0dyhcfpzCh/qRy2gnayfzfKgKrwshHX0cyC0JOQyJPCE/h5s9+lQFVYL",
-	"NLZjeLVf/7uOXgBKn/rLNp/A1F6NrZXaNlgPGUQPdF0/VhAHlZsn4v8kthbx76K3D+GwG1Jcew5uoLUo",
-	"CXyT25RyFydeU6HMXkkvVNYM1t+/EeFe/WuoLtuA23CuH4fnoPW3uTTsX4GHQPZtq/iVheleCZmrPuSX",
-	"BcJHtDQqxS3C+4u5x9SB/QlTctdYrUuR+muPAzI0C8uSq3tWm5IlbHJ3NOFasJUjXJCXWLBlEXPfBkdH",
-	"43gcu1SURum+T9hP/lXENKfCwzJxf5boa9Xx5b3OM38Lo49KEXNVZ7WSNhD5Lo59g1KSMMxbW+FOPtvQ",
-	"RsJktsXiNixdOD7VaYrWegxtXVXcNCxhzjX8JjOthCS/Nmlv9z5iV6TdkGcsYRc1refAaCebzpKTEVo6",
-	"bQtt71x+NJizhP0weRhDJ+0MOlnvPpDhevrMwvTptMSzbFJrV1Bjti1rMjWuXon4K6P055dQEmwgJq/L",
-	"8Q45Z/6IA2Ug5ABcrmevLlX3IlsFAZRI2Cds5t+3nk+b+azH29AXmhteIa010U1jPnPXqjYAB3Xw7WAW",
-	"bt1V/rqhJ+EQ7cIfbUF56LncCXaH2+nAmdwG/5XbNvpsl4EAy+b/GqcNzGdO6T0lz4KSn4K4t/wyfJdI",
-	"/1lw31Q4boIGqzEVucAM5rNd0s6RdhlzYimQl1Q8dQ7/Eb54Nj3CbzTRpZtshs7gDVD9FC7mrvWHSJqd",
-	"sIN3OCswvXXGq38CAAD///VXbJGHEwAA",
+	"H4sIAAAAAAAC/9RYb2/bthP+Kgf+fi82QLGdzsk2v0vrLcuAAl3bvSqCgpZOFluJZMlTWjXwdx+OlP/I",
+	"Umq3dYvtTeCIFO/ueZ674+lepKayRqMmL2b3wqcFVjL8vEpTU2vinxn61ClLymgxE397dNCuwhxJqtKP",
+	"RCKsMxYdKQyvpw4lYfZahhNy4yr+JTJJeEaqQpEIaiyKmfDklF6KVSJUxnvxg6xsySsXFxP8ZTqZnOGj",
+	"Xxdn0/NseiZ/Pr88m04vLy8uptPJZDIRyfbwulbZ0LnWmVyV+NqqtOPMQnq8nA69UXt0WlbY9edPU2iY",
+	"mwHfV4lw+K5WDjMxeyWCG5szug7cbl42izeYEptr0fxdlYSuj/iVhrgXqJAEyoM1njADMkAFwkKmb1GH",
+	"f9/V6BrIjQMZz/TAUWZgNOTheEidInRK9jnLnan61q+Rtoe1tAJvBSqUB2Z0tMvCAYr9AQshxELeIUgN",
+	"KoP3igqlo61SeQKTg8qC4hRh5TuMPqSA9oF0TjaBX02q/Mah7mroULw/5PXHj6psfoRKUloEVq0zdyrD",
+	"DNYHsWn8UMmtGAeF2FPXk0JqjQPhXoHHgGeF3ssl+jXYEq6dqW0C1FiVyrJswLil1OojZrBogIxV6Wly",
+	"vuPRbrJdo0YnS0iNvkPnJe/wsDRQoAtQPFA+DmphHSxv/nIF9avDU6n0YPVRWmP2+hRmh8pMW2I2x/cN",
+	"3j6siZNWnDSe+SUV53P6w/fgbFMfjnFsKOdC/gxl3JIXGCoae3R36Dj/OMOHemgLaCfqg1GeNAtfct1T",
+	"HiQQelJ6GQMYHdO+j2nNFVYLdL7z4qvjGv9t8hmg9Kl/2cYTmTqqo7eptgvWNoJkS9ftQ4I4aboFIv5L",
+	"ydYi/k3y7WksdkMZ19bBDbQeNUFochspd3GSNRXGHRX0wmTNoP6+/Pp7wOaQLluHW3duH4bnpPrbXBqO",
+	"V+ApkP2+Kv5KYfIjpXPTh/xlgfAcPZ2V6i3C1bObgCmD/QJT4vu7taVKw7WHgYzNwovZq3tRu1LMxPju",
+	"fCytEismXFFIsfiuSATvjYbOR5PRhEMxFjXvn4mfwqNEWElFgGXMf5YYtMp8Bas3WbyqPjeGBKvOW6N9",
+	"JPLRZBIalNGEcUbccXf8xsc2EqfJHRZ3YenC8aJOU/Q+YOjrqpKuETPBpuE3nVmjNPtAcskIiKfKpyNx",
+	"y5vH7UU6hMCq7cYwFzPxrKb1MJvshddZ4rxCT49b5R0d3P8d5mIm/jfeztLjdpAer08fCHk9QmdxhObk",
+	"klk2ru16zNjmObkaV19JwVd6GQqaMhp8ZCqvy9EeW09CzQPjIMbAA5zcoLvmbm2ry55H6dLiYQ5fhPX2",
+	"Xd/jsbf8Dblsi+gnsIrB8OXCSicrpPZ2d1pCN0XtKGZ7o0TP+79CZeczSuTavyW6bPapjnh3vzPwiObz",
+	"hsO+k06Z2sO2+o8OKuBeZatYJtl8XwHz8Lx993FzM++JYGjHloBQObsR38z58t06wPkXbYdPC7zO9XF9",
+	"7ZvFVtulMNmh49Sfrbis7+ljOtC5W+ffS996n+1zFWHZfLF73EBAps9G0m8B89gCPoV6b/nzIF8i/Wvx",
+	"/q4F9r2iArzFVOUKM7iZ7/N4jXQEiZxSBcqSik/19D/ijoMRE36gsS15Sh7q5xvs+lE9u+FrZPSk2Ysk",
+	"WocnBaZvh7r6avVPAAAA///Ke1KamBYAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
