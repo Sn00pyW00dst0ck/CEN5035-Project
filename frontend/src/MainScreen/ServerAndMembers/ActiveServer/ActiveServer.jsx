@@ -4,7 +4,7 @@ function ActiveServer() {
     return (
         <div style={{ display: "flex", height: "100%", width: "100%" , marginLeft: "0", marginRight: "0"}}>
 
-            <Paper elevation={100} sx={{
+            <Paper elevation={10} sx={{
                 borderRadius: 7.5,
                 borderTopLeftRadius: 0,
                 borderTopRightRadius: 0,

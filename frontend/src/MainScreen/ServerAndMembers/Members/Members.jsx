@@ -39,7 +39,7 @@ function Members() {
     return (
         <div style={{ display: "flex", width: "15rem", height: "100%", margin: "0"}}>
 
-            <Paper elevation={25} sx={{
+            <Paper elevation={24} sx={{
                 borderRadius: 7.5,
                 borderBottomLeftRadius: 0,
                 borderTopLeftRadius: 0
