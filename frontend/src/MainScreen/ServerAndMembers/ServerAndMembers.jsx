@@ -9,7 +9,6 @@ function ServerAndMembers() {
             }} style={{ display: "flex", margin: "1rem", width: "100%"}}>
 
                 <ActiveServer/>
-                <Members/>
 
             </Paper>
     )
