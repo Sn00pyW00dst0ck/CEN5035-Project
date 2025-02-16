@@ -5,11 +5,11 @@
     /*this your primary color*/
     background: hsla(29, 100%, 57%, 1);
 
-    background: linear-gradient(45deg, hsla(29, 100%, 57%, 1) 0%, hsla(0, 100%, 79%, 1) 100%);
+    background: linear-gradient(45deg, rgb(106, 138, 102) 0%, hsla(0, 100%, 79%, 1) 100%);
 
-    background: -moz-linear-gradient(45deg, hsla(29, 100%, 57%, 1) 0%, hsla(0, 100%, 79%, 1) 100%);
+    background: -moz-linear-gradient(45deg, rgba(77, 175, 157, 0.602) 0%, hsla(0, 100%, 79%, 1) 100%);
 
-    background: -webkit-linear-gradient(45deg, hsla(29, 100%, 57%, 1) 0%, hsla(0, 100%, 79%, 1) 100%);
+    background: -webkit-linear-gradient(45deg, rgb(122, 160, 199) 0%, hsla(0, 100%, 79%, 1) 100%);
 
     filter: progid: DXImageTransform.Microsoft.gradient( startColorstr="#FF8D23", endColorstr="#FF9595", GradientType=1 );
 }
