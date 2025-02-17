@@ -139,6 +139,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search for accounts satisfying various properties. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Account searching parameters. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AccountFilter"];
+                };
+            };
+            responses: {
+                /** @description Query completed successfully. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Account"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -156,7 +197,6 @@ export interface components {
             username: string;
             /** Format: base64 */
             profile_pic: string;
-            friends?: string[];
         };
         /** @description A group chat/server of users. */
         Group: {
@@ -202,11 +242,19 @@ export interface components {
         };
         /** @description An object that is posted to the backend to query for accounts based on filter criteria. */
         AccountFilter: {
+            /** @description Get accounts that have an id within this list of ids. */
             ids?: string[];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Get accounts created from this date.
+             */
             from?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Get accounts created from this date.
+             */
             until?: string;
+            /** @description Get accounts that (fuzzily) match the provided username. */
             username?: string;
         };
         /** @description An object that is posted to the backend to query for groups based on filter criteria. */

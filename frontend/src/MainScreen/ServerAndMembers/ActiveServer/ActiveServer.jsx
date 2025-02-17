@@ -1,21 +1,18 @@
-import {Paper} from "@mui/material";
+import { Paper } from "@mui/material";
+import "./ActiveServer.css";
 
 function ActiveServer() {
     return (
-        <div style={{ display: "flex", height: "100%", width: "100%" , marginLeft: "0", marginRight: "0"}}>
+        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
-            <Paper elevation={10} sx={{
-                borderRadius: 7.5,
-                borderTopLeftRadius: 0,
-                borderTopRightRadius: 0,
-                borderBottomRightRadius: 0
-            }} style={{ display: "flex", height:"4rem", width: "inherit", marginBottom: "0", marginTop: "auto"}}>
+            <div className="text">
+                <input type="text" placeholder="Text Message" />
+                <button className="sendButton">Send</button>
+            </div>
 
-                abc
 
-            </Paper>
         </div>
-    )
+    );
 }
 
 export default ActiveServer;
