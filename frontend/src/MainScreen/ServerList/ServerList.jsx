@@ -1,9 +1,9 @@
 import UserBadge from "../../UserBadge/UserBadge.jsx";
-import {List, Paper} from "@mui/material";
+import {List, Paper, TextField} from "@mui/material";
 import {YourUser} from "../../App.jsx"
 import ServerBadge from "./ServerBadge/ServerBadge.jsx";
-import SearchIcon from '@mui/icons-material/Search';
 import "./ServerList.css";
+import {useState} from "react";
 
 function searchServer(serverData)
     {
@@ -13,31 +13,27 @@ function searchServer(serverData)
         console.log("Server ID:", server_ID);
     }
 
-    function search(Data)
-    {
-        Data.preventDefault();
-        const query = formData.get("query");
-    }
+
+
 
 function ServerList() {
 
+    const [query, setQuery] = useState("");
+
+    function handleServerSearch(event) {
+        event.preventDefault();
+        setQuery(event.target.value);
+    }
+
     const servers = [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
+        { id: 1, name: "test1", icon: "public/vite.svg"},
+        { id: 2, name: "test2", icon: "public/vite.svg"},
+        { id: 3, name: "Test1", icon: "public/vite.svg"},
+        { id: 4, name: "Test2", icon: "public/vite.svg"},
+        { id: 5, name: "thisIsATest1", icon: "public/vite.svg"},
+        { id: 6, name: "Alice", icon: "public/vite.svg"},
+        { id: 7, name: "thisIsATest1", icon: "public/vite.svg"},
+        { id: 8, name: "Alice", icon: "public/vite.svg"}
     ]
 
     return(
@@ -46,16 +42,6 @@ function ServerList() {
                 borderRadius: 7.5
             }} style={{ display: "flex", flexDirection: "column", width: "15rem", height: "calc(100vh - 2rem)", margin: "1rem", overflow: "hidden"}}>
                 <UserBadge user={YourUser.name} status={YourUser.status} online ={YourUser.online} img={YourUser.icon}/>
-
-                <div className="searchData">
-                    <form onSubmit={search}>
-                        <input name="query" placeholder="Search"/>
-                        <button type="submit">
-                            <SearchIcon />
-                        </button>
-                    </form>
-                </div>
-
 
                 <List
                     sx={{
@@ -70,22 +56,29 @@ function ServerList() {
                     }}
                     subheader={<li />}
                 >
-                    {servers.map((server) => (
-                        <li key={`section-${server}`}>
-                            <ServerBadge />
+
+                    <TextField sx ={{display:"flex", margin: ".5rem"}}
+                               label="Search Server"
+                               type="search"
+                               size="small"
+                               onChange={handleServerSearch}
+                    />
+
+                    {servers
+                        .filter((server) => server.name.toLowerCase().includes(query.toLowerCase()))
+                        .map((server) => (
+                        <li key={`section-${server.id}`}>
+                            <ServerBadge server={server} />
                         </li>
                     ))}
                 </List>
 
                 <div className="joinServer">
-
                     <form onSubmit={searchServer}>
                         <input name="serverID" placeholder="Enter a Server ID" />
                         <button type="submit">Join</button>
                     </form>
-
                 </div>
-
 
             </Paper>
         </div>

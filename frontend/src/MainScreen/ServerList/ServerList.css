@@ -17,7 +17,7 @@
     margin-right: 0.5rem;
     border: 1px solid #7d7373;
     border-radius: 4px;
-    width: 130px;
+    width: 100%;
     font-size: 0.9rem;
 }
 
@@ -55,15 +55,6 @@
     flex-direction: row;
     align-items: start;
     width: 100%;
-}
-
-.searchData input {
-    padding: 0.5rem;
-    margin-right: 0.5rem;
-    border: 1px solid #7d7373;
-    border-radius: 4px;
-    width: 140px;
-    font-size: 0.9rem;
 }
 
 .searchDatainput:focus {
