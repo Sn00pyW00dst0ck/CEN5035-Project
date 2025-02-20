@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"testing"
 
 	"berty.tech/go-orbit-db/iface"
 	"github.com/oapi-codegen/runtime/types"
@@ -146,6 +147,33 @@ func NewSector(ctx context.Context, logfile, dbCache string) *SectorAPI {
 		panic(err)
 	}
 	// defer db.Disconnect() (TODO: FIGURE OUT WHEN TO CALL DISCONNECT)
+
+	err = db.Connect(func(address string) {
+		fmt.Println("Connected: ", address)
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return &SectorAPI{
+		Logger: logger,
+		DB:     db,
+	}
+}
+
+// Create a new SectorAPI instance for unit testing
+func NewTestingSector(ctx context.Context, logfile, dbCache string, t *testing.T) *SectorAPI {
+	// Setup the logger
+	logger, err := logger.NewLogger(logfile)
+	if err != nil {
+		panic(err)
+	}
+
+	// Setup the database
+	db, err := database.NewTestingDatabase(ctx, dbCache, logger, t)
+	if err != nil {
+		panic(err)
+	}
 
 	err = db.Connect(func(address string) {
 		fmt.Println("Connected: ", address)

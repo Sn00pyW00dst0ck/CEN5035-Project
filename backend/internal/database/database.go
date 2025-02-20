@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/ipfs/kubo/config"
@@ -125,7 +126,6 @@ func NewDatabase(ctx context.Context, dbLocalPath string, logger *zap.Logger) (*
 
 	db := new(Database)
 	db.ctx = ctx
-	db.ConnectionString = db.URI
 	db.LocalPath = dbLocalPath
 	db.Logger = logger
 
@@ -152,6 +152,20 @@ func NewDatabase(ctx context.Context, dbLocalPath string, logger *zap.Logger) (*
 		return nil, err
 	}
 
+	return db, nil
+}
+
+// Create a new testing database instance
+func NewTestingDatabase(ctx context.Context, dbLocalPath string, logger *zap.Logger, t *testing.T) (*Database, error) {
+	db := new(Database)
+	db.ctx = ctx
+	db.LocalPath = dbLocalPath
+	db.Logger = logger
+
+	// Setup the IPFS mock instance (TODO: test this and figure out if cleanup is done properly)
+	mocknet := testingMockNet(t)
+	db.IPFSNode, _ = testingIPFSNode(ctx, t, mocknet)
+	db.IPFSCoreAPI = testingCoreAPI(t, db.IPFSNode)
 	return db, nil
 }
 
