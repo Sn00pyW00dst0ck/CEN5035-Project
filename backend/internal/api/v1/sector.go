@@ -120,7 +120,7 @@ func (s *SectorAPI) GetAccountByID(w http.ResponseWriter, r *http.Request, id ty
 	// TODO: might need to do other things to get account return type to work with the openapi validation.
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(account)
+	json.NewEncoder(w).Encode(account[0])
 }
 
 // GetHealth implements ServerInterface.
