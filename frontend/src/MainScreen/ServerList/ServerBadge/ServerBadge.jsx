@@ -24,7 +24,7 @@ function ServerBadge(props) {
                     <Avatar sx={{width: "3rem", height: "3rem"}} src ="serverDefault.png" alt = "test"></Avatar>
 
                     <div style={{display: "flex"}} >
-                        abc
+                        {props.server.name}
                     </div>
                 </Stack>
             </Paper>
