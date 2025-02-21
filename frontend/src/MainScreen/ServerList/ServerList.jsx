@@ -31,9 +31,7 @@ function ServerList() {
         { id: 3, name: "Test1", icon: "public/vite.svg"},
         { id: 4, name: "Test2", icon: "public/vite.svg"},
         { id: 5, name: "thisIsATest1", icon: "public/vite.svg"},
-        { id: 6, name: "Alice", icon: "public/vite.svg"},
-        { id: 7, name: "thisIsATest1", icon: "public/vite.svg"},
-        { id: 8, name: "Alice", icon: "public/vite.svg"}
+        { id: 6, name: "Alice", icon: "public/vite.svg"}
     ]
 
     return(
@@ -57,20 +55,23 @@ function ServerList() {
                     subheader={<li />}
                 >
 
-                    <TextField sx ={{display:"flex", margin: ".5rem"}}
+                    <TextField id="serverSearchInput" sx ={{display:"flex", margin: ".5rem"}}
                                label="Search Server"
                                type="search"
                                size="small"
                                onChange={handleServerSearch}
                     />
 
-                    {servers
-                        .filter((server) => server.name.toLowerCase().includes(query.toLowerCase()))
-                        .map((server) => (
-                        <li key={`section-${server.id}`}>
-                            <ServerBadge server={server} />
-                        </li>
-                    ))}
+                    <div id='serverBadgeHolder'>
+                        {servers
+                            .filter((server) => server.name.toLowerCase().includes(query.toLowerCase()))
+                            .map((server) => (
+                                <li key={`section-${server.id}`}>
+                                    <ServerBadge server={server} />
+                                </li>
+                            ))}
+                    </div>
+
                 </List>
 
                 <div className="joinServer">
