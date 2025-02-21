@@ -27,4 +27,4 @@ jobs:
       
       - name: Test with the Go CLI
         working-directory: ./backend
-        run: go test
+        run: go test ./...

@@ -29,3 +29,4 @@ go.work.sum
 # Files created by running the application
 /cache
 log.txt
+log_test.txt

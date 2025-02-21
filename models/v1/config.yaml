@@ -3,6 +3,7 @@ package: v1
 output: ./backend/internal/api/v1/sector.gen.go
 generate:
   gorilla-server: true
+  client: true
   models: true
   embedded-spec: true
 output-options:
