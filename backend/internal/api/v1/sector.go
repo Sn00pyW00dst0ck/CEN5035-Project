@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"slices"
 	"testing"
+	"time"
 
 	"berty.tech/go-orbit-db/iface"
 	"github.com/oapi-codegen/runtime/types"
@@ -73,14 +74,19 @@ func (s *SectorAPI) SearchAccounts(w http.ResponseWriter, r *http.Request) {
 
 // PutAccount implements ServerInterface.
 func (s *SectorAPI) PutAccount(w http.ResponseWriter, r *http.Request) {
-	var account_details Account
-	if err := json.NewDecoder(r.Body).Decode(&account_details); err != nil {
+	var accountDetails Account
+	if err := json.NewDecoder(r.Body).Decode(&accountDetails); err != nil {
 		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not parse request body.", http.StatusBadRequest)
 		return
 	}
 
-	created_account, err := s.DB.Store.Put(context.Background(), StructToMap(account_details))
+	if accountDetails.CreatedAt == nil {
+		var now = time.Now()
+		accountDetails.CreatedAt = &now
+	}
+
+	operation, err := s.DB.Store.Put(context.Background(), StructToMap(accountDetails))
 	if err != nil {
 		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not update within databse.", http.StatusInternalServerError)
@@ -89,7 +95,7 @@ func (s *SectorAPI) PutAccount(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(created_account)
+	json.NewEncoder(w).Encode(operation.GetValue())
 }
 
 // DeleteAccountByID implements ServerInterface.
