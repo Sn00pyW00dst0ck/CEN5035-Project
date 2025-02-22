@@ -116,6 +116,89 @@ paths:
                 items:
                   $ref: '#/components/schemas/Account'
 
+  "/group/":
+    post:
+      summary: Create or update a group
+      tags:
+        - Group
+      operationId: PutGroup
+      requestBody:
+        description: Group details to add/update.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses:
+        "200":
+          description: Group creation successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+
+  "/group/{id}":
+    get:
+      summary: Get Group By ID
+      tags:
+        - Group
+      operationId: GetGroupByID
+      parameters:
+        - in: path
+          name: id
+          description: ID of group to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        "200":
+          description: Group with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+    delete:
+      summary: Delete Group By ID
+      tags:
+        - Group
+      operationId: DeleteGroupByID
+      parameters:
+        - in: path
+          name: id
+          description: ID of group to delete.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        "204":
+          description: Group was deleted.
+
+  "/group/search":
+    post:
+      summary: Search for groups satisfying various properties.
+      tags:
+        - Group
+      operationId: SearchGroups
+      requestBody:
+        description: Group searching parameters.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupFilter'
+      responses:
+        "200":
+          description: Query completed successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
 
   # TODO: similar endpoints to above for groups and other data types.
 
