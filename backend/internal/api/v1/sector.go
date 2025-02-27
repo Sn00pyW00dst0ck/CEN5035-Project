@@ -89,7 +89,7 @@ func (s *SectorAPI) PutAccount(w http.ResponseWriter, r *http.Request) {
 	operation, err := s.DB.Store.Put(context.Background(), StructToMap(accountDetails))
 	if err != nil {
 		s.Logger.Debug(err.Error())
-		http.Error(w, "Could not update within databse.", http.StatusInternalServerError)
+		http.Error(w, "Could not update within database.", http.StatusInternalServerError)
 		return
 	}
 
@@ -103,7 +103,7 @@ func (s *SectorAPI) DeleteAccountByID(w http.ResponseWriter, r *http.Request, id
 	_, err := s.DB.Store.Delete(context.Background(), id.String())
 	if err != nil {
 		s.Logger.Debug(err.Error())
-		http.Error(w, "Could not delete within databse.", http.StatusInternalServerError)
+		http.Error(w, "Could not delete within database.", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -114,13 +114,112 @@ func (s *SectorAPI) GetAccountByID(w http.ResponseWriter, r *http.Request, id ty
 	account, err := s.DB.Store.Get(context.Background(), id.String(), &iface.DocumentStoreGetOptions{})
 	if err != nil {
 		s.Logger.Debug(err.Error())
-		http.Error(w, "Could not complete databse query.", http.StatusInternalServerError)
+		http.Error(w, "Could not complete database query.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(account[0])
+}
+
+// SearchGroups implements ServerInterface.
+func (s *SectorAPI) SearchGroups(w http.ResponseWriter, r *http.Request) {
+	var filter GroupFilter
+	if err := json.NewDecoder(r.Body).Decode(&filter); err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not parse request body.", http.StatusBadRequest)
+		return
+	}
+
+	groups, err := s.DB.Store.Query(context.Background(), func(doc interface{}) (bool, error) {
+		data, ok := doc.(map[string]interface{})
+		if !ok {
+			return false, nil
+		}
+
+		var group Group
+		err := MapToStruct(data, &group)
+		if err != nil {
+			fmt.Println(err)
+			return false, nil
+		}
+
+		// Apply filter conditions
+		if filter.Id != nil && !slices.Contains(*filter.Id, group.Id) {
+			return false, nil
+		}
+		if filter.From != nil && group.CreatedAt.Before(*filter.From) {
+			return false, nil
+		}
+		if filter.Until != nil && group.CreatedAt.After(*filter.Until) {
+			return false, nil
+		}
+		if filter.Name != nil && !fuzzy.Match(*filter.Name, group.Name) {
+			return false, nil
+		}
+
+		return true, nil
+	})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not perform database query.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(groups)
+}
+
+// PutGroup implements ServerInterface.
+func (s *SectorAPI) PutGroup(w http.ResponseWriter, r *http.Request) {
+	var groupDetails Group
+	if err := json.NewDecoder(r.Body).Decode(&groupDetails); err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not parse request body.", http.StatusBadRequest)
+		return
+	}
+
+	if groupDetails.CreatedAt == nil {
+		var now = time.Now()
+		groupDetails.CreatedAt = &now
+	}
+
+	operation, err := s.DB.Store.Put(context.Background(), StructToMap(groupDetails))
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not update within database.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(operation.GetValue())
+}
+
+// DeleteGroupByID implements ServerInterface.
+func (s *SectorAPI) DeleteGroupByID(w http.ResponseWriter, r *http.Request, id types.UUID) {
+	_, err := s.DB.Store.Delete(context.Background(), id.String())
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not delete within database.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetGroupByID implements ServerInterface.
+func (s *SectorAPI) GetGroupByID(w http.ResponseWriter, r *http.Request, id types.UUID) {
+	group, err := s.DB.Store.Get(context.Background(), id.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not complete database query.", http.StatusInternalServerError)
 		return
 	}
 	// TODO: might need to do other things to get account return type to work with the openapi validation.
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(account[0])
+	json.NewEncoder(w).Encode(group[0])
 }
 
 // GetHealth implements ServerInterface.
@@ -194,7 +293,7 @@ func NewTestingSector(ctx context.Context, logfile, dbCache string, t *testing.T
 	}
 }
 
-// Whenever we want to convert a struct to a thing to put into the database use this.
+// Helper functions
 func StructToMap(obj interface{}) map[string]interface{} {
 	// Marshal struct to JSON
 	data, _ := json.Marshal(obj)
