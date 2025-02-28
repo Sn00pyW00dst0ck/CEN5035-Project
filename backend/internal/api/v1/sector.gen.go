@@ -117,6 +117,9 @@ type SearchGroupsJSONRequestBody = GroupFilter
 // UpdateGroupByIDJSONRequestBody defines body for UpdateGroupByID for application/json ContentType.
 type UpdateGroupByIDJSONRequestBody = Group
 
+// PutChannelJSONRequestBody defines body for PutChannel for application/json ContentType.
+type PutChannelJSONRequestBody = Channel
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -234,6 +237,11 @@ type ClientInterface interface {
 	UpdateGroupByIDWithBody(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateGroupByID(ctx context.Context, groupId openapi_types.UUID, body UpdateGroupByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PutChannelWithBody request with any body
+	PutChannelWithBody(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PutChannel(ctx context.Context, groupId openapi_types.UUID, body PutChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// RemoveGroupMember request
 	RemoveGroupMember(ctx context.Context, groupId openapi_types.UUID, memberId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -439,6 +447,30 @@ func (c *Client) UpdateGroupByIDWithBody(ctx context.Context, groupId openapi_ty
 
 func (c *Client) UpdateGroupByID(ctx context.Context, groupId openapi_types.UUID, body UpdateGroupByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateGroupByIDRequest(c.Server, groupId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PutChannelWithBody(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutChannelRequestWithBody(c.Server, groupId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PutChannel(ctx context.Context, groupId openapi_types.UUID, body PutChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPutChannelRequest(c.Server, groupId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -902,6 +934,53 @@ func NewUpdateGroupByIDRequestWithBody(server string, groupId openapi_types.UUID
 	return req, nil
 }
 
+// NewPutChannelRequest calls the generic PutChannel builder with application/json body
+func NewPutChannelRequest(server string, groupId openapi_types.UUID, body PutChannelJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPutChannelRequestWithBody(server, groupId, "application/json", bodyReader)
+}
+
+// NewPutChannelRequestWithBody generates requests for PutChannel with any type of body
+func NewPutChannelRequestWithBody(server string, groupId openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "groupId", runtime.ParamLocationPath, groupId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/group/%s/channel/", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewRemoveGroupMemberRequest generates requests for RemoveGroupMember
 func NewRemoveGroupMemberRequest(server string, groupId openapi_types.UUID, memberId openapi_types.UUID) (*http.Request, error) {
 	var err error
@@ -1098,6 +1177,11 @@ type ClientWithResponsesInterface interface {
 	UpdateGroupByIDWithBodyWithResponse(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateGroupByIDResponse, error)
 
 	UpdateGroupByIDWithResponse(ctx context.Context, groupId openapi_types.UUID, body UpdateGroupByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateGroupByIDResponse, error)
+
+	// PutChannelWithBodyWithResponse request with any body
+	PutChannelWithBodyWithResponse(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutChannelResponse, error)
+
+	PutChannelWithResponse(ctx context.Context, groupId openapi_types.UUID, body PutChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*PutChannelResponse, error)
 
 	// RemoveGroupMemberWithResponse request
 	RemoveGroupMemberWithResponse(ctx context.Context, groupId openapi_types.UUID, memberId openapi_types.UUID, reqEditors ...RequestEditorFn) (*RemoveGroupMemberResponse, error)
@@ -1349,6 +1433,28 @@ func (r UpdateGroupByIDResponse) StatusCode() int {
 	return 0
 }
 
+type PutChannelResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *Channel
+}
+
+// Status returns HTTPResponse.Status
+func (r PutChannelResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PutChannelResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type RemoveGroupMemberResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1557,6 +1663,23 @@ func (c *ClientWithResponses) UpdateGroupByIDWithResponse(ctx context.Context, g
 		return nil, err
 	}
 	return ParseUpdateGroupByIDResponse(rsp)
+}
+
+// PutChannelWithBodyWithResponse request with arbitrary body returning *PutChannelResponse
+func (c *ClientWithResponses) PutChannelWithBodyWithResponse(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutChannelResponse, error) {
+	rsp, err := c.PutChannelWithBody(ctx, groupId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePutChannelResponse(rsp)
+}
+
+func (c *ClientWithResponses) PutChannelWithResponse(ctx context.Context, groupId openapi_types.UUID, body PutChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*PutChannelResponse, error) {
+	rsp, err := c.PutChannel(ctx, groupId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePutChannelResponse(rsp)
 }
 
 // RemoveGroupMemberWithResponse request returning *RemoveGroupMemberResponse
@@ -1852,6 +1975,32 @@ func ParseUpdateGroupByIDResponse(rsp *http.Response) (*UpdateGroupByIDResponse,
 	return response, nil
 }
 
+// ParsePutChannelResponse parses an HTTP response from a PutChannelWithResponse call
+func ParsePutChannelResponse(rsp *http.Response) (*PutChannelResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PutChannelResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest Channel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseRemoveGroupMemberResponse parses an HTTP response from a RemoveGroupMemberWithResponse call
 func ParseRemoveGroupMemberResponse(rsp *http.Response) (*RemoveGroupMemberResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -1935,6 +2084,9 @@ type ServerInterface interface {
 	// Update Group By ID
 	// (PUT /group/{groupId})
 	UpdateGroupByID(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID)
+	// Create a channel within a group
+	// (POST /group/{groupId}/channel/)
+	PutChannel(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID)
 	// Remove member from a group
 	// (DELETE /group/{groupId}/members/{memberId})
 	RemoveGroupMember(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID, memberId openapi_types.UUID)
@@ -2175,6 +2327,31 @@ func (siw *ServerInterfaceWrapper) UpdateGroupByID(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// PutChannel operation middleware
+func (siw *ServerInterfaceWrapper) PutChannel(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "groupId" -------------
+	var groupId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "groupId", mux.Vars(r)["groupId"], &groupId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutChannel(w, r, groupId)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // RemoveGroupMember operation middleware
 func (siw *ServerInterfaceWrapper) RemoveGroupMember(w http.ResponseWriter, r *http.Request) {
 
@@ -2392,6 +2569,8 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 
 	r.HandleFunc(options.BaseURL+"/group/{groupId}", wrapper.UpdateGroupByID).Methods("PUT")
 
+	r.HandleFunc(options.BaseURL+"/group/{groupId}/channel/", wrapper.PutChannel).Methods("POST")
+
 	r.HandleFunc(options.BaseURL+"/group/{groupId}/members/{memberId}", wrapper.RemoveGroupMember).Methods("DELETE")
 
 	r.HandleFunc(options.BaseURL+"/group/{groupId}/members/{memberId}", wrapper.AddGroupMember).Methods("POST")
@@ -2404,34 +2583,34 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"gyYAAA==",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

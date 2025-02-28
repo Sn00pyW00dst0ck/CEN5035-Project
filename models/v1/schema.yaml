@@ -223,7 +223,6 @@ paths:
           schema:
             type: string
             format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
       requestBody:
         description: Group details to add.
         required: true
@@ -302,6 +301,45 @@ paths:
             responses: 
       "204":
         description: Updated group member list to remove member.
+
+  # Channel Endpoints (nested under groups because groups have channels)
+  "/group/{groupId}/channel/": 
+    post:
+      summary: Create a channel within a group
+      tags: 
+        - Channel
+      operationID: PutChannel
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to make channel for.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Channel details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Channel'
+      responses:
+        "201":
+          description: Channel creation successful.
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+
+  # "/group/{groupId}/channel/search": 
+  #   post:
+# 
+  # "/group/{groupId}/channel/{channelId}": 
+  #   get:
+  #   put:
+  #   delete:
+
 
 components:
   schemas:

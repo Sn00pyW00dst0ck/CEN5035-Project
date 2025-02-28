@@ -373,7 +373,7 @@ func TestSectorV1(t *testing.T) {
 			}
 
 			// Get the account
-			response, err := testClient.GetGroupByIDWithResponse(context.Background(), id)
+			response, err := testClient.GetGroupByIDWithResponse(context.Background(), original.Id)
 			if err != nil {
 				panic(err)
 			}
@@ -554,7 +554,37 @@ func TestSectorV1(t *testing.T) {
 	})
 
 	t.Run("Channel", func(t *testing.T) {
+		t.Run("Create Channel", func(t *testing.T) {
+			now := time.Now()
+			originalGroup := v1.Group{
+				Id:          uuid.New(),
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
 
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalGroup))
+			if err != nil {
+				panic(err)
+			}
+
+			// desc := "Channel for unit testing"
+			// body := v1.PutChannelJSONRequestBody{
+			// 	Id:             uuid.New(),
+			// 	CreatedAt:      &now,
+			// 	Name:           "Test Channel",
+			// 	Description:    &desc,
+			// 	Messages:       []types.UUID{},
+			// 	PinnedMessages: []types.UUID{},
+			// }
+			// response, err := testClient.PutChannelWithResponse(context.Background(), originalGroup.Id, body)
+			// if err != nil {
+			// 	panic(err)
+			// }
+			// require.Equal(t, 201, response.StatusCode())
+		})
 	})
 
 	t.Run("Message", func(t *testing.T) {

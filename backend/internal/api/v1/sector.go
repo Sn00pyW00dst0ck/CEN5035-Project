@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	orbitdb "berty.tech/go-orbit-db"
 	"berty.tech/go-orbit-db/iface"
 	"github.com/oapi-codegen/runtime/types"
 	"go.uber.org/zap"
@@ -238,13 +239,10 @@ func (s *SectorAPI) PutGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Ensure the account doesn't already exist first!
-	groups, err := s.DB.Store.Get(context.Background(), groupDetails.Id.String(), &iface.DocumentStoreGetOptions{})
-	if err != nil {
+	var group Group
+	err := getDatabaseItem(s.DB.Store, groupDetails.Id.String(), &group)
+	if err == nil || err.Error() != "id not in database" {
 		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
-		return
-	}
-	if len(groups) != 0 {
-		http.Error(w, "Group with specified ID already exists.", http.StatusInternalServerError)
 		return
 	}
 
@@ -275,14 +273,10 @@ func (s *SectorAPI) UpdateGroupByID(w http.ResponseWriter, r *http.Request, grou
 	}
 
 	// Ensure the account does already exist first!
-	groups, err := s.DB.Store.Get(context.Background(), groupDetails.Id.String(), &iface.DocumentStoreGetOptions{})
+	var group Group
+	err := getDatabaseItem(s.DB.Store, groupDetails.Id.String(), &group)
 	if err != nil {
-		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
-		return
-	}
-	if len(groups) == 0 {
-		http.Error(w, "Group with specified ID doesn't exist.", http.StatusInternalServerError)
 		return
 	}
 
@@ -326,36 +320,16 @@ func (s *SectorAPI) GetGroupByID(w http.ResponseWriter, r *http.Request, id type
 // AddGroupMember implements ServerInterface.
 func (s *SectorAPI) AddGroupMember(w http.ResponseWriter, r *http.Request, groupId types.UUID, memberId types.UUID) {
 	// Ensure the account already exist first!
-	accounts, err := s.DB.Store.Get(context.Background(), memberId.String(), &iface.DocumentStoreGetOptions{})
+	var member Account
+	err := getDatabaseItem(s.DB.Store, memberId.String(), member)
 	if err != nil {
-		s.Logger.Debug(err.Error())
-		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
-		return
-	}
-	if len(accounts) == 0 {
-		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
-		return
-	}
-
-	// Ensure the account does already exist first!
-	groups, err := s.DB.Store.Get(context.Background(), groupId.String(), &iface.DocumentStoreGetOptions{})
-	if err != nil {
-		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
 		return
 	}
-	if len(groups) == 0 {
-		http.Error(w, "Group with specified ID doesn't exist.", http.StatusInternalServerError)
-		return
-	}
 
-	data, ok := groups[0].(map[string]interface{})
-	if !ok {
-		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
-		return
-	}
+	// Ensure the group already exists first!
 	var group Group
-	err = MapToStruct(data, group)
+	err = getDatabaseItem(s.DB.Store, groupId.String(), group)
 	if err != nil {
 		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
 		return
@@ -379,36 +353,16 @@ func (s *SectorAPI) AddGroupMember(w http.ResponseWriter, r *http.Request, group
 // RemoveGroupMember implements ServerInterface.
 func (s *SectorAPI) RemoveGroupMember(w http.ResponseWriter, r *http.Request, groupId types.UUID, memberId types.UUID) {
 	// Ensure the account already exist first!
-	accounts, err := s.DB.Store.Get(context.Background(), memberId.String(), &iface.DocumentStoreGetOptions{})
+	var member Account
+	err := getDatabaseItem(s.DB.Store, memberId.String(), member)
 	if err != nil {
-		s.Logger.Debug(err.Error())
-		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
-		return
-	}
-	if len(accounts) == 0 {
-		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
-		return
-	}
-
-	// Ensure the account does already exist first!
-	groups, err := s.DB.Store.Get(context.Background(), groupId.String(), &iface.DocumentStoreGetOptions{})
-	if err != nil {
-		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
 		return
 	}
-	if len(groups) == 0 {
-		http.Error(w, "Group with specified ID doesn't exist.", http.StatusInternalServerError)
-		return
-	}
 
-	data, ok := groups[0].(map[string]interface{})
-	if !ok {
-		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
-		return
-	}
+	// Ensure the group already exists first!
 	var group Group
-	err = MapToStruct(data, group)
+	err = getDatabaseItem(s.DB.Store, groupId.String(), group)
 	if err != nil {
 		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
 		return
@@ -436,6 +390,27 @@ func (s *SectorAPI) RemoveGroupMember(w http.ResponseWriter, r *http.Request, gr
 }
 
 //#endregion Group API
+
+//#region Channel API
+
+// PutChannel implements ServerInterface.
+func (s *SectorAPI) PutChannel(w http.ResponseWriter, r *http.Request, groupId types.UUID) {
+	// Ensure the group does already exist first!
+	var group Group
+	err := getDatabaseItem(s.DB.Store, groupId.String(), &group)
+	if err != nil {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+
+	// Add the channel in the database
+
+	// Add the group new data in the database
+
+	panic("unimplemented")
+}
+
+//#endregion Channel API
 
 //#region Misc. API
 
@@ -540,6 +515,22 @@ func MapToStruct(data map[string]interface{}, obj interface{}) error {
 		return err
 	}
 	return nil
+}
+
+// Get an item from a document store as a struct (a widely used helper function, TODO: this should be even more widely used, but hasn't been refactored in yet. Ensure you pass &obj as the final arg)
+func getDatabaseItem(store orbitdb.DocumentStore, id string, obj interface{}) error {
+	matches, err := store.Get(context.Background(), id, &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		return err
+	}
+	if len(matches) == 0 {
+		return fmt.Errorf("id not in database")
+	}
+	if len(matches) != 1 {
+		return fmt.Errorf("more than one match for id")
+	}
+
+	return MapToStruct(matches[0].(map[string]interface{}), &obj)
 }
 
 //#endregion Helper Functions
