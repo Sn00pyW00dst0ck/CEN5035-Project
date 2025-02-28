@@ -148,63 +148,24 @@ paths:
   # Group Endpoints
   "/group/":
     post:
-      summary: Create or update a group
+      summary: Create a group
       tags: 
         - Group
       operationID: PutGroup
       requestBody:
-        description: Group details to add/update.
+        description: Group details to add.
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Group'
       responses:
-        "200":
+        "201":
           description: Group creation successful.
           content: 
             application/json:
               schema:
                 $ref: '#/components/schemas/Group'
-  "/group/{groupId}":
-    get: 
-      summary: Get Group By ID
-      tags: 
-        - Group
-      operationID: GetGroupByID
-      parameters:
-        - in: path
-          name: groupId
-          description: ID of group to get.
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
-      responses: 
-        "200":
-          description: Group with specified ID.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-    delete:
-      summary: Delete Group By ID
-      tags: 
-        - Group
-      operationID: DeleteGroupByID
-      parameters:
-        - in: path
-          name: groupId
-          description: ID of group to delete.
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
-      responses: 
-        "204":
-          description: Group was deleted.
   "/group/search":
     post:
       summary: Search for groups satisfying various properties.
@@ -227,6 +188,120 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Group'
+  "/group/{groupId}":
+    get: 
+      summary: Get Group By ID
+      tags: 
+        - Group
+      operationID: GetGroupByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses: 
+        "200":
+          description: Group with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+    put: 
+      summary: Update Group By ID
+      tags: 
+        - Group
+      operationID: UpdateGroupByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        description: Group details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses: 
+        "201":
+          description: Updated group with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+    delete:
+      summary: Delete Group By ID
+      tags: 
+        - Group
+      operationID: DeleteGroupByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to delete.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses: 
+        "204":
+          description: Group was deleted.
+  "/group/{groupId}/members/{memberId}":
+    post:
+      summary: Add new member to a group
+      tags: 
+        - Group
+      operationID: AddGroupMember
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to add member to.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: memberId
+          description: ID of member to add.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            responses: 
+      "201":
+        description: Updated group member list to have new member.
+    delete:
+      summary: Remove member from a group
+      tags: 
+        - Group
+      operationID: RemoveGroupMember
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to remove member from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: memberId
+          description: ID of member to remove.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            responses: 
+      "204":
+        description: Updated group member list to remove member.
 
 components:
   schemas:
@@ -273,11 +348,13 @@ components:
           type: array
           items:
             type: string
+            format: uuid
           example: ["550e8400-e29b-41d4-a716-446655440000"]
         channels:
           type: array
           items:
             type: string
+            format: uuid
       required: 
         - id
         - name

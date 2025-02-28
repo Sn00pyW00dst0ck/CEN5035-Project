@@ -90,6 +90,10 @@ func (s *SectorAPI) PutAccount(w http.ResponseWriter, r *http.Request) {
 
 	// Ensure the account doesn't already exist first!
 	accounts, err := s.DB.Store.Get(context.Background(), accountDetails.Id.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
 	if len(accounts) != 0 {
 		http.Error(w, "Account with specified ID already exists.", http.StatusInternalServerError)
 		return
@@ -118,9 +122,13 @@ func (s *SectorAPI) UpdateAccountByID(w http.ResponseWriter, r *http.Request, id
 	}
 
 	// Ensure the account already exist first!
-	_, err := s.DB.Store.Get(context.Background(), accountDetails.Id.String(), &iface.DocumentStoreGetOptions{})
+	accounts, err := s.DB.Store.Get(context.Background(), accountDetails.Id.String(), &iface.DocumentStoreGetOptions{})
 	if err != nil {
 		s.Logger.Debug(err.Error())
+		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
+		return
+	}
+	if len(accounts) == 0 {
 		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
 		return
 	}
@@ -229,6 +237,17 @@ func (s *SectorAPI) PutGroup(w http.ResponseWriter, r *http.Request) {
 		groupDetails.CreatedAt = &now
 	}
 
+	// Ensure the account doesn't already exist first!
+	groups, err := s.DB.Store.Get(context.Background(), groupDetails.Id.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+	if len(groups) != 0 {
+		http.Error(w, "Group with specified ID already exists.", http.StatusInternalServerError)
+		return
+	}
+
 	operation, err := s.DB.Store.Put(context.Background(), StructToMap(groupDetails))
 	if err != nil {
 		s.Logger.Debug(err.Error())
@@ -236,7 +255,45 @@ func (s *SectorAPI) PutGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(operation.GetValue())
+}
+
+// UpdateGroupByID implements ServerInterface.
+func (s *SectorAPI) UpdateGroupByID(w http.ResponseWriter, r *http.Request, groupId types.UUID) {
+	var groupDetails Group
+	if err := json.NewDecoder(r.Body).Decode(&groupDetails); err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not parse request body.", http.StatusBadRequest)
+		return
+	}
+
+	if groupDetails.CreatedAt == nil {
+		var now = time.Now()
+		groupDetails.CreatedAt = &now
+	}
+
+	// Ensure the account does already exist first!
+	groups, err := s.DB.Store.Get(context.Background(), groupDetails.Id.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+	if len(groups) == 0 {
+		http.Error(w, "Group with specified ID doesn't exist.", http.StatusInternalServerError)
+		return
+	}
+
+	operation, err := s.DB.Store.Put(context.Background(), StructToMap(groupDetails))
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not update within database.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(operation.GetValue())
 }
@@ -264,6 +321,118 @@ func (s *SectorAPI) GetGroupByID(w http.ResponseWriter, r *http.Request, id type
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(group[0])
+}
+
+// AddGroupMember implements ServerInterface.
+func (s *SectorAPI) AddGroupMember(w http.ResponseWriter, r *http.Request, groupId types.UUID, memberId types.UUID) {
+	// Ensure the account already exist first!
+	accounts, err := s.DB.Store.Get(context.Background(), memberId.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
+		return
+	}
+	if len(accounts) == 0 {
+		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
+		return
+	}
+
+	// Ensure the account does already exist first!
+	groups, err := s.DB.Store.Get(context.Background(), groupId.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+	if len(groups) == 0 {
+		http.Error(w, "Group with specified ID doesn't exist.", http.StatusInternalServerError)
+		return
+	}
+
+	data, ok := groups[0].(map[string]interface{})
+	if !ok {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+	var group Group
+	err = MapToStruct(data, group)
+	if err != nil {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+
+	// Update member list and push
+	if !slices.Contains(group.Members, memberId) {
+		group.Members = append(group.Members, memberId)
+	}
+	operation, err := s.DB.Store.Put(context.Background(), StructToMap(group))
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(operation.GetValue())
+}
+
+// RemoveGroupMember implements ServerInterface.
+func (s *SectorAPI) RemoveGroupMember(w http.ResponseWriter, r *http.Request, groupId types.UUID, memberId types.UUID) {
+	// Ensure the account already exist first!
+	accounts, err := s.DB.Store.Get(context.Background(), memberId.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
+		return
+	}
+	if len(accounts) == 0 {
+		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
+		return
+	}
+
+	// Ensure the account does already exist first!
+	groups, err := s.DB.Store.Get(context.Background(), groupId.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+	if len(groups) == 0 {
+		http.Error(w, "Group with specified ID doesn't exist.", http.StatusInternalServerError)
+		return
+	}
+
+	data, ok := groups[0].(map[string]interface{})
+	if !ok {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+	var group Group
+	err = MapToStruct(data, group)
+	if err != nil {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+
+	// Update member list and push
+	if slices.Contains(group.Members, memberId) {
+		// Remove by value
+		for i, v := range group.Members {
+			if v == memberId {
+				group.Members = append(group.Members[:i], group.Members[i+1:]...)
+				break
+			}
+		}
+	}
+	operation, err := s.DB.Store.Put(context.Background(), StructToMap(group))
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(operation.GetValue())
 }
 
 //#endregion Group API
@@ -359,14 +528,18 @@ func StructToMap(obj interface{}) map[string]interface{} {
 
 // Whenever we want to convert something in the database to a struct use this.
 func MapToStruct(data map[string]interface{}, obj interface{}) error {
-	// Marshal the map to JSON
+	// Marshal map to JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	// Unmarshal JSON into the provided struct
-	return json.Unmarshal(jsonData, obj)
+	// Unmarshal JSON into Group struct
+	err = json.Unmarshal(jsonData, &obj)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //#endregion Helper Functions

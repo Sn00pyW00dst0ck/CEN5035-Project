@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -207,8 +208,15 @@ func TestSectorV1(t *testing.T) {
 				sectorAPI.DB.Store.Delete(context.Background(), id.String())
 				panic(err)
 			}
-
 			require.Equal(t, 204, response.StatusCode())
+
+			// Second time should give internal server error
+			response, err = testClient.DeleteAccountByIDWithResponse(context.Background(), id)
+			if err != nil {
+				sectorAPI.DB.Store.Delete(context.Background(), id.String())
+				panic(err)
+			}
+			require.Equal(t, 500, response.StatusCode())
 		})
 
 		t.Run("Search Accounts", func(t *testing.T) {
@@ -303,4 +311,253 @@ func TestSectorV1(t *testing.T) {
 		})
 	})
 
+	t.Run("Group", func(t *testing.T) {
+		t.Run("Create Group", func(t *testing.T) {
+			body := v1.PutGroupJSONRequestBody{
+				Id:          uuid.New(),
+				Name:        "Test Group",
+				Description: "Used for unit tests!",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+
+			response, err := testClient.PutGroupWithResponse(context.Background(), body)
+			if err != nil {
+				panic(err)
+			}
+
+			require.Equal(t, 201, response.StatusCode())
+
+			var createdGroup v1.Group
+			data, err := base64.StdEncoding.DecodeString(string(response.Body)[1 : len(string(response.Body))-2])
+			if err != nil {
+				panic(err)
+			}
+			err = json.Unmarshal(data, &createdGroup)
+			if err != nil {
+				panic(err)
+			}
+
+			require.Equal(t, body.Id, createdGroup.Id)
+			require.Equal(t, body.Name, createdGroup.Name)
+			require.Equal(t, body.Description, createdGroup.Description)
+			require.Equal(t, body.Members, createdGroup.Members)
+			require.Equal(t, body.Channels, createdGroup.Channels)
+
+			// Test updating the group by wrong endpoing (should fail)!
+			body.Name = "Updated Group Name!"
+			response, err = testClient.PutGroupWithResponse(context.Background(), body)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 500, response.StatusCode())
+
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), body.Id.String())
+		})
+
+		t.Run("Get By Id", func(t *testing.T) {
+			id := uuid.New()
+			now := time.Now()
+			original := v1.Group{
+				Id:          id,
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
+			if err != nil {
+				panic(err)
+			}
+
+			// Get the account
+			response, err := testClient.GetGroupByIDWithResponse(context.Background(), id)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 200, response.StatusCode())
+
+			var fetchedGroup v1.Group
+			err = json.Unmarshal(response.Body, &fetchedGroup)
+			if err != nil {
+				panic(err)
+			}
+
+			require.Equal(t, original.Id, fetchedGroup.Id)
+			require.Equal(t, original.Name, fetchedGroup.Name)
+			require.Equal(t, original.Description, fetchedGroup.Description)
+			require.Equal(t, original.Members, fetchedGroup.Members)
+			require.Equal(t, original.Channels, fetchedGroup.Channels)
+
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), id.String())
+		})
+
+		t.Run("Update Group By Id", func(t *testing.T) {
+			id := uuid.New()
+			now := time.Now()
+			original := v1.Group{
+				Id:          id,
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
+			if err != nil {
+				panic(err)
+			}
+
+			// Update the account
+			body := v1.UpdateGroupByIDJSONRequestBody{
+				Id:          id,
+				CreatedAt:   &now,
+				Name:        "Updated Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+			response, err := testClient.UpdateGroupByIDWithResponse(context.Background(), body.Id, body)
+			if err != nil {
+				sectorAPI.DB.Store.Delete(context.Background(), id.String())
+				panic(err)
+			}
+			require.Equal(t, 201, response.StatusCode())
+
+			var updatedGroup v1.Group
+			data, err := base64.StdEncoding.DecodeString(string(response.Body)[1 : len(string(response.Body))-2])
+			if err != nil {
+				panic(err)
+			}
+			err = json.Unmarshal(data, &updatedGroup)
+			if err != nil {
+				panic(err)
+			}
+
+			require.Equal(t, body.Id, updatedGroup.Id)
+			require.Equal(t, body.Name, updatedGroup.Name)
+			require.Equal(t, original.Description, updatedGroup.Description)
+			require.Equal(t, original.Members, updatedGroup.Members)
+			require.Equal(t, original.Channels, updatedGroup.Channels)
+
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), id.String())
+		})
+
+		t.Run("Delete Group By Id", func(t *testing.T) {
+			id := uuid.New()
+			now := time.Now()
+			original := v1.Group{
+				Id:          id,
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
+			if err != nil {
+				panic(err)
+			}
+
+			// Delete the account
+			response, err := testClient.DeleteGroupByIDWithResponse(context.Background(), id)
+			if err != nil {
+				sectorAPI.DB.Store.Delete(context.Background(), id.String())
+				panic(err)
+			}
+			require.Equal(t, 204, response.StatusCode())
+
+			// Second time should give internal server error
+			response, err = testClient.DeleteGroupByIDWithResponse(context.Background(), id)
+			if err != nil {
+				sectorAPI.DB.Store.Delete(context.Background(), id.String())
+				panic(err)
+			}
+			require.Equal(t, 500, response.StatusCode())
+		})
+
+		// TODO: search test
+
+		t.Run("Add Member", func(t *testing.T) {
+			now := time.Now()
+			originalGroup := v1.Group{
+				Id:          uuid.New(),
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+
+			originalAccout := v1.Account{
+				Id:         uuid.New(),
+				Username:   "Test Account 2",
+				ProfilePic: "",
+				CreatedAt:  &now,
+			}
+
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalAccout))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalGroup))
+			if err != nil {
+				panic(err)
+			}
+
+			response, err := testClient.AddGroupMemberWithResponse(context.Background(), originalGroup.Id, originalAccout.Id)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 201, response.StatusCode())
+			// TODO: Check that member list updated
+		})
+
+		t.Run("Remove Member", func(t *testing.T) {
+			now := time.Now()
+			originalGroup := v1.Group{
+				Id:          uuid.New(),
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+
+			originalAccout := v1.Account{
+				Id:         uuid.New(),
+				Username:   "Test Account 2",
+				ProfilePic: "",
+				CreatedAt:  &now,
+			}
+
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalAccout))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalGroup))
+			if err != nil {
+				panic(err)
+			}
+
+			response, err := testClient.RemoveGroupMemberWithResponse(context.Background(), originalGroup.Id, originalAccout.Id)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 204, response.StatusCode())
+			// TODO: Check that member list updated
+		})
+	})
+
+	t.Run("Channel", func(t *testing.T) {
+
+	})
+
+	t.Run("Message", func(t *testing.T) {
+
+	})
 }
