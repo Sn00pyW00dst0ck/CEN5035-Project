@@ -302,7 +302,29 @@ paths:
       "204":
         description: Updated group member list to remove member.
 
-  # Channel Endpoints (nested under groups because groups have channels)
+  # Channel Endpoints (mostly nested under groups because groups have channels)
+  "/channel/search": 
+    post:
+      summary: Search for channels satisfying various properties.
+      tags: 
+        - Channel
+      operationID: SearchChannels
+      requestBody:
+        description: Channel searching parameters.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelFilter'
+      responses:
+        "200":
+          description: Query completed successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Channel'
   "/group/{groupId}/channel/": 
     post:
       summary: Create a channel within a group
@@ -331,15 +353,93 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Channel'
+  "/group/{groupId}/channel/{channelId}": 
+    get:
+      summary: Get Channel in Group By ID
+      tags: 
+        - Channel
+      operationID: GetChannelByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to get channel from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses: 
+        "200":
+          description: Channel with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+    put:
+      summary: Update Channel in Group By ID
+      tags: 
+        - Channel
+      operationID: UpdateChannelByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to update channel from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Channel details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Channel'
+      responses: 
+        "201":
+          description: Updated Channel with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+    delete:
+      summary: Delete Channel in Group By ID
+      tags: 
+        - Channel
+      operationID: DeleteChannelByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to delete channel from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to delete.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses: 
+        "204":
+          description: Channel with specified ID deleted.
 
-  # "/group/{groupId}/channel/search": 
-  #   post:
-# 
-  # "/group/{groupId}/channel/{channelId}": 
-  #   get:
-  #   put:
-  #   delete:
-
+  # Message Endpoints
 
 components:
   schemas:

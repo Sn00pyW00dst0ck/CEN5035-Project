@@ -238,7 +238,7 @@ func (s *SectorAPI) PutGroup(w http.ResponseWriter, r *http.Request) {
 		groupDetails.CreatedAt = &now
 	}
 
-	// Ensure the account doesn't already exist first!
+	// Ensure the group doesn't already exist first!
 	var group Group
 	err := getDatabaseItem(s.DB.Store, groupDetails.Id.String(), &group)
 	if err == nil || err.Error() != "id not in database" {
@@ -393,6 +393,55 @@ func (s *SectorAPI) RemoveGroupMember(w http.ResponseWriter, r *http.Request, gr
 
 //#region Channel API
 
+// SearchChannels implements ServerInterface.
+func (s *SectorAPI) SearchChannels(w http.ResponseWriter, r *http.Request) {
+	var filter ChannelFilter
+	if err := json.NewDecoder(r.Body).Decode(&filter); err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not parse request body.", http.StatusBadRequest)
+		return
+	}
+
+	channels, err := s.DB.Store.Query(context.Background(), func(doc interface{}) (bool, error) {
+		data, ok := doc.(map[string]interface{})
+		if !ok {
+			return false, nil
+		}
+
+		var channel Channel
+		err := MapToStruct(data, &channel)
+		if err != nil {
+			fmt.Println(err)
+			return false, nil
+		}
+
+		// Apply filter conditions
+		if filter.Id != nil && !slices.Contains(*filter.Id, channel.Id) {
+			return false, nil
+		}
+		if filter.From != nil && channel.CreatedAt.Before(*filter.From) {
+			return false, nil
+		}
+		if filter.Until != nil && channel.CreatedAt.After(*filter.Until) {
+			return false, nil
+		}
+		if filter.Name != nil && !fuzzy.Match(*filter.Name, channel.Name) {
+			return false, nil
+		}
+
+		return true, nil
+	})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not perform database query.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(channels)
+}
+
 // PutChannel implements ServerInterface.
 func (s *SectorAPI) PutChannel(w http.ResponseWriter, r *http.Request, groupId types.UUID) {
 	// Ensure the group does already exist first!
@@ -403,11 +452,131 @@ func (s *SectorAPI) PutChannel(w http.ResponseWriter, r *http.Request, groupId t
 		return
 	}
 
-	// Add the channel in the database
+	// Get channel details
+	var channelDetails Channel
+	if err := json.NewDecoder(r.Body).Decode(&channelDetails); err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not parse request body.", http.StatusBadRequest)
+		return
+	}
+	if channelDetails.CreatedAt == nil {
+		var now = time.Now()
+		channelDetails.CreatedAt = &now
+	}
 
-	// Add the group new data in the database
+	// Ensure the channel doesn't already exist first!
+	var channel Channel
+	err = getDatabaseItem(s.DB.Store, channelDetails.Id.String(), &channel)
+	if err == nil || err.Error() != "id not in database" {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
 
-	panic("unimplemented")
+	// Add it to the database
+	operation, err := s.DB.Store.Put(context.Background(), StructToMap(channelDetails))
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not update within database.", http.StatusInternalServerError)
+		return
+	}
+
+	// Update the group details
+	group.Channels = append(group.Channels, channel.Id)
+	_, err = s.DB.Store.Put(r.Context(), StructToMap(group))
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not update within database.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(operation.GetValue())
+}
+
+// UpdateChannelByID implements ServerInterface.
+func (s *SectorAPI) UpdateChannelByID(w http.ResponseWriter, r *http.Request, groupId types.UUID, channelId types.UUID) {
+	var channelDetails Group
+	if err := json.NewDecoder(r.Body).Decode(&channelDetails); err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not parse request body.", http.StatusBadRequest)
+		return
+	}
+	if channelDetails.CreatedAt == nil {
+		var now = time.Now()
+		channelDetails.CreatedAt = &now
+	}
+
+	// Ensure the account does already exist first!
+	var channel Channel
+	err := getDatabaseItem(s.DB.Store, channelDetails.Id.String(), &channel)
+	if err != nil {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+
+	operation, err := s.DB.Store.Put(context.Background(), StructToMap(channelDetails))
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not update within database.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(operation.GetValue())
+}
+
+// DeleteChannelByID implements ServerInterface.
+func (s *SectorAPI) DeleteChannelByID(w http.ResponseWriter, r *http.Request, groupId types.UUID, channelId types.UUID) {
+	// Remove from group list of channels
+	var group Group
+	err := getDatabaseItem(s.DB.Store, groupId.String(), &group)
+	if err != nil {
+		http.Error(w, "Could not complete operation.", http.StatusInternalServerError)
+		return
+	}
+
+	// Update channel list and push
+	if slices.Contains(group.Channels, channelId) {
+		// Remove by value
+		for i, v := range group.Channels {
+			if v == channelId {
+				group.Channels = append(group.Channels[:i], group.Channels[i+1:]...)
+				break
+			}
+		}
+	}
+	_, err = s.DB.Store.Put(r.Context(), StructToMap(group))
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not update within database.", http.StatusInternalServerError)
+		return
+	}
+
+	// Remove from database
+	_, err = s.DB.Store.Delete(context.Background(), channelId.String())
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not delete within database.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetChannelByID implements ServerInterface.
+func (s *SectorAPI) GetChannelByID(w http.ResponseWriter, r *http.Request, groupId types.UUID, channelId types.UUID) {
+	// TODO: other checks might be necessary here...
+	channel, err := s.DB.Store.Get(context.Background(), channelId.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not complete database query.", http.StatusInternalServerError)
+		return
+	}
+	// TODO: might need to do other things to get account return type to work with the openapi validation.
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(channel[0])
 }
 
 //#endregion Channel API

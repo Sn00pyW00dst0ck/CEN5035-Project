@@ -424,6 +424,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/channel/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search for channels satisfying various properties. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Channel searching parameters. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ChannelFilter"];
+                };
+            };
+            responses: {
+                /** @description Query completed successfully. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Channel"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/group/{groupId}/channel/": {
         parameters: {
             query?: never;
@@ -463,6 +504,100 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}/channel/{channelId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Channel in Group By ID */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to get channel from. */
+                    groupId: string;
+                    /** @description ID of channel to get. */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Channel with specified ID. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Channel"];
+                    };
+                };
+            };
+        };
+        /** Update Channel in Group By ID */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to update channel from. */
+                    groupId: string;
+                    /** @description ID of channel to update. */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Channel details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Channel"];
+                };
+            };
+            responses: {
+                /** @description Updated Channel with specified ID. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Channel"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete Channel in Group By ID */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to delete channel from. */
+                    groupId: string;
+                    /** @description ID of channel to delete. */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Channel with specified ID deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
