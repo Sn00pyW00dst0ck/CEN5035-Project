@@ -37,19 +37,19 @@ paths:
   # Account Endpoints
   "/account/":
     post:
-      summary: Create or update an account
+      summary: Create an account
       tags: 
         - Account
       operationID: PutAccount
       requestBody:
-        description: Account details to add/update.
+        description: Account details to add.
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Account'
       responses:
-        "200":
+        "201":
           description: Account creation successful.
           content: 
             application/json:
@@ -73,6 +73,34 @@ paths:
       responses: 
         "200":
           description: Account with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+    put: 
+      summary: Update Account By ID
+      tags: 
+        - Account
+      operationID: UpdateAccountByID
+      parameters:
+        - in: path
+          name: id
+          description: ID of account to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        description: Account details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses: 
+        "200":
+          description: Updated account with specified ID.
           content:
             application/json:
               schema:
@@ -120,63 +148,24 @@ paths:
   # Group Endpoints
   "/group/":
     post:
-      summary: Create or update a group
+      summary: Create a group
       tags: 
         - Group
       operationID: PutGroup
       requestBody:
-        description: Group details to add/update.
+        description: Group details to add.
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Group'
       responses:
-        "200":
+        "201":
           description: Group creation successful.
           content: 
             application/json:
               schema:
                 $ref: '#/components/schemas/Group'
-  "/group/{id}":
-    get: 
-      summary: Get Group By ID
-      tags: 
-        - Group
-      operationID: GetGroupByID
-      parameters:
-        - in: path
-          name: id
-          description: ID of group to get.
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
-      responses: 
-        "200":
-          description: Group with specified ID.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-    delete:
-      summary: Delete Group By ID
-      tags: 
-        - Group
-      operationID: DeleteGroupByID
-      parameters:
-        - in: path
-          name: id
-          description: ID of group to delete.
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
-      responses: 
-        "204":
-          description: Group was deleted.
   "/group/search":
     post:
       summary: Search for groups satisfying various properties.
@@ -199,6 +188,421 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Group'
+  "/group/{groupId}":
+    get: 
+      summary: Get Group By ID
+      tags: 
+        - Group
+      operationID: GetGroupByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses: 
+        "200":
+          description: Group with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+    put: 
+      summary: Update Group By ID
+      tags: 
+        - Group
+      operationID: UpdateGroupByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Group details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses: 
+        "201":
+          description: Updated group with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+    delete:
+      summary: Delete Group By ID
+      tags: 
+        - Group
+      operationID: DeleteGroupByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to delete.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses: 
+        "204":
+          description: Group was deleted.
+  "/group/{groupId}/members/{memberId}":
+    post:
+      summary: Add new member to a group
+      tags: 
+        - Group
+      operationID: AddGroupMember
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to add member to.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: memberId
+          description: ID of member to add.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            responses: 
+      "201":
+        description: Updated group member list to have new member.
+    delete:
+      summary: Remove member from a group
+      tags: 
+        - Group
+      operationID: RemoveGroupMember
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to remove member from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: memberId
+          description: ID of member to remove.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            responses: 
+      "204":
+        description: Updated group member list to remove member.
+
+  # Channel Endpoints (mostly nested under groups because groups have channels)
+  "/channel/search": 
+    post:
+      summary: Search for channels satisfying various properties.
+      tags: 
+        - Channel
+      operationID: SearchChannels
+      requestBody:
+        description: Channel searching parameters.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelFilter'
+      responses:
+        "200":
+          description: Query completed successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Channel'
+  "/group/{groupId}/channel/": 
+    post:
+      summary: Create a channel within a group
+      tags: 
+        - Channel
+      operationID: PutChannel
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to make channel for.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Channel details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Channel'
+      responses:
+        "201":
+          description: Channel creation successful.
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+  "/group/{groupId}/channel/{channelId}": 
+    get:
+      summary: Get Channel in Group By ID
+      tags: 
+        - Channel
+      operationID: GetChannelByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to get channel from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses: 
+        "200":
+          description: Channel with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+    put:
+      summary: Update Channel in Group By ID
+      tags: 
+        - Channel
+      operationID: UpdateChannelByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to update channel from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Channel details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Channel'
+      responses: 
+        "201":
+          description: Updated Channel with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+    delete:
+      summary: Delete Channel in Group By ID
+      tags: 
+        - Channel
+      operationID: DeleteChannelByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to delete channel from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to delete.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses: 
+        "204":
+          description: Channel with specified ID deleted.
+
+  # Message Endpoints
+  "/message/search":
+    post:
+      summary: Search for messages satisfying various properties.
+      tags: 
+        - Message
+      operationID: SearchMessages
+      requestBody:
+        description: Message searching parameters.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageFilter'
+      responses:
+        "200":
+          description: Query completed successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+  "/group/{groupId}/channel/{channelId}/message":
+    post:
+      summary: Create a message within a channel
+      tags: 
+        - Message
+      operationID: PutMessage
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to get channel from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Message details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        "201":
+          description: Message creation successful.
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  "/group/{groupId}/channel/{channelId}/message/{messageId}":
+    get:
+      summary: Get Message in Channel By ID
+      tags: 
+        - Message
+      operationID: GetMessageByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to get message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to get message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: messageId
+          description: ID of message to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses: 
+        "200":
+          description: Message with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+    put:
+      summary: Update Message in Channel By ID
+      tags: 
+        - Message
+      operationID: UpdateMessageByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to update message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to update message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: messageId
+          description: ID of message to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Message details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses: 
+        "201":
+          description: Message with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+    delete:
+      summary: Delete Message in Channel By ID
+      tags: 
+        - Message
+      operationID: DeleteMessageByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to update message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to update message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: messageId
+          description: ID of message to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses: 
+        "204":
+          description: Message with specified ID deleted.
 
 components:
   schemas:
@@ -245,11 +649,13 @@ components:
           type: array
           items:
             type: string
+            format: uuid
           example: ["550e8400-e29b-41d4-a716-446655440000"]
         channels:
           type: array
           items:
             type: string
+            format: uuid
       required: 
         - id
         - name

@@ -47,7 +47,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create or update an account */
+        /** Create an account */
         post: {
             parameters: {
                 query?: never;
@@ -55,7 +55,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description Account details to add/update. */
+            /** @description Account details to add. */
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["Account"];
@@ -63,7 +63,7 @@ export interface paths {
             };
             responses: {
                 /** @description Account creation successful. */
-                200: {
+                201: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -110,7 +110,35 @@ export interface paths {
                 };
             };
         };
-        put?: never;
+        /** Update Account By ID */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of account to update. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Account details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            responses: {
+                /** @description Updated account with specified ID. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Account"];
+                    };
+                };
+            };
+        };
         post?: never;
         /** Delete Account By ID */
         delete: {
@@ -175,6 +203,588 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a group */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Group details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            responses: {
+                /** @description Group creation successful. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Group"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search for groups satisfying various properties. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Group searching parameters. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GroupFilter"];
+                };
+            };
+            responses: {
+                /** @description Query completed successfully. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Group"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Group By ID */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to get. */
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Group with specified ID. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Group"];
+                    };
+                };
+            };
+        };
+        /** Update Group By ID */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to update. */
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Group details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            responses: {
+                /** @description Updated group with specified ID. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Group"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete Group By ID */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to delete. */
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Group was deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}/members/{memberId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add new member to a group */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to add member to. */
+                    groupId: string;
+                    /** @description ID of member to add. */
+                    memberId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: never;
+        };
+        /** Remove member from a group */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to remove member from. */
+                    groupId: string;
+                    /** @description ID of member to remove. */
+                    memberId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: never;
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/channel/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search for channels satisfying various properties. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Channel searching parameters. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ChannelFilter"];
+                };
+            };
+            responses: {
+                /** @description Query completed successfully. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Channel"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}/channel/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a channel within a group */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to make channel for. */
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Channel details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Channel"];
+                };
+            };
+            responses: {
+                /** @description Channel creation successful. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Channel"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}/channel/{channelId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Channel in Group By ID */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to get channel from. */
+                    groupId: string;
+                    /** @description ID of channel to get. */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Channel with specified ID. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Channel"];
+                    };
+                };
+            };
+        };
+        /** Update Channel in Group By ID */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to update channel from. */
+                    groupId: string;
+                    /** @description ID of channel to update. */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Channel details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Channel"];
+                };
+            };
+            responses: {
+                /** @description Updated Channel with specified ID. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Channel"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete Channel in Group By ID */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to delete channel from. */
+                    groupId: string;
+                    /** @description ID of channel to delete. */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Channel with specified ID deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/message/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search for messages satisfying various properties. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Message searching parameters. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MessageFilter"];
+                };
+            };
+            responses: {
+                /** @description Query completed successfully. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Message"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}/channel/{channelId}/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a message within a channel */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to get channel from. */
+                    groupId: string;
+                    /** @description ID of channel to get. */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Message details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            responses: {
+                /** @description Message creation successful. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Message"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}/channel/{channelId}/message/{messageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Message in Channel By ID */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to get message from. */
+                    groupId: string;
+                    /** @description ID of channel to get message from. */
+                    channelId: string;
+                    /** @description ID of message to get. */
+                    messageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Message with specified ID. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Message"];
+                    };
+                };
+            };
+        };
+        /** Update Message in Channel By ID */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to update message from. */
+                    groupId: string;
+                    /** @description ID of channel to update message from. */
+                    channelId: string;
+                    /** @description ID of message to update. */
+                    messageId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Message details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            responses: {
+                /** @description Message with specified ID. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Message"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete Message in Channel By ID */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to update message from. */
+                    groupId: string;
+                    /** @description ID of channel to update message from. */
+                    channelId: string;
+                    /** @description ID of message to update. */
+                    messageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Message with specified ID deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
