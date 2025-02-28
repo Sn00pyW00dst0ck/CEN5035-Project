@@ -23,6 +23,8 @@ type SectorAPI struct {
 	DB     *database.Database
 }
 
+//#region Account API
+
 // SearchAccounts implements ServerInterface.
 func (s *SectorAPI) SearchAccounts(w http.ResponseWriter, r *http.Request) {
 	var filter AccountFilter
@@ -86,6 +88,14 @@ func (s *SectorAPI) PutAccount(w http.ResponseWriter, r *http.Request) {
 		accountDetails.CreatedAt = &now
 	}
 
+	// Ensure the account doesn't already exist first!
+	accounts, err := s.DB.Store.Get(context.Background(), accountDetails.Id.String(), &iface.DocumentStoreGetOptions{})
+	if len(accounts) != 0 {
+		http.Error(w, "Account with specified ID already exists.", http.StatusInternalServerError)
+		return
+	}
+
+	// Add the new account to the DB
 	operation, err := s.DB.Store.Put(context.Background(), StructToMap(accountDetails))
 	if err != nil {
 		s.Logger.Debug(err.Error())
@@ -93,7 +103,37 @@ func (s *SectorAPI) PutAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(operation.GetValue())
+}
+
+// UpdateAccountByID implements ServerInterface.
+func (s *SectorAPI) UpdateAccountByID(w http.ResponseWriter, r *http.Request, id types.UUID) {
+	var accountDetails Account
+	if err := json.NewDecoder(r.Body).Decode(&accountDetails); err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not parse request body.", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure the account already exist first!
+	_, err := s.DB.Store.Get(context.Background(), accountDetails.Id.String(), &iface.DocumentStoreGetOptions{})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Account with specified ID doesn't exist.", http.StatusInternalServerError)
+		return
+	}
+
+	// Add the new account to the DB
+	operation, err := s.DB.Store.Put(context.Background(), StructToMap(accountDetails))
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not update within database.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(operation.GetValue())
 }
@@ -121,6 +161,10 @@ func (s *SectorAPI) GetAccountByID(w http.ResponseWriter, r *http.Request, id ty
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(account[0])
 }
+
+//#endregion Account API
+
+//#region Group API
 
 // SearchGroups implements ServerInterface.
 func (s *SectorAPI) SearchGroups(w http.ResponseWriter, r *http.Request) {
@@ -222,6 +266,10 @@ func (s *SectorAPI) GetGroupByID(w http.ResponseWriter, r *http.Request, id type
 	json.NewEncoder(w).Encode(group[0])
 }
 
+//#endregion Group API
+
+//#region Misc. API
+
 // GetHealth implements ServerInterface.
 func (s *SectorAPI) GetHealth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
@@ -233,6 +281,8 @@ func (s *SectorAPI) GetRoot(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{"message": "Hello, World!"}
 	json.NewEncoder(w).Encode(response)
 }
+
+//#endregion Misc. API
 
 // Make sure we conform to ServerInterface
 
@@ -293,7 +343,9 @@ func NewTestingSector(ctx context.Context, logfile, dbCache string, t *testing.T
 	}
 }
 
-// Helper functions
+//#region Helper Functions
+
+// Whenever we want to convert something from a struct to the database representation use this.
 func StructToMap(obj interface{}) map[string]interface{} {
 	// Marshal struct to JSON
 	data, _ := json.Marshal(obj)
@@ -316,3 +368,5 @@ func MapToStruct(data map[string]interface{}, obj interface{}) error {
 	// Unmarshal JSON into the provided struct
 	return json.Unmarshal(jsonData, obj)
 }
+
+//#endregion Helper Functions

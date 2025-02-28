@@ -37,19 +37,19 @@ paths:
   # Account Endpoints
   "/account/":
     post:
-      summary: Create or update an account
+      summary: Create an account
       tags: 
         - Account
       operationID: PutAccount
       requestBody:
-        description: Account details to add/update.
+        description: Account details to add.
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Account'
       responses:
-        "200":
+        "201":
           description: Account creation successful.
           content: 
             application/json:
@@ -73,6 +73,34 @@ paths:
       responses: 
         "200":
           description: Account with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+    put: 
+      summary: Update Account By ID
+      tags: 
+        - Account
+      operationID: UpdateAccountByID
+      parameters:
+        - in: path
+          name: id
+          description: ID of account to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        description: Account details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses: 
+        "200":
+          description: Updated account with specified ID.
           content:
             application/json:
               schema:
@@ -138,7 +166,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Group'
-  "/group/{id}":
+  "/group/{groupId}":
     get: 
       summary: Get Group By ID
       tags: 
@@ -146,7 +174,7 @@ paths:
       operationID: GetGroupByID
       parameters:
         - in: path
-          name: id
+          name: groupId
           description: ID of group to get.
           required: true
           schema:
@@ -167,7 +195,7 @@ paths:
       operationID: DeleteGroupByID
       parameters:
         - in: path
-          name: id
+          name: groupId
           description: ID of group to delete.
           required: true
           schema:

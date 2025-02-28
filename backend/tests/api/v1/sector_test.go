@@ -81,7 +81,7 @@ func TestSectorV1(t *testing.T) {
 				panic(err)
 			}
 
-			require.Equal(t, 200, response.StatusCode())
+			require.Equal(t, 201, response.StatusCode())
 
 			var createdAccount v1.Account
 			data, err := base64.StdEncoding.DecodeString(string(response.Body)[1 : len(string(response.Body))-2])
@@ -96,46 +96,17 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, body.Id, createdAccount.Id)
 			require.Equal(t, body.Username, createdAccount.Username)
 			require.Equal(t, body.ProfilePic, createdAccount.ProfilePic)
-		})
 
-		t.Run("Update Account", func(t *testing.T) {
-			id := uuid.New()
-			now := time.Now()
-			original := v1.Account{
-				Id:         id,
-				Username:   "Test Account 2",
-				ProfilePic: "",
-				CreatedAt:  &now,
-			}
-			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
+			// Test updating the account (should fail)!
+			body.Username = "Updated Username!"
+			response, err = testClient.PutAccountWithResponse(context.Background(), body)
 			if err != nil {
 				panic(err)
 			}
+			require.Equal(t, 500, response.StatusCode())
 
-			// Test updating the account!
-			body := v1.PutAccountJSONRequestBody{
-				Id:       id,
-				Username: "Updated Username",
-			}
-			response, err := testClient.PutAccountWithResponse(context.Background(), body)
-			if err != nil {
-				panic(err)
-			}
-			require.Equal(t, 200, response.StatusCode())
-
-			var createdAccount v1.Account
-			data, err := base64.StdEncoding.DecodeString(string(response.Body)[1 : len(string(response.Body))-2])
-			if err != nil {
-				panic(err)
-			}
-			err = json.Unmarshal(data, &createdAccount)
-			if err != nil {
-				panic(err)
-			}
-
-			require.Equal(t, original.Id, createdAccount.Id)
-			require.Equal(t, body.Username, createdAccount.Username)
-			require.Equal(t, original.ProfilePic, createdAccount.ProfilePic)
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), body.Id.String())
 		})
 
 		t.Run("Get By Id", func(t *testing.T) {
@@ -168,6 +139,76 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, original.Id, createdAccount.Id)
 			require.Equal(t, original.Username, createdAccount.Username)
 			require.Equal(t, original.ProfilePic, createdAccount.ProfilePic)
+
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), id.String())
+		})
+
+		t.Run("Update Account", func(t *testing.T) {
+			id := uuid.New()
+			now := time.Now()
+			original := v1.Account{
+				Id:         id,
+				Username:   "Test Account 2",
+				ProfilePic: "",
+				CreatedAt:  &now,
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
+			if err != nil {
+				panic(err)
+			}
+
+			// Test updating the account!
+			body := v1.UpdateAccountByIDJSONRequestBody{
+				Id:       id,
+				Username: "Updated Username",
+			}
+			response, err := testClient.UpdateAccountByIDWithResponse(context.Background(), body.Id, body)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 201, response.StatusCode())
+
+			var updatedAccount v1.Account
+			data, err := base64.StdEncoding.DecodeString(string(response.Body)[1 : len(string(response.Body))-2])
+			if err != nil {
+				panic(err)
+			}
+			err = json.Unmarshal(data, &updatedAccount)
+			if err != nil {
+				panic(err)
+			}
+
+			require.Equal(t, original.Id, updatedAccount.Id)
+			require.Equal(t, body.Username, updatedAccount.Username)
+			require.Equal(t, original.ProfilePic, updatedAccount.ProfilePic)
+
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), id.String())
+		})
+
+		t.Run("Delete Account By Id", func(t *testing.T) {
+			id := uuid.New()
+			now := time.Now()
+			original := v1.Account{
+				Id:         id,
+				Username:   "Test Account 2",
+				ProfilePic: "",
+				CreatedAt:  &now,
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
+			if err != nil {
+				panic(err)
+			}
+
+			// Delete the account
+			response, err := testClient.DeleteAccountByIDWithResponse(context.Background(), id)
+			if err != nil {
+				sectorAPI.DB.Store.Delete(context.Background(), id.String())
+				panic(err)
+			}
+
+			require.Equal(t, 204, response.StatusCode())
 		})
 
 		t.Run("Search Accounts", func(t *testing.T) {
@@ -253,29 +294,12 @@ func TestSectorV1(t *testing.T) {
 				require.True(t, strings.Contains(queryResult[i].Username, username))
 			}
 
-		})
-
-		t.Run("Delete Account By Id", func(t *testing.T) {
-			id := uuid.New()
-			now := time.Now()
-			original := v1.Account{
-				Id:         id,
-				Username:   "Test Account 2",
-				ProfilePic: "",
-				CreatedAt:  &now,
+			// Clean up
+			for _, value := range accounts {
+				if val, ok := value.(v1.Account); ok {
+					sectorAPI.DB.Store.Delete(context.Background(), val.Id.String())
+				}
 			}
-			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
-			if err != nil {
-				panic(err)
-			}
-
-			// Delete the account
-			response, err := testClient.DeleteAccountByIDWithResponse(context.Background(), id)
-			if err != nil {
-				panic(err)
-			}
-
-			require.Equal(t, 204, response.StatusCode())
 		})
 	})
 

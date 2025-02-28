@@ -47,7 +47,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create or update an account */
+        /** Create an account */
         post: {
             parameters: {
                 query?: never;
@@ -55,7 +55,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description Account details to add/update. */
+            /** @description Account details to add. */
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["Account"];
@@ -63,7 +63,7 @@ export interface paths {
             };
             responses: {
                 /** @description Account creation successful. */
-                200: {
+                201: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -110,7 +110,35 @@ export interface paths {
                 };
             };
         };
-        put?: never;
+        /** Update Account By ID */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of account to update. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Account details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            responses: {
+                /** @description Updated account with specified ID. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Account"];
+                    };
+                };
+            };
+        };
         post?: never;
         /** Delete Account By ID */
         delete: {
@@ -170,6 +198,148 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["Account"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create or update a group */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Group details to add/update. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            responses: {
+                /** @description Group creation successful. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Group"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Group By ID */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to get. */
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Group with specified ID. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Group"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Delete Group By ID */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to delete. */
+                    groupId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Group was deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search for groups satisfying various properties. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Group searching parameters. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["GroupFilter"];
+                };
+            };
+            responses: {
+                /** @description Query completed successfully. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Group"][];
                     };
                 };
             };
