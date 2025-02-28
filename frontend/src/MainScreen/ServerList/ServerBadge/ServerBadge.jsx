@@ -12,7 +12,7 @@ function ServerBadge(props) {
     return (
         <Button onClick={GetUserInfo} sx={{
             display: "flex", width: "calc(100% - 1rem)", margin: ".5rem", padding: "0", borderRadius: 10,
-            color: "orange", textTransform: "none", }}
+            color: "orange", textTransform: "none"}}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
         >
@@ -24,7 +24,7 @@ function ServerBadge(props) {
                     <Avatar sx={{width: "3rem", height: "3rem"}} src ="serverDefault.png" alt = "test"></Avatar>
 
                     <div style={{display: "flex"}} >
-                        {props.server.name}
+                        {props.server.name || "Server Name"}
                     </div>
                 </Stack>
             </Paper>

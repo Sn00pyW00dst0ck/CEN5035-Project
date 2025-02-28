@@ -4,6 +4,7 @@ import {YourUser} from "../../App.jsx"
 import ServerBadge from "./ServerBadge/ServerBadge.jsx";
 import "./ServerList.css";
 import {useState} from "react";
+import Search from "../../CommonComponents/Search/Search.jsx";
 
 function searchServer(serverData)
     {
@@ -37,8 +38,14 @@ function ServerList() {
     return(
         <div>
             <Paper elevation={3} sx={{
-                borderRadius: 7.5
-            }} style={{ display: "flex", flexDirection: "column", width: "15rem", height: "calc(100vh - 2rem)", margin: "1rem", overflow: "hidden"}}>
+                borderRadius: 7.5,
+                display: "flex",
+                flexDirection: "column",
+                width: "15rem",
+                height: "calc(100vh - 2rem)",
+                margin: "1rem",
+                overflow: "hidden"
+            }}>
                 <UserBadge user={YourUser.name} status={YourUser.status} online ={YourUser.online} img={YourUser.icon}/>
 
                 <List
@@ -55,12 +62,7 @@ function ServerList() {
                     subheader={<li />}
                 >
 
-                    <TextField id="serverSearchInput" sx ={{display:"flex", margin: ".5rem"}}
-                               label="Search Server"
-                               type="search"
-                               size="small"
-                               onChange={handleServerSearch}
-                    />
+                    <Search label={"Search"} return = {handleServerSearch}/>
 
                     <div id='serverBadgeHolder'>
                         {servers
