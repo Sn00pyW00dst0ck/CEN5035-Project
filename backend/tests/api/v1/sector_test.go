@@ -811,6 +811,339 @@ func TestSectorV1(t *testing.T) {
 	})
 
 	t.Run("Message", func(t *testing.T) {
+		t.Run("Create Message", func(t *testing.T) {
+			now := time.Now()
+			originalAccount := v1.Account{
+				Id:         uuid.New(),
+				CreatedAt:  &now,
+				Username:   "Test User",
+				ProfilePic: "",
+			}
+			originalGroup := v1.Group{
+				Id:          uuid.New(),
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+			desc := "Channel for unit testing"
+			originalChannel := v1.Channel{
+				Id:             uuid.New(),
+				CreatedAt:      &now,
+				Name:           "Test Channel",
+				Description:    &desc,
+				Messages:       []types.UUID{},
+				PinnedMessages: []types.UUID{},
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalAccount))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalGroup))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalChannel))
+			if err != nil {
+				panic(err)
+			}
+
+			body := v1.PutMessageJSONRequestBody{
+				Id:        uuid.New(),
+				CreatedAt: &now,
+				Author:    originalAccount.Id,
+				Body:      "Message Content",
+			}
+			response, err := testClient.PutMessageWithResponse(context.Background(), originalGroup.Id, originalChannel.Id, body)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 201, response.StatusCode())
+
+			var createdMessage v1.Message
+			data, err := base64.StdEncoding.DecodeString(string(response.Body)[1 : len(string(response.Body))-2])
+			if err != nil {
+				panic(err)
+			}
+			err = json.Unmarshal(data, &createdMessage)
+			if err != nil {
+				panic(err)
+			}
+
+			// Check content
+			require.Equal(t, body.Id, createdMessage.Id)
+			require.Equal(t, body.Author, createdMessage.Author)
+			require.Equal(t, body.Body, createdMessage.Body)
+
+			// Check channel's message list updated
+			response2, err := testClient.GetChannelByIDWithResponse(context.Background(), originalGroup.Id, originalChannel.Id)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 200, response2.StatusCode())
+
+			var fetchedChannel v1.Channel
+			err = json.Unmarshal(response2.Body, &fetchedChannel)
+			if err != nil {
+				panic(err)
+			}
+
+			require.Equal(t, originalChannel.Id, fetchedChannel.Id)
+			require.Equal(t, originalChannel.Name, fetchedChannel.Name)
+			require.Equal(t, originalChannel.Description, fetchedChannel.Description)
+			require.Equal(t, 1, len(fetchedChannel.Messages))
+			require.Equal(t, 0, len(fetchedChannel.PinnedMessages))
+
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), originalAccount.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalGroup.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalChannel.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), body.Id.String())
+		})
+
+		t.Run("Get Message By Id", func(t *testing.T) {
+			now := time.Now()
+			originalAccount := v1.Account{
+				Id:         uuid.New(),
+				CreatedAt:  &now,
+				Username:   "Test User",
+				ProfilePic: "",
+			}
+			originalGroup := v1.Group{
+				Id:          uuid.New(),
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+			desc := "Channel for unit testing"
+			originalChannel := v1.Channel{
+				Id:             uuid.New(),
+				CreatedAt:      &now,
+				Name:           "Test Channel",
+				Description:    &desc,
+				Messages:       []types.UUID{},
+				PinnedMessages: []types.UUID{},
+			}
+			originalMessage := v1.Message{
+				Id:        uuid.New(),
+				CreatedAt: &now,
+				Author:    originalAccount.Id,
+				Body:      "Test Message",
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalAccount))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalGroup))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalChannel))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalMessage))
+			if err != nil {
+				panic(err)
+			}
+
+			// Get the message
+			response, err := testClient.GetMessageByIDWithResponse(context.Background(), originalGroup.Id, originalChannel.Id, originalMessage.Id)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 200, response.StatusCode())
+
+			var fetchedMessage v1.Message
+			err = json.Unmarshal(response.Body, &fetchedMessage)
+			if err != nil {
+				panic(err)
+			}
+
+			require.Equal(t, originalMessage.Id, fetchedMessage.Id)
+			require.Equal(t, originalMessage.Author, fetchedMessage.Author)
+			require.Equal(t, originalMessage.Body, fetchedMessage.Body)
+
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), originalAccount.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalGroup.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalChannel.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalMessage.Id.String())
+		})
+
+		t.Run("Update Message By Id", func(t *testing.T) {
+			now := time.Now()
+			originalAccount := v1.Account{
+				Id:         uuid.New(),
+				CreatedAt:  &now,
+				Username:   "Test User",
+				ProfilePic: "",
+			}
+			originalGroup := v1.Group{
+				Id:          uuid.New(),
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+			desc := "Channel for unit testing"
+			originalChannel := v1.Channel{
+				Id:             uuid.New(),
+				CreatedAt:      &now,
+				Name:           "Test Channel",
+				Description:    &desc,
+				Messages:       []types.UUID{},
+				PinnedMessages: []types.UUID{},
+			}
+			originalMessage := v1.Message{
+				Id:        uuid.New(),
+				CreatedAt: &now,
+				Author:    originalAccount.Id,
+				Body:      "Test Message",
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalAccount))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalGroup))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalChannel))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalMessage))
+			if err != nil {
+				panic(err)
+			}
+
+			// Update the Message
+			body := v1.UpdateMessageByIDJSONRequestBody{
+				Id:        originalChannel.Id,
+				Author:    originalMessage.Author,
+				CreatedAt: &now,
+				Body:      "Updated Test Message",
+			}
+			response, err := testClient.UpdateMessageByIDWithResponse(context.Background(), originalGroup.Id, originalChannel.Id, originalMessage.Id, body)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 201, response.StatusCode())
+
+			var updatedMessage v1.Message
+			data, err := base64.StdEncoding.DecodeString(string(response.Body)[1 : len(string(response.Body))-2])
+			if err != nil {
+				panic(err)
+			}
+			err = json.Unmarshal(data, &updatedMessage)
+			if err != nil {
+				panic(err)
+			}
+
+			require.Equal(t, body.Id, updatedMessage.Id)
+			require.Equal(t, body.Author, updatedMessage.Author)
+			require.Equal(t, body.Body, updatedMessage.Body)
+
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), originalAccount.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalGroup.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalChannel.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalMessage.Id.String())
+		})
+
+		t.Run("Delete Message By Id", func(t *testing.T) {
+			now := time.Now()
+			originalAccount := v1.Account{
+				Id:         uuid.New(),
+				CreatedAt:  &now,
+				Username:   "Test User",
+				ProfilePic: "",
+			}
+			originalGroup := v1.Group{
+				Id:          uuid.New(),
+				CreatedAt:   &now,
+				Name:        "Test Group",
+				Description: "Group for unit testing",
+				Members:     []types.UUID{},
+				Channels:    []types.UUID{},
+			}
+			desc := "Channel for unit testing"
+			originalChannel := v1.Channel{
+				Id:             uuid.New(),
+				CreatedAt:      &now,
+				Name:           "Test Channel",
+				Description:    &desc,
+				Messages:       []types.UUID{},
+				PinnedMessages: []types.UUID{},
+			}
+			originalMessage := v1.Message{
+				Id:        uuid.New(),
+				CreatedAt: &now,
+				Author:    originalAccount.Id,
+				Body:      "Test Message",
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalAccount))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalGroup))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalChannel))
+			if err != nil {
+				panic(err)
+			}
+			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalMessage))
+			if err != nil {
+				panic(err)
+			}
+
+			// Attempt delete once
+			response, err := testClient.DeleteMessageByIDWithResponse(context.Background(), originalGroup.Id, originalChannel.Id, originalMessage.Id)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 204, response.StatusCode())
+
+			// Check group is updated
+			response2, err := testClient.GetChannelByIDWithResponse(context.Background(), originalGroup.Id, originalChannel.Id)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 200, response2.StatusCode())
+
+			var fetchedChannel v1.Channel
+			err = json.Unmarshal(response2.Body, &fetchedChannel)
+			if err != nil {
+				panic(err)
+			}
+
+			require.Equal(t, originalChannel.Id, fetchedChannel.Id)
+			require.Equal(t, originalChannel.Name, fetchedChannel.Name)
+			require.Equal(t, originalChannel.Description, fetchedChannel.Description)
+			require.Equal(t, 0, len(fetchedChannel.Messages))
+			require.Equal(t, 0, len(fetchedChannel.PinnedMessages))
+
+			// Attempt delete twice (should fail)
+			response, err = testClient.DeleteMessageByIDWithResponse(context.Background(), originalGroup.Id, originalChannel.Id, originalMessage.Id)
+			if err != nil {
+				panic(err)
+			}
+			require.Equal(t, 500, response.StatusCode())
+
+			// Remove all store content
+			sectorAPI.DB.Store.Delete(context.Background(), originalAccount.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalGroup.Id.String())
+			sectorAPI.DB.Store.Delete(context.Background(), originalChannel.Id.String())
+		})
+
+		// TODO: test for search
 
 	})
 }

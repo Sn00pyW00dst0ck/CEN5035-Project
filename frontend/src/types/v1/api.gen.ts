@@ -603,6 +603,193 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/message/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search for messages satisfying various properties. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Message searching parameters. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MessageFilter"];
+                };
+            };
+            responses: {
+                /** @description Query completed successfully. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Message"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}/channel/{channelId}/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a message within a channel */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to get channel from. */
+                    groupId: string;
+                    /** @description ID of channel to get. */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Message details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            responses: {
+                /** @description Message creation successful. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Message"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group/{groupId}/channel/{channelId}/message/{messageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Message in Channel By ID */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to get message from. */
+                    groupId: string;
+                    /** @description ID of channel to get message from. */
+                    channelId: string;
+                    /** @description ID of message to get. */
+                    messageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Message with specified ID. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Message"];
+                    };
+                };
+            };
+        };
+        /** Update Message in Channel By ID */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to update message from. */
+                    groupId: string;
+                    /** @description ID of channel to update message from. */
+                    channelId: string;
+                    /** @description ID of message to update. */
+                    messageId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Message details to add. */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            responses: {
+                /** @description Message with specified ID. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Message"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete Message in Channel By ID */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description ID of group to update message from. */
+                    groupId: string;
+                    /** @description ID of channel to update message from. */
+                    channelId: string;
+                    /** @description ID of message to update. */
+                    messageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Message with specified ID deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

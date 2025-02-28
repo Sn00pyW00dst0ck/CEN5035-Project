@@ -440,6 +440,169 @@ paths:
           description: Channel with specified ID deleted.
 
   # Message Endpoints
+  "/message/search":
+    post:
+      summary: Search for messages satisfying various properties.
+      tags: 
+        - Message
+      operationID: SearchMessages
+      requestBody:
+        description: Message searching parameters.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageFilter'
+      responses:
+        "200":
+          description: Query completed successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+  "/group/{groupId}/channel/{channelId}/message":
+    post:
+      summary: Create a message within a channel
+      tags: 
+        - Message
+      operationID: PutMessage
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to get channel from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Message details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        "201":
+          description: Message creation successful.
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  "/group/{groupId}/channel/{channelId}/message/{messageId}":
+    get:
+      summary: Get Message in Channel By ID
+      tags: 
+        - Message
+      operationID: GetMessageByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to get message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to get message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: messageId
+          description: ID of message to get.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses: 
+        "200":
+          description: Message with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+    put:
+      summary: Update Message in Channel By ID
+      tags: 
+        - Message
+      operationID: UpdateMessageByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to update message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to update message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: messageId
+          description: ID of message to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Message details to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses: 
+        "201":
+          description: Message with specified ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+    delete:
+      summary: Delete Message in Channel By ID
+      tags: 
+        - Message
+      operationID: DeleteMessageByID
+      parameters:
+        - in: path
+          name: groupId
+          description: ID of group to update message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: channelId
+          description: ID of channel to update message from.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: messageId
+          description: ID of message to update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses: 
+        "204":
+          description: Message with specified ID deleted.
 
 components:
   schemas:
