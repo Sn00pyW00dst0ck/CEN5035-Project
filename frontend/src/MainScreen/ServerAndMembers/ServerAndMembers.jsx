@@ -10,7 +10,7 @@ function ServerAndMembers() {
     return(
             <Paper elevation={3} sx={{
                 borderRadius: 7.5
-            }} style={{ display: "flex", margin: "1rem", width: "100%"}}>
+            }} style={{ display: "flex", margin: "1rem", width: "100%", overflow: "hidden"}}>
 
                 <ActiveServer setVisible={setVisible}/>
 
