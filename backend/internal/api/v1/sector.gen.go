@@ -36,8 +36,8 @@ type AccountFilter struct {
 	// From Get accounts created from this date.
 	From *time.Time `json:"from,omitempty"`
 
-	// Ids Get accounts that have an id within this list of ids.
-	Ids *[]openapi_types.UUID `json:"ids,omitempty"`
+	// Id Get accounts that have an id within this list of ids.
+	Id *[]openapi_types.UUID `json:"id,omitempty"`
 
 	// Until Get accounts created from this date.
 	Until *time.Time `json:"until,omitempty"`
@@ -46,14 +46,18 @@ type AccountFilter struct {
 	Username *string `json:"username,omitempty"`
 }
 
+// AccountUpdate User Account Update Details.
+type AccountUpdate struct {
+	ProfilePic *string `json:"profile_pic,omitempty"`
+	Username   *string `json:"username,omitempty"`
+}
+
 // Channel A set of messages within a Group, typically organized by topic.
 type Channel struct {
-	CreatedAt      *time.Time           `json:"created_at,omitempty"`
-	Description    *string              `json:"description,omitempty"`
-	Id             openapi_types.UUID   `json:"id"`
-	Messages       []openapi_types.UUID `json:"messages"`
-	Name           string               `json:"name"`
-	PinnedMessages []openapi_types.UUID `json:"pinned_messages"`
+	CreatedAt   *time.Time         `json:"created_at,omitempty"`
+	Description *string            `json:"description,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
 }
 
 // ChannelFilter An object that is posted to the backend to query for channels based on filter criteria.
@@ -62,6 +66,12 @@ type ChannelFilter struct {
 	Id    *[]openapi_types.UUID `json:"id,omitempty"`
 	Name  *string               `json:"name,omitempty"`
 	Until *time.Time            `json:"until,omitempty"`
+}
+
+// ChannelUpdate Channel Update Details.
+type ChannelUpdate struct {
+	Description *string `json:"description,omitempty"`
+	Name        *string `json:"name,omitempty"`
 }
 
 // Group A group chat/server of users.
@@ -82,21 +92,37 @@ type GroupFilter struct {
 	Until *time.Time            `json:"until,omitempty"`
 }
 
+// GroupUpdate Group Update Details.
+type GroupUpdate struct {
+	Description *string `json:"description,omitempty"`
+	Name        *string `json:"name,omitempty"`
+}
+
 // Message A message that is sent in a group.
 type Message struct {
 	Author    openapi_types.UUID `json:"author"`
 	Body      string             `json:"body"`
+	Channel   openapi_types.UUID `json:"channel"`
 	CreatedAt *time.Time         `json:"created_at,omitempty"`
 	Id        openapi_types.UUID `json:"id"`
+	Pinned    bool               `json:"pinned"`
 }
 
 // MessageFilter An object that is posted to the backend to query for messages based on filter criteria.
 type MessageFilter struct {
-	Author *openapi_types.UUID   `json:"author,omitempty"`
-	Body   *string               `json:"body,omitempty"`
-	From   *time.Time            `json:"from,omitempty"`
-	Id     *[]openapi_types.UUID `json:"id,omitempty"`
-	Until  *time.Time            `json:"until,omitempty"`
+	Author  *[]openapi_types.UUID `json:"author,omitempty"`
+	Body    *string               `json:"body,omitempty"`
+	Channel *[]openapi_types.UUID `json:"channel,omitempty"`
+	From    *time.Time            `json:"from,omitempty"`
+	Id      *[]openapi_types.UUID `json:"id,omitempty"`
+	Pinned  *bool                 `json:"pinned,omitempty"`
+	Until   *time.Time            `json:"until,omitempty"`
+}
+
+// MessageUpdate Message Update Details.
+type MessageUpdate struct {
+	Body   *string `json:"body,omitempty"`
+	Pinned *bool   `json:"pinned,omitempty"`
 }
 
 // PutAccountJSONRequestBody defines body for PutAccount for application/json ContentType.
@@ -106,7 +132,7 @@ type PutAccountJSONRequestBody = Account
 type SearchAccountsJSONRequestBody = AccountFilter
 
 // UpdateAccountByIDJSONRequestBody defines body for UpdateAccountByID for application/json ContentType.
-type UpdateAccountByIDJSONRequestBody = Account
+type UpdateAccountByIDJSONRequestBody = AccountUpdate
 
 // SearchChannelsJSONRequestBody defines body for SearchChannels for application/json ContentType.
 type SearchChannelsJSONRequestBody = ChannelFilter
@@ -118,19 +144,19 @@ type PutGroupJSONRequestBody = Group
 type SearchGroupsJSONRequestBody = GroupFilter
 
 // UpdateGroupByIDJSONRequestBody defines body for UpdateGroupByID for application/json ContentType.
-type UpdateGroupByIDJSONRequestBody = Group
+type UpdateGroupByIDJSONRequestBody = GroupUpdate
 
 // PutChannelJSONRequestBody defines body for PutChannel for application/json ContentType.
 type PutChannelJSONRequestBody = Channel
 
 // UpdateChannelByIDJSONRequestBody defines body for UpdateChannelByID for application/json ContentType.
-type UpdateChannelByIDJSONRequestBody = Channel
+type UpdateChannelByIDJSONRequestBody = ChannelUpdate
 
 // PutMessageJSONRequestBody defines body for PutMessage for application/json ContentType.
 type PutMessageJSONRequestBody = Message
 
 // UpdateMessageByIDJSONRequestBody defines body for UpdateMessageByID for application/json ContentType.
-type UpdateMessageByIDJSONRequestBody = Message
+type UpdateMessageByIDJSONRequestBody = MessageUpdate
 
 // SearchMessagesJSONRequestBody defines body for SearchMessages for application/json ContentType.
 type SearchMessagesJSONRequestBody = MessageFilter
@@ -4136,40 +4162,42 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"BT8CaVS9p6f/BwAA//9yOXI2hkIAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

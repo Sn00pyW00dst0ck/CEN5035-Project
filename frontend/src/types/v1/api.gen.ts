@@ -124,7 +124,7 @@ export interface paths {
             /** @description Account details to add. */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Account"];
+                    "application/json": components["schemas"]["AccountUpdate"];
                 };
             };
             responses: {
@@ -335,7 +335,7 @@ export interface paths {
             /** @description Group details to add. */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Group"];
+                    "application/json": components["schemas"]["GroupUpdate"];
                 };
             };
             responses: {
@@ -558,7 +558,7 @@ export interface paths {
             /** @description Channel details to add. */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Channel"];
+                    "application/json": components["schemas"]["ChannelUpdate"];
                 };
             };
             responses: {
@@ -743,7 +743,7 @@ export interface paths {
             /** @description Message details to add. */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Message"];
+                    "application/json": components["schemas"]["MessageUpdate"];
                 };
             };
             responses: {
@@ -837,8 +837,6 @@ export interface components {
             name: string;
             /** @example General conversations go here. */
             description?: string;
-            messages: string[];
-            pinned_messages: string[];
         };
         /** @description A message that is sent in a group. */
         Message: {
@@ -848,12 +846,37 @@ export interface components {
             created_at?: string;
             /** Format: uuid */
             author: string;
+            /** Format: uuid */
+            channel: string;
+            pinned: boolean;
             body: string;
+        };
+        /** @description User Account Update Details. */
+        AccountUpdate: {
+            /** @example John Doe */
+            username?: string;
+            /** Format: base64 */
+            profile_pic?: string;
+        };
+        /** @description Group Update Details. */
+        GroupUpdate: {
+            name?: string;
+            description?: string;
+        };
+        /** @description Channel Update Details. */
+        ChannelUpdate: {
+            name?: string;
+            description?: string;
+        };
+        /** @description Message Update Details. */
+        MessageUpdate: {
+            body?: string;
+            pinned?: boolean;
         };
         /** @description An object that is posted to the backend to query for accounts based on filter criteria. */
         AccountFilter: {
             /** @description Get accounts that have an id within this list of ids. */
-            ids?: string[];
+            id?: string[];
             /**
              * Format: date-time
              * @description Get accounts created from this date.
@@ -894,8 +917,9 @@ export interface components {
             from?: string;
             /** Format: date-time */
             until?: string;
-            /** Format: uuid */
-            author?: string;
+            author?: string[];
+            channel?: string[];
+            pinned?: boolean;
             body?: string;
         };
     };

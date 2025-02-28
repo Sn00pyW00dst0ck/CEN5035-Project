@@ -97,7 +97,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Account'
+              $ref: '#/components/schemas/AccountUpdate'
       responses: 
         "200":
           description: Updated account with specified ID.
@@ -229,7 +229,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Group'
+              $ref: '#/components/schemas/GroupUpdate'
       responses: 
         "201":
           description: Updated group with specified ID.
@@ -407,7 +407,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Channel'
+              $ref: '#/components/schemas/ChannelUpdate'
       responses: 
         "201":
           description: Updated Channel with specified ID.
@@ -565,7 +565,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Message'
+              $ref: '#/components/schemas/MessageUpdate'
       responses: 
         "201":
           description: Message with specified ID.
@@ -679,21 +679,9 @@ components:
         description: 
           type: string
           example: General conversations go here.
-        messages:
-          type: array
-          items: 
-            type: string
-            format: uuid
-        pinned_messages:
-          type: array
-          items: 
-            type: string
-            format: uuid
       required:
         - id
         - name
-        - messages
-        - pinned_messages
     
     Message:
       description: A message that is sent in a group.
@@ -708,18 +696,63 @@ components:
         author: 
           type: string
           format: uuid
-        body: 
+        channel: 
+          type: string
+          format: uuid
+        pinned:
+          type: boolean
+        body:
           type: string
       required:
         - id
         - author
+        - channel
+        - pinned
         - body
     
+    AccountUpdate:
+      description: User Account Update Details.
+      type: object
+      properties:
+        username:
+          type: string
+          example: John Doe
+        profile_pic: 
+          type: string
+          format: base64
+
+    GroupUpdate:
+      description: Group Update Details.
+      type: object
+      properties:
+        name:
+          type: string
+        description: 
+          type: string
+
+    ChannelUpdate:
+      description: Channel Update Details.
+      type: object
+      properties:
+        name:
+          type: string
+        description: 
+          type: string
+
+    MessageUpdate:
+      description: Message Update Details.
+      type: object
+      properties:
+        body: 
+          type: string
+        pinned: 
+          type: boolean
+
     AccountFilter: 
       description: An object that is posted to the backend to query for accounts based on filter criteria.
       type: object
       properties:
-        ids:
+        id:
           description: Get accounts that have an id within this list of ids.
           type: array
           items: 
@@ -792,7 +825,16 @@ components:
           type: string
           format: date-time
         author: 
-          type: string
-          format: uuid
+          type: array
+          items:
+            type: string
+            format: uuid
+        channel:
+          type: array
+          items:
+            type: string
+            format: uuid
+        pinned:
+          type: boolean
         body: 
           type: string
