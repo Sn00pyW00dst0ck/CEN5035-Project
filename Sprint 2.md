@@ -1,3 +1,15 @@
+## Backend Unit Tests
+
+The backend unit tests for this project are designed to ensure the reliability and correctness of the API's functionalities. The tests cover various aspects of the application, including:
+
+- **Account Management:** Tests for creating, updating, retrieving, and deleting user accounts.
+- **Group Management:** Tests for creating, updating, retrieving, and deleting groups.
+- **Channel Management:** Tests for creating, updating, retrieving, and deleting channels.
+- **Message Management:** Tests for creating, updating, retrieving, and deleting messages.
+
+These unit tests are implemented using a testing framework suitable for the project's programming language and are located in the `tests` directory of the repository. To run the tests, use the following command:
+
+
 # Backend API Documentation
 
 ## Miscellaneous Endpoints
@@ -199,17 +211,3 @@
 - **Responses:**
   - `200 OK`: Message with specified ID retrieved successfully.
 
-## Backend Unit Tests
-
-The backend unit tests for this project are designed to ensure the reliability and correctness of the API's functionalities. The tests cover various aspects of the application, including:
-
-- **Account Management:** Tests for creating, updating, retrieving, and deleting user accounts.
-- **Group Management:** Tests for creating, updating, retrieving, and deleting groups.
-- **Channel Management:** Tests for creating, updating, retrieving, and deleting channels.
-- **Message Management:** Tests for creating, updating, retrieving, and deleting messages.
-
-These unit tests are implemented using a testing framework suitable for the project's programming language and are located in the `tests` directory of the repository. To run the tests, use the following command:
-
-
-
- 
