@@ -1,13 +1,16 @@
+
 ## Backend Unit Tests
 
-The backend unit tests for this project are designed to ensure the reliability and correctness of the API's functionalities. The tests cover various aspects of the application, including:
+List of Backend Unit tests for Sprint 2 : 
 
 - **Account Management:** Tests for creating, updating, retrieving, and deleting user accounts.
 - **Group Management:** Tests for creating, updating, retrieving, and deleting groups.
 - **Channel Management:** Tests for creating, updating, retrieving, and deleting channels.
 - **Message Management:** Tests for creating, updating, retrieving, and deleting messages.
 
-These unit tests are implemented using a testing framework suitable for the project's programming language and are located in the `tests` directory of the repository. To run the tests, use the following command:
+These unit tests are implemented using the Go testing framework and are located in the `backend/tests/api/v1/` directory of the repository. To run the tests, navigate to the `backend` directory and execute the following command:
+
+
 
 
 # Backend API Documentation
