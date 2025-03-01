@@ -651,17 +651,11 @@ components:
             type: string
             format: uuid
           example: ["550e8400-e29b-41d4-a716-446655440000"]
-        channels:
-          type: array
-          items:
-            type: string
-            format: uuid
       required: 
         - id
         - name
         - description
         - members
-        - channels
 
     Channel:
       description: A set of messages within a Group, typically organized by topic.
@@ -673,6 +667,9 @@ components:
         created_at:
           type: string
           format: date-time
+        group: 
+          type: string
+          format: uuid
         name:
           type: string
           example: Main  
@@ -681,6 +678,7 @@ components:
           example: General conversations go here.
       required:
         - id
+        - group
         - name
     
     Message:

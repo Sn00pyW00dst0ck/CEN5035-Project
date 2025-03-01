@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
 	"time"
 
@@ -131,10 +132,22 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
 		return fmt.Errorf("cannot delete item from database")
 	}
 
-	// Based on the type of entry, propogate other deletions
-	entry := dbItem.(map[string]interface{})
-	fmt.Printf("entry: %v\n", entry)
-	// NEED A WAY TO DYNAMICALLY DETERMINE TYPE SO THAT WE CAN DETERMINE IF WE NEED TO PROPOGATE CHANGES FOR DELETION (ie: delete group deletes all channels and messages, etc)
+	// Based on the type of entry, propogate other deletions or updates
+	entry, err := DetectAndUnmarshal(dbItem.(map[string]interface{}))
+	if err != nil {
+		return fmt.Errorf("cannot determine type of item to delete from database")
+	}
+
+	switch entry.(type) {
+	case Account:
+		// When deleting an account, update groups so that there are no references to the account within the group members list
+	case Group:
+		// When deleting a group, recursively delete all channels
+	case Channel:
+		// When deleting a channel, recursively delete all related messages
+	case Message:
+		// When deleting a message, nothing special is needed
+	}
 
 	// Delete the item
 	_, err = store.Delete(context.Background(), id.String())
@@ -264,4 +277,43 @@ func MapToStruct(data map[string]interface{}, obj interface{}) error {
 		return err
 	}
 	return nil
+}
+
+// Function to determine struct type
+func DetectAndUnmarshal(data map[string]interface{}) (interface{}, error) {
+	// Convert map back to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	// List all possible struct types
+	var possibleTypes = []interface{}{&Account{}, &Group{}, &Channel{}, &Message{}}
+
+	// Try unmarshaling into each struct
+	for _, candidate := range possibleTypes {
+		// Create a new instance of the candidate type
+		target := reflect.New(reflect.TypeOf(candidate).Elem()).Interface()
+
+		err := json.Unmarshal(jsonData, target)
+		if err == nil {
+			// Check if any fields were actually populated
+			if !isEmpty(target) {
+				return target, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("unknown struct type")
+}
+
+// Function to check if a struct is empty (i.e., no fields populated)
+func isEmpty(v interface{}) bool {
+	val := reflect.ValueOf(v).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		if !val.Field(i).IsZero() {
+			return false
+		}
+	}
+	return true
 }

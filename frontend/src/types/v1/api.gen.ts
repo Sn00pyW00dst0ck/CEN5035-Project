@@ -825,7 +825,6 @@ export interface components {
              *       "550e8400-e29b-41d4-a716-446655440000"
              *     ] */
             members: string[];
-            channels: string[];
         };
         /** @description A set of messages within a Group, typically organized by topic. */
         Channel: {
@@ -833,6 +832,8 @@ export interface components {
             id: string;
             /** Format: date-time */
             created_at?: string;
+            /** Format: uuid */
+            group: string;
             /** @example Main */
             name: string;
             /** @example General conversations go here. */

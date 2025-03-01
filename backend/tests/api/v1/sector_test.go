@@ -34,7 +34,9 @@ func setupSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, func(t *testing.
 }
 
 func setupTest(tb testing.TB) func(tb testing.TB) {
+	// Setup the database with a set of standard stuff for testing
 
+	// Clean up all the resources
 	return func(tb testing.TB) {
 
 	}
