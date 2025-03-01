@@ -33,12 +33,71 @@ func setupSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, func(t *testing.
 	}
 }
 
-func setupTest(tb testing.TB) func(tb testing.TB) {
-	// Setup the database with a set of standard stuff for testing
+func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T)) {
+	now := time.Now()
+	then := now.AddDate(0, 0, -7)
+
+	// Define the entries of the database for every (TODO: have this be a better set of data)
+	entries := []interface{}{
+		v1.Account{
+			Id:         uuid.New(),
+			CreatedAt:  &now,
+			ProfilePic: "",
+			Username:   "John Doe",
+		},
+		v1.Account{
+			Id:         uuid.New(),
+			CreatedAt:  &then,
+			ProfilePic: "",
+			Username:   "Jack Doe",
+		},
+		v1.Account{
+			Id:         uuid.New(),
+			CreatedAt:  &now,
+			ProfilePic: "",
+			Username:   "Maverick",
+		},
+		v1.Account{
+			Id:         uuid.New(),
+			CreatedAt:  &then,
+			ProfilePic: "",
+			Username:   "w311un1!k3",
+		},
+		v1.Account{
+			Id:         uuid.New(),
+			CreatedAt:  &then,
+			ProfilePic: "",
+			Username:   "woefullyconsideringlove",
+		},
+		// v1.Group{},
+		// v1.Group{},
+		// v1.Group{},
+		// v1.Group{},
+		// v1.Group{},
+		// v1.Channel{},
+		// v1.Channel{},
+		// v1.Channel{},
+		// v1.Channel{},
+		// v1.Channel{},
+		// v1.Message{},
+		// v1.Message{},
+		// v1.Message{},
+		// v1.Message{},
+		// v1.Message{},
+	}
+
+	// Add the content to the database (have to convert to maps for DB entry)
+	result := make([]interface{}, len(entries))
+	for i, v := range entries {
+		result[i] = v1.StructToMap(v)
+	}
+	_, err := api.DB.Store.PutAll(context.Background(), result)
+	require.NoError(t, err)
 
 	// Clean up all the resources
-	return func(tb testing.TB) {
-
+	return entries, func(t *testing.T) {
+		err := api.DB.Store.Drop() // This seems to close the store, TODO: figure out how to drop all data but keep store open
+		require.NoError(t, err)
 	}
 }
 
@@ -72,6 +131,8 @@ func TestSectorV1(t *testing.T) {
 
 	t.Run("Account", func(t *testing.T) {
 		t.Run("Create Account", func(t *testing.T) {
+			_, teardown := setupTest(t, *sectorAPI)
+			defer teardown(t)
 			body := v1.PutAccountJSONRequestBody{
 				Id:         uuid.New(),
 				Username:   "CreateAccount",
@@ -80,7 +141,6 @@ func TestSectorV1(t *testing.T) {
 
 			response, err := testClient.PutAccountWithResponse(context.Background(), body)
 			require.NoError(t, err)
-			defer sectorAPI.DB.Store.Delete(context.Background(), body.Id.String())
 			require.Equal(t, 201, response.StatusCode())
 
 			var createdAccount v1.Account
