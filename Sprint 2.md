@@ -167,6 +167,49 @@
   - `body` (string): Content of the message.
   - `created_at` (string, date-time): Message creation timestamp.
 - **Responses:**
- 
+  - `200 OK`: Message creation or update successful.
+
+### Search for Messages
+
+- **Endpoint:** `POST /v1/api/message/search`
+- **Description:** Searches for messages based on provided criteria.
+- **Request Body (application/json):**
+  - `ids` (array of UUIDs): List of message IDs to search for.
+  - `author` (UUID): ID of the account that authored the messages.
+  - `from` (string, date-time): Start date for the search range.
+  - `until` (string, date-time): End date for the search range.
+- **Responses:**
+  - `200 OK`: Query completed successfully.
+
+### Delete Message by ID
+
+- **Endpoint:** `DELETE /v1/api/message/{id}`
+- **Description:** Deletes a message by its unique ID.
+- **Parameters:**
+  - `id` (string, UUID, path): ID of the message to delete.
+- **Responses:**
+  - `204 No Content`: Message was deleted.
+
+### Get Message by ID
+
+- **Endpoint:** `GET /v1/api/message/{id}`
+- **Description:** Retrieves message details by its unique ID.
+- **Parameters:**
+  - `id` (string, UUID, path): ID of the message to retrieve.
+- **Responses:**
+  - `200 OK`: Message with specified ID retrieved successfully.
+
+## Backend Unit Tests
+
+The backend unit tests for this project are designed to ensure the reliability and correctness of the API's functionalities. The tests cover various aspects of the application, including:
+
+- **Account Management:** Tests for creating, updating, retrieving, and deleting user accounts.
+- **Group Management:** Tests for creating, updating, retrieving, and deleting groups.
+- **Channel Management:** Tests for creating, updating, retrieving, and deleting channels.
+- **Message Management:** Tests for creating, updating, retrieving, and deleting messages.
+
+These unit tests are implemented using a testing framework suitable for the project's programming language and are located in the `tests` directory of the repository. To run the tests, use the following command:
+
+
 
  
