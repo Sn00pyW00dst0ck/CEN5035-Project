@@ -1,3 +1,14 @@
+# Sprint 2
+
+## General Notes
+
+This sprint the backend ran into multiple complicated blockers which slowed development significantly. Mocking the backend database and server was much more involved than first predicted due to needing to mock an underlying IPFS instance, while at the same time development of the backend api routes became much slower due to intricate connections between data that have to be maintained when deleting or updating various database entries. 
+
+Due to this, the integration of front and backend is much less developed than we would like, but the frontend and backend are able to communicate and have been since sprint 1. 
+
+Future work involves refactoring the backend slightly to make further development easier, adding authentication, and encryption. 
+
+## Frontend
 
 ## Backend Unit Tests
 
@@ -9,8 +20,9 @@ List of Backend Unit tests for Sprint 2 :
 - **Message Management:** Tests for creating, updating, retrieving, and deleting messages.
 
 These unit tests are implemented using the Go testing framework and are located in the `backend/tests/api/v1/` directory of the repository. To run the tests, navigate to the `backend` directory and execute the following command:
-                                  
-                                   go test -p 1 ./...
+```
+go test -p 1 ./...
+```
 
 
 # Backend API Documentation
