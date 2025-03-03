@@ -9,11 +9,13 @@ List of Backend Unit tests for Sprint 2 :
 - **Message Management:** Tests for creating, updating, retrieving, and deleting messages.
 
 These unit tests are implemented using the Go testing framework and are located in the `backend/tests/api/v1/` directory of the repository. To run the tests, navigate to the `backend` directory and execute the following command:
-
-
+                                  
+                                   go test -p 1 ./...
 
 
 # Backend API Documentation
+
+The following API documentation is **auto-generated** using **Swagger UI** for this project, which is hosted by the server.
 
 ## Miscellaneous Endpoints
 
