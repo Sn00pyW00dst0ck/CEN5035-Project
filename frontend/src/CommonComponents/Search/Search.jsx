@@ -2,7 +2,7 @@ import {TextField} from "@mui/material";
 
 function Search(props) {
     return (
-        <TextField sx ={{display:"flex", width: "calc(100% - 1rem)", margin: ".5rem", alignSelf:"center"}}
+        <TextField id="serverSearchInput" sx ={{display:"flex", width: "calc(100% - 1rem)", margin: ".5rem", alignSelf:"center"}}
                    label={props.label || "Search"}
                    type="search"
                    size="small"
