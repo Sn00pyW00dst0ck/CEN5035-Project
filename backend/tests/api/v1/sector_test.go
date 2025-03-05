@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"berty.tech/go-orbit-db/iface"
+	"berty.tech/go-orbit-db/stores/documentstore"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/oapi-codegen/runtime/types"
@@ -96,8 +98,13 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 
 	// Clean up all the resources
 	return entries, func(t *testing.T) {
-		err := api.DB.Store.Drop() // This seems to close the store, TODO: figure out how to drop all data but keep store open
+		err := api.DB.Store.Drop()
 		require.NoError(t, err)
+		store, err := api.DB.OrbitDB.Docs(context.Background(), api.DB.Store.Address().String(), &iface.CreateDBOptions{
+			StoreSpecificOpts: documentstore.DefaultStoreOptsForMap("id"),
+		})
+		require.NoError(t, err)
+		api.DB.Store = store
 	}
 }
 
@@ -159,177 +166,142 @@ func TestSectorV1(t *testing.T) {
 		})
 
 		t.Run("Update Account By Id", func(t *testing.T) {
-			original := v1.Account{
-				Id:         uuid.New(),
-				Username:   "Test Account 2",
-				ProfilePic: "",
-			}
-			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
-			require.NoError(t, err)
-			defer sectorAPI.DB.Store.Delete(context.Background(), original.Id.String())
+			entries, teardown := setupTest(t, *sectorAPI)
+			defer teardown(t)
+
+			selectedAccount := entries[0].(v1.Account)
 
 			// Test updating the account username
 			newUsername := "Updated Test Username"
 			body := v1.UpdateAccountByIDJSONRequestBody{
 				Username: &(newUsername),
 			}
-			response, err := testClient.UpdateAccountByIDWithResponse(context.Background(), original.Id, body)
+			response, err := testClient.UpdateAccountByIDWithResponse(context.Background(), selectedAccount.Id, body)
 			require.NoError(t, err)
 			require.Equal(t, 201, response.StatusCode())
 
 			var updatedAccount v1.Account
 			err = json.Unmarshal(response.Body, &updatedAccount)
 			require.NoError(t, err)
-			require.Equal(t, original.Id, updatedAccount.Id)
-			require.Equal(t, newUsername, updatedAccount.Username)
-			require.Equal(t, original.ProfilePic, updatedAccount.ProfilePic)
+			expected := v1.Account{
+				Id:         selectedAccount.Id,
+				CreatedAt:  selectedAccount.CreatedAt,
+				Username:   newUsername,
+				ProfilePic: selectedAccount.ProfilePic,
+			}
+			// Must compare all fields individually because timestamps are tricky and suck
+			require.Equal(t, expected.Id, updatedAccount.Id)
+			require.True(t, expected.CreatedAt.Equal(*updatedAccount.CreatedAt))
+			require.Equal(t, expected.Username, updatedAccount.Username)
+			require.Equal(t, expected.ProfilePic, updatedAccount.ProfilePic)
 		})
 
 		t.Run("Delete Account By Id", func(t *testing.T) {
-			now := time.Now()
-			original := v1.Account{
-				Id:         uuid.New(),
-				Username:   "Test Account 2",
-				ProfilePic: "",
-				CreatedAt:  &now,
-			}
-			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
-			require.NoError(t, err)
+			entries, teardown := setupTest(t, *sectorAPI)
+			defer teardown(t)
+
+			selectedAccount := entries[0].(v1.Account)
 
 			// Delete the account
-			response, err := testClient.DeleteAccountByIDWithResponse(context.Background(), original.Id)
+			response, err := testClient.DeleteAccountByIDWithResponse(context.Background(), selectedAccount.Id)
 			require.NoError(t, err)
 			require.Equal(t, 204, response.StatusCode())
 
 			// Second time should give internal server error
-			response, err = testClient.DeleteAccountByIDWithResponse(context.Background(), original.Id)
+			response, err = testClient.DeleteAccountByIDWithResponse(context.Background(), selectedAccount.Id)
 			require.NoError(t, err)
 			require.Equal(t, 500, response.StatusCode())
 		})
 
 		t.Run("Get By Id", func(t *testing.T) {
-			now := time.Now()
-			original := v1.Account{
-				Id:         uuid.New(),
-				Username:   "Test Account 2",
-				ProfilePic: "",
-				CreatedAt:  &now,
-			}
-			_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
-			require.NoError(t, err)
+			entries, teardown := setupTest(t, *sectorAPI)
+			defer teardown(t)
+
+			selectedAccount := entries[0].(v1.Account)
 
 			// Get the account
-			response, err := testClient.GetAccountByIDWithResponse(context.Background(), original.Id)
+			response, err := testClient.GetAccountByIDWithResponse(context.Background(), selectedAccount.Id)
 			require.NoError(t, err)
 			require.Equal(t, 200, response.StatusCode())
 
 			var createdAccount v1.Account
 			err = json.Unmarshal(response.Body, &createdAccount)
 			require.NoError(t, err)
-
-			require.Equal(t, original.Id, createdAccount.Id)
-			require.Equal(t, original.Username, createdAccount.Username)
-			require.Equal(t, original.ProfilePic, createdAccount.ProfilePic)
-
-			// Remove all store content
-			sectorAPI.DB.Store.Delete(context.Background(), original.Id.String())
+			require.Equal(t, selectedAccount.Id, createdAccount.Id)
+			require.True(t, selectedAccount.CreatedAt.Equal(*createdAccount.CreatedAt))
+			require.Equal(t, selectedAccount.Username, createdAccount.Username)
+			require.Equal(t, selectedAccount.ProfilePic, createdAccount.ProfilePic)
 		})
 
 		t.Run("Search Accounts", func(t *testing.T) {
-			queryID := uuid.New()
-			now := time.Now()
-			then := now.AddDate(0, 0, -7)
-			accounts := make([]interface{}, 5)
-			accounts[0] = v1.StructToMap(v1.Account{
-				Id:         queryID,
-				CreatedAt:  &now,
-				Username:   "John Doe",
-				ProfilePic: "",
-			})
-			accounts[1] = v1.StructToMap(v1.Account{
-				Id:         uuid.New(),
-				CreatedAt:  &now,
-				Username:   "Jack Doe",
-				ProfilePic: "",
-			})
-			accounts[2] = v1.StructToMap(v1.Account{
-				Id:         uuid.New(),
-				CreatedAt:  &then,
-				Username:   "Maverick",
-				ProfilePic: "",
-			})
-			accounts[3] = v1.StructToMap(v1.Account{
-				Id:         uuid.New(),
-				CreatedAt:  &now,
-				Username:   "w311un1!k3",
-				ProfilePic: "",
-			})
-			accounts[4] = v1.StructToMap(v1.Account{
-				Id:         uuid.New(),
-				CreatedAt:  &then,
-				Username:   "woefullyconsideringlove",
-				ProfilePic: "",
-			})
-			_, err := sectorAPI.DB.Store.PutAll(context.Background(), accounts)
-			require.NoError(t, err)
+			t.Run("By creation time", func(t *testing.T) {
+				_, teardown := setupTest(t, *sectorAPI)
+				defer teardown(t)
 
-			// Make a query for a subset (all the 'then' date time ones)
-			var timeStart = now.AddDate(0, 0, -10)
-			var timeEnd = now.AddDate(0, 0, -5)
-			query1 := v1.SearchAccountsJSONRequestBody{
-				From:  &timeStart,
-				Until: &timeEnd,
-			}
-			result1, err := testClient.SearchAccountsWithResponse(context.Background(), query1)
-			require.NoError(t, err)
-			require.Equal(t, 200, result1.StatusCode())
-
-			// Ensure the subset is correct
-			var queryResult []v1.Account
-			err = json.Unmarshal(result1.Body, &queryResult)
-			require.NoError(t, err)
-			require.Equal(t, 2, len(queryResult))
-			for i := 0; i < len(queryResult); i++ {
-				require.LessOrEqual(t, *(queryResult[i].CreatedAt), timeEnd)
-				require.GreaterOrEqual(t, *(queryResult[i].CreatedAt), timeStart)
-			}
-
-			// Then make a query for a subset
-			var username = "Doe"
-			query2 := v1.SearchAccountsJSONRequestBody{
-				Username: &username,
-			}
-			result2, err := testClient.SearchAccountsWithResponse(context.Background(), query2)
-			require.NoError(t, err)
-			require.Equal(t, 200, result2.StatusCode())
-
-			err = json.Unmarshal(result2.Body, &queryResult)
-			require.NoError(t, err)
-			require.Equal(t, 2, len(queryResult))
-			for i := 0; i < len(queryResult); i++ {
-				// Check that the account username string contains the thing we searched for
-				require.True(t, strings.Contains(queryResult[i].Username, username))
-			}
-
-			// Make a third query to test id searches
-			var ids = []types.UUID{queryID}
-			query3 := v1.SearchAccountsJSONRequestBody{
-				Id: &ids,
-			}
-			result3, err := testClient.SearchAccountsWithResponse(context.Background(), query3)
-			require.NoError(t, err)
-			require.Equal(t, 200, result3.StatusCode())
-
-			err = json.Unmarshal(result3.Body, &queryResult)
-			require.NoError(t, err)
-			require.Equal(t, 1, len(queryResult))
-
-			// Clean up
-			for _, value := range accounts {
-				if val, ok := value.(v1.Account); ok {
-					sectorAPI.DB.Store.Delete(context.Background(), val.Id.String())
+				var timeStart = time.Now().AddDate(0, 0, -10)
+				var timeEnd = time.Now().AddDate(0, 0, -5)
+				query1 := v1.SearchAccountsJSONRequestBody{
+					From:  &timeStart,
+					Until: &timeEnd,
 				}
-			}
+				result, err := testClient.SearchAccountsWithResponse(context.Background(), query1)
+				require.NoError(t, err)
+				require.Equal(t, 200, result.StatusCode())
+
+				// Ensure the subset is correct
+				var queryResult []v1.Account
+				err = json.Unmarshal(result.Body, &queryResult)
+				require.NoError(t, err)
+				// We should have 3 results, each with proper creation timestamp
+				require.Equal(t, 3, len(queryResult))
+				for i := 0; i < len(queryResult); i++ {
+					require.LessOrEqual(t, *(queryResult[i].CreatedAt), timeEnd)
+					require.GreaterOrEqual(t, *(queryResult[i].CreatedAt), timeStart)
+				}
+			})
+
+			t.Run("By username", func(t *testing.T) {
+				_, teardown := setupTest(t, *sectorAPI)
+				defer teardown(t)
+
+				// Query for subset based on username
+				var username = "Doe"
+				query2 := v1.SearchAccountsJSONRequestBody{
+					Username: &username,
+				}
+				result, err := testClient.SearchAccountsWithResponse(context.Background(), query2)
+				require.NoError(t, err)
+				require.Equal(t, 200, result.StatusCode())
+
+				var queryResult []v1.Account
+				err = json.Unmarshal(result.Body, &queryResult)
+				require.NoError(t, err)
+				require.Equal(t, 2, len(queryResult))
+				for i := 0; i < len(queryResult); i++ {
+					// Check that the account username string contains the thing we searched for
+					require.True(t, strings.Contains(queryResult[i].Username, username))
+				}
+			})
+
+			t.Run("Search by ID", func(t *testing.T) {
+				entries, teardown := setupTest(t, *sectorAPI)
+				defer teardown(t)
+
+				var ids = []types.UUID{entries[0].(v1.Account).Id}
+				query3 := v1.SearchAccountsJSONRequestBody{
+					Id: &ids,
+				}
+				result3, err := testClient.SearchAccountsWithResponse(context.Background(), query3)
+				require.NoError(t, err)
+				require.Equal(t, 200, result3.StatusCode())
+
+				var queryResult []v1.Account
+				err = json.Unmarshal(result3.Body, &queryResult)
+				require.NoError(t, err)
+				require.Equal(t, 1, len(queryResult))
+				// TODO: could check that fields are equal too
+			})
+
 		})
 	})
 
