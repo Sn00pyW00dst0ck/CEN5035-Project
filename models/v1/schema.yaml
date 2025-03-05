@@ -787,6 +787,11 @@ components:
         name: 
           type: string
           example: Testing
+        members:
+          type: array
+          items:
+            type: string
+            format: uuid
       
     ChannelFilter:
       description: An object that is posted to the backend to query for channels based on filter criteria.
@@ -806,6 +811,11 @@ components:
         name: 
           type: string
           example: Main
+        group: 
+          type: array
+          items:
+            type: string
+            format: uuid
     
     MessageFilter:
       description: An object that is posted to the backend to query for messages based on filter criteria.

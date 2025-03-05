@@ -910,6 +910,7 @@ export interface components {
             until?: string;
             /** @example Main */
             name?: string;
+            group?: string[];
         };
         /** @description An object that is posted to the backend to query for messages based on filter criteria. */
         MessageFilter: {

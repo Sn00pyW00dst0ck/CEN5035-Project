@@ -32,7 +32,7 @@ func addItem(store orbitdb.DocumentStore, obj interface{}) (interface{}, error) 
 	// Check the type of the given obj, if it is something special then check for its special pre-reqs before adding...
 	switch item := obj.(type) {
 	case Account:
-		// If adding an account there is nothing special to do...
+		// Check dependencies when adding an account object
 	case Group:
 		// Check dependencies when adding a group object
 	case Channel:
@@ -93,15 +93,15 @@ func updateItem(store orbitdb.DocumentStore, id types.UUID, obj interface{}) (in
 		updatedItem[key] = value
 	}
 
+	/*
+		If there are dependencies for the update, then check those dependencies here...
+	*/
 	switch item := obj.(type) {
 	case AccountUpdate:
-		// Check dependencies when updating a account object
 	case GroupUpdate:
-		// Check dependencies when updating a group object
+		// TODO: If we are updating the members list of the Group, then ensure that the members exist
 	case ChannelUpdate:
-		// Check dependencies when updating a channel object
 	case MessageUpdate:
-		// Check dependencies when updating a message object
 	default:
 		return nil, fmt.Errorf("cannot add unknown item '%v' type to database", item)
 	}
@@ -129,30 +129,130 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
 	// Get the item to delete from the DB
 	dbItem, err := getItem(store, id)
 	if err != nil {
-		return fmt.Errorf("cannot delete item from database")
+		return fmt.Errorf("%s", "cannot delete item from database"+err.Error())
 	}
 
-	// Based on the type of entry, propogate other deletions or updates
 	entry, err := DetectAndUnmarshal(dbItem.(map[string]interface{}))
 	if err != nil {
-		return fmt.Errorf("cannot determine type of item to delete from database")
+		return fmt.Errorf("%s", "cannot determine type of item to delete from database"+err.Error())
 	}
 
-	switch entry.(type) {
-	case Account:
+	/*
+		Based on the type of item we are deleting, we have to perform other actions to keep consistency of data...
+
+		=> Account - have to remove the reference to the account ID from all groups the user was a member of
+		=> Group - have to delete all channels in the group, and all messages in those channels
+		=> Channel - have to delete all messages in the channel
+		=> Message - no other actions to perform
+	*/
+	switch item := entry.(type) {
+	case *Account:
 		// When deleting an account, update groups so that there are no references to the account within the group members list
-	case Group:
-		// When deleting a group, recursively delete all channels
-	case Channel:
+		groups, err := searchItem(store, map[string]interface{}{
+			"members": []string{item.Id.String()},
+		})
+		if err != nil {
+			return fmt.Errorf("cannot get groups associated with account to delete: %v", err.Error())
+		}
+
+		// Update all those groups to remove the user from their members list
+		for _, g := range groups {
+			var group Group
+			err := MapToStruct(g.(map[string]interface{}), &group)
+			if err != nil {
+				return fmt.Errorf("%s", "error updating group members list associated with user: "+err.Error())
+			}
+
+			// Update the group...
+			_, err = updateItem(store, group.Id, GroupUpdate{})
+			if err != nil {
+				return fmt.Errorf("%s", "error updating group members list associated with user: "+err.Error())
+			}
+		}
+
+	case *Group:
+		// Get all the channels associated with the group using a search in the DB.
+		channels, err := searchItem(store, map[string]interface{}{
+			"group": []string{item.Id.String()},
+		})
+		if err != nil {
+			return fmt.Errorf("%s", "cannot find channels associated with group"+err.Error())
+		}
+
+		// Loop over every channel, convert to expected struct type, extract Id
+		channelIds := make([]string, 0)
+		for _, c := range channels {
+			var channel Channel
+			err := MapToStruct(c.(map[string]interface{}), &channel)
+			if err != nil {
+				return fmt.Errorf("%s", "error deleting channel associated with group"+err.Error())
+			}
+
+			// Extract ids...
+			channelIds = append(channelIds, channel.Id.String())
+
+			// Delete all the items found above from the DB (TODO: find better way to drop all the items at once rather than individual deletion, if this is possible)
+			_, err = store.Delete(context.Background(), channel.Id.String())
+			if err != nil {
+				return fmt.Errorf("%s", "error deleting messages associated with channel associated with group"+err.Error())
+			}
+		}
+
+		// Get all the messages associated with the channels associated with the group using a search in the DB.
+		messages, err := searchItem(store, map[string]interface{}{
+			"channel": channelIds,
+		})
+		if err != nil {
+			return fmt.Errorf("%s", "cannot find messages associated with channels of group"+err.Error())
+		}
+
+		// Delete all the items found above from the DB (TODO: find better way to drop all the items at once rather than individual deletion, if this is possible)
+		for _, m := range messages {
+			var message Message
+			err := MapToStruct(m.(map[string]interface{}), &message)
+			if err != nil {
+				return fmt.Errorf("%s", "error deleting messages associated with channel associated with group: "+err.Error())
+			}
+
+			_, err = store.Delete(context.Background(), message.Id.String())
+			if err != nil {
+				return fmt.Errorf("%s", "error deleting messages associated with channel associated with group: "+err.Error())
+			}
+		}
+
+	case *Channel:
 		// When deleting a channel, recursively delete all related messages
-	case Message:
+		messages, err := searchItem(store, map[string]interface{}{
+			"channel": []string{item.Id.String()},
+		})
+		if err != nil {
+			return fmt.Errorf("%s", "cannot find messages associated with channel: "+err.Error())
+		}
+
+		// Delete all the items found above from the DB (TODO: find better way to drop all the items at once rather than individual deletion, if this is possible)
+		for _, m := range messages {
+			var message Message
+			err := MapToStruct(m.(map[string]interface{}), &message)
+			if err != nil {
+				return fmt.Errorf("%s", "error deleting messages associated with channel: "+err.Error())
+			}
+
+			_, err = store.Delete(context.Background(), message.Id.String())
+			if err != nil {
+				return fmt.Errorf("%s", "error deleting messages associated with channel: "+err.Error())
+			}
+		}
+
+	case *Message:
 		// When deleting a message, nothing special is needed
+	default:
+		return fmt.Errorf("cannot determine type of item to delete: %v", item)
 	}
 
-	// Delete the item
+	// Now delete the item itself
 	_, err = store.Delete(context.Background(), id.String())
 	if err != nil {
-		return err
+		return fmt.Errorf("%s", "error deleting item: "+err.Error())
 	}
 	return nil
 }
@@ -166,6 +266,21 @@ func searchItem(store orbitdb.DocumentStore, filter map[string]interface{}) ([]i
 	containsBehavior := func(entryValue, filterValue interface{}) bool {
 		if filterSlice, ok := filterValue.([]interface{}); ok {
 			return slices.Contains(filterSlice, entryValue)
+		}
+		return false
+	}
+
+	containsAllBehavior := func(entryValue, filterValue interface{}) bool {
+		if entrySlice, ok := entryValue.([]interface{}); ok {
+			if filterSlice, ok := filterValue.([]interface{}); ok {
+				// Check if filterSlice is subset of entrySlice (IE all filter elements present in entry)
+				for _, subElem := range filterSlice {
+					if !slices.Contains(entrySlice, subElem) {
+						return false
+					}
+				}
+				return true
+			}
 		}
 		return false
 	}
@@ -205,8 +320,10 @@ func searchItem(store orbitdb.DocumentStore, filter map[string]interface{}) ([]i
 	// A filter behavior call will return false if the filter fails, and true if it passes
 	filterBehaviors := map[string]func(entryValue, filterValue interface{}) bool{
 		"id":       containsBehavior,
+		"group":    containsBehavior,
 		"author":   containsBehavior,
 		"channel":  containsBehavior,
+		"members":  containsAllBehavior,
 		"from":     dateAfterBehavior,
 		"until":    dateBeforeBehavior,
 		"username": fuzzyMatchBehavior,
