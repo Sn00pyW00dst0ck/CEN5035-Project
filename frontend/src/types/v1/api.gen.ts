@@ -900,6 +900,7 @@ export interface components {
             until?: string;
             /** @example Testing */
             name?: string;
+            members?: string[];
         };
         /** @description An object that is posted to the backend to query for channels based on filter criteria. */
         ChannelFilter: {

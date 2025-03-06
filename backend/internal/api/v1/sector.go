@@ -188,13 +188,26 @@ func (s *SectorAPI) UpdateGroupByID(w http.ResponseWriter, r *http.Request, grou
 
 // DeleteGroupByID implements ServerInterface.
 func (s *SectorAPI) DeleteGroupByID(w http.ResponseWriter, r *http.Request, id types.UUID) {
-	panic("unimplemented")
+	err := removeItem(s.DB.Store, id)
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not delete within database.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GetGroupByID implements ServerInterface.
 func (s *SectorAPI) GetGroupByID(w http.ResponseWriter, r *http.Request, id types.UUID) {
-	panic("unimplemented")
-
+	group, err := getItem(s.DB.Store, id)
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not get within database.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(group)
 }
 
 // AddGroupMember implements ServerInterface.

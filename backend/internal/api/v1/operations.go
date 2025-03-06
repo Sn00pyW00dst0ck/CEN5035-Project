@@ -372,7 +372,7 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 	return result, nil
 }
 
-//
+//#region Helpers
 
 // Whenever we want to convert something from a struct to the database representation use this.
 func StructToMap(obj interface{}) map[string]interface{} {
@@ -465,3 +465,5 @@ func isEmpty(v interface{}) bool {
 	}
 	return true
 }
+
+//#endregion Helpers

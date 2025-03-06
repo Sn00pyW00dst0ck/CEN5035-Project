@@ -254,27 +254,46 @@ func TestSectorV1(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, 200, response.StatusCode())
 
-			var createdAccount v1.Account
-			err = json.Unmarshal(response.Body, &createdAccount)
+			var fetchedAccount v1.Account
+			err = json.Unmarshal(response.Body, &fetchedAccount)
 			require.NoError(t, err)
-			require.Equal(t, selectedAccount.Id, createdAccount.Id)
-			require.True(t, selectedAccount.CreatedAt.Equal(*createdAccount.CreatedAt))
-			require.Equal(t, selectedAccount.Username, createdAccount.Username)
-			require.Equal(t, selectedAccount.ProfilePic, createdAccount.ProfilePic)
+			require.Equal(t, selectedAccount.Id, fetchedAccount.Id)
+			require.True(t, selectedAccount.CreatedAt.Equal(*fetchedAccount.CreatedAt))
+			require.Equal(t, selectedAccount.Username, fetchedAccount.Username)
+			require.Equal(t, selectedAccount.ProfilePic, fetchedAccount.ProfilePic)
 		})
 
 		t.Run("Search Accounts", func(t *testing.T) {
+			t.Run("By Id", func(t *testing.T) {
+				entries, teardown := setupTest(t, *sectorAPI)
+				defer teardown(t)
+
+				var ids = []types.UUID{entries[0].(v1.Account).Id}
+				query := v1.SearchAccountsJSONRequestBody{
+					Id: &ids,
+				}
+				result, err := testClient.SearchAccountsWithResponse(context.Background(), query)
+				require.NoError(t, err)
+				require.Equal(t, 200, result.StatusCode())
+
+				var queryResult []v1.Account
+				err = json.Unmarshal(result.Body, &queryResult)
+				require.NoError(t, err)
+				require.Equal(t, 1, len(queryResult))
+				// TODO: could check that fields are equal too
+			})
+
 			t.Run("By creation time", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
 
 				var timeStart = time.Now().AddDate(0, 0, -10)
 				var timeEnd = time.Now().AddDate(0, 0, -5)
-				query1 := v1.SearchAccountsJSONRequestBody{
+				query := v1.SearchAccountsJSONRequestBody{
 					From:  &timeStart,
 					Until: &timeEnd,
 				}
-				result, err := testClient.SearchAccountsWithResponse(context.Background(), query1)
+				result, err := testClient.SearchAccountsWithResponse(context.Background(), query)
 				require.NoError(t, err)
 				require.Equal(t, 200, result.StatusCode())
 
@@ -296,10 +315,10 @@ func TestSectorV1(t *testing.T) {
 
 				// Query for subset based on username
 				var username = "Doe"
-				query2 := v1.SearchAccountsJSONRequestBody{
+				query := v1.SearchAccountsJSONRequestBody{
 					Username: &username,
 				}
-				result, err := testClient.SearchAccountsWithResponse(context.Background(), query2)
+				result, err := testClient.SearchAccountsWithResponse(context.Background(), query)
 				require.NoError(t, err)
 				require.Equal(t, 200, result.StatusCode())
 
@@ -312,278 +331,268 @@ func TestSectorV1(t *testing.T) {
 					require.True(t, strings.Contains(queryResult[i].Username, username))
 				}
 			})
-
-			t.Run("Search by ID", func(t *testing.T) {
-				entries, teardown := setupTest(t, *sectorAPI)
-				defer teardown(t)
-
-				var ids = []types.UUID{entries[0].(v1.Account).Id}
-				query3 := v1.SearchAccountsJSONRequestBody{
-					Id: &ids,
-				}
-				result3, err := testClient.SearchAccountsWithResponse(context.Background(), query3)
-				require.NoError(t, err)
-				require.Equal(t, 200, result3.StatusCode())
-
-				var queryResult []v1.Account
-				err = json.Unmarshal(result3.Body, &queryResult)
-				require.NoError(t, err)
-				require.Equal(t, 1, len(queryResult))
-				// TODO: could check that fields are equal too
-			})
-
 		})
 	})
 
 	t.Run("Group", func(t *testing.T) {
 		t.Run("Create Group", func(t *testing.T) {
+			_, teardown := setupTest(t, *sectorAPI)
+			defer teardown(t)
 
+			body := v1.PutGroupJSONRequestBody{
+				Id:          uuid.New(),
+				Name:        "New Group",
+				Description: "",
+				Members:     []types.UUID{},
+			}
+
+			response, err := testClient.PutGroupWithResponse(context.Background(), body)
+			require.NoError(t, err)
+			require.Equal(t, 201, response.StatusCode())
+
+			var createdGroup v1.Group
+			err = json.Unmarshal(response.Body, &createdGroup)
+			require.NoError(t, err)
+			require.Equal(t, body.Id, createdGroup.Id)
+			require.NotNil(t, createdGroup.CreatedAt)
+			require.Equal(t, body.Description, createdGroup.Description)
+			require.Equal(t, body.Members, createdGroup.Members)
+		})
+
+		t.Run("Update Group By Id", func(t *testing.T) {
+			entries, teardown := setupTest(t, *sectorAPI)
+			defer teardown(t)
+
+			selectedGroup := entries[8].(v1.Group)
+
+			// Test updating the account username
+			newName := "Updated Group Name"
+			body := v1.UpdateGroupByIDJSONRequestBody{
+				Name: &(newName),
+			}
+			response, err := testClient.UpdateGroupByIDWithResponse(context.Background(), selectedGroup.Id, body)
+			require.NoError(t, err)
+			require.Equal(t, 201, response.StatusCode())
+
+			var updatedGroup v1.Group
+			err = json.Unmarshal(response.Body, &updatedGroup)
+			require.NoError(t, err)
+			expected := v1.Group{
+				Id:          selectedGroup.Id,
+				CreatedAt:   selectedGroup.CreatedAt,
+				Name:        newName,
+				Description: selectedGroup.Description,
+				Members:     selectedGroup.Members,
+			}
+			// Must compare all fields individually because timestamps are tricky and suck
+			require.Equal(t, expected.Id, updatedGroup.Id)
+			require.True(t, expected.CreatedAt.Equal(*updatedGroup.CreatedAt))
+			require.Equal(t, expected.Name, updatedGroup.Name)
+			require.Equal(t, expected.Description, updatedGroup.Description)
+			require.Equal(t, expected.Members, updatedGroup.Members)
+		})
+
+		t.Run("Delete Group By Id", func(t *testing.T) {
+			entries, teardown := setupTest(t, *sectorAPI)
+			defer teardown(t)
+
+			selectedGroup := entries[5].(v1.Group)
+
+			// Delete the account
+			response, err := testClient.DeleteGroupByIDWithResponse(context.Background(), selectedGroup.Id)
+			require.NoError(t, err)
+			require.Equal(t, 204, response.StatusCode())
+
+			// Second time should give internal server error
+			response, err = testClient.DeleteGroupByIDWithResponse(context.Background(), selectedGroup.Id)
+			require.NoError(t, err)
+			require.Equal(t, 500, response.StatusCode())
+
+			// TODO: add more advanced tests for variations when we have to also delete channels, etc...
+		})
+
+		t.Run("Get Group By Id", func(t *testing.T) {
+			entries, teardown := setupTest(t, *sectorAPI)
+			defer teardown(t)
+
+			selectedGroup := entries[7].(v1.Group)
+
+			// Get the account
+			response, err := testClient.GetGroupByIDWithResponse(context.Background(), selectedGroup.Id)
+			require.NoError(t, err)
+			require.Equal(t, 200, response.StatusCode())
+
+			var fetchedGroup v1.Group
+			err = json.Unmarshal(response.Body, &fetchedGroup)
+			require.NoError(t, err)
+			require.Equal(t, selectedGroup.Id, fetchedGroup.Id)
+			require.True(t, selectedGroup.CreatedAt.Equal(*fetchedGroup.CreatedAt))
+			require.Equal(t, selectedGroup.Name, fetchedGroup.Name)
+			require.Equal(t, selectedGroup.Description, fetchedGroup.Description)
+			require.Equal(t, selectedGroup.Members, fetchedGroup.Members)
+		})
+
+		t.Run("Search Groups", func(t *testing.T) {
+			t.Run("By Id", func(t *testing.T) {
+				entries, teardown := setupTest(t, *sectorAPI)
+				defer teardown(t)
+
+				var ids = []types.UUID{entries[6].(v1.Group).Id, entries[9].(v1.Group).Id}
+				query := v1.SearchGroupsJSONRequestBody{
+					Id: &ids,
+				}
+				result, err := testClient.SearchGroupsWithResponse(context.Background(), query)
+				require.NoError(t, err)
+				require.Equal(t, 200, result.StatusCode())
+
+				var queryResult []v1.Group
+				err = json.Unmarshal(result.Body, &queryResult)
+				require.NoError(t, err)
+				require.Equal(t, 2, len(queryResult))
+				// TODO: could check that fields are equal too
+			})
+
+			t.Run("By creation time", func(t *testing.T) {
+				_, teardown := setupTest(t, *sectorAPI)
+				defer teardown(t)
+
+				var timeStart = time.Now().AddDate(0, 0, -10)
+				var timeEnd = time.Now().AddDate(0, 0, -5)
+				query := v1.SearchGroupsJSONRequestBody{
+					From:  &timeStart,
+					Until: &timeEnd,
+				}
+				result, err := testClient.SearchGroupsWithResponse(context.Background(), query)
+				require.NoError(t, err)
+				require.Equal(t, 200, result.StatusCode())
+
+				var queryResult []v1.Group
+				err = json.Unmarshal(result.Body, &queryResult)
+				require.NoError(t, err)
+				require.Equal(t, 2, len(queryResult))
+			})
+
+			t.Run("By name", func(t *testing.T) {
+				_, teardown := setupTest(t, *sectorAPI)
+				defer teardown(t)
+
+				searchName := "Advanced"
+				query := v1.SearchGroupsJSONRequestBody{
+					Name: &searchName,
+				}
+				result, err := testClient.SearchGroupsWithResponse(context.Background(), query)
+				require.NoError(t, err)
+				require.Equal(t, 200, result.StatusCode())
+
+				var queryResult []v1.Group
+				err = json.Unmarshal(result.Body, &queryResult)
+				require.NoError(t, err)
+				require.Equal(t, 2, len(queryResult))
+			})
+
+			t.Run("By members", func(t *testing.T) {
+				entries, teardown := setupTest(t, *sectorAPI)
+				defer teardown(t)
+
+				var ids = []types.UUID{entries[2].(v1.Account).Id}
+				query := v1.SearchGroupsJSONRequestBody{
+					Members: &ids,
+				}
+				result, err := testClient.SearchGroupsWithResponse(context.Background(), query)
+				require.NoError(t, err)
+				require.Equal(t, 200, result.StatusCode())
+
+				var queryResult []v1.Group
+				err = json.Unmarshal(result.Body, &queryResult)
+				require.NoError(t, err)
+				require.Equal(t, 0, len(queryResult))
+				// TODO: could check that fields are equal too
+				// TODO: actually have an account be a member of a group
+			})
+		})
+	})
+
+	t.Run("Channel", func(t *testing.T) {
+		t.Run("Create Channel", func(t *testing.T) {
+
+		})
+
+		t.Run("Update Channel By Id", func(t *testing.T) {
+
+		})
+
+		t.Run("Delete Channel By Id", func(t *testing.T) {
+
+		})
+
+		t.Run("Get Channel By Id", func(t *testing.T) {
+
+		})
+
+		t.Run("Search Channels", func(t *testing.T) {
+			t.Run("By Id", func(t *testing.T) {
+
+			})
+
+			t.Run("By creation time", func(t *testing.T) {
+
+			})
+
+			t.Run("By name", func(t *testing.T) {
+
+			})
+
+			t.Run("By group", func(t *testing.T) {
+
+			})
+		})
+	})
+
+	t.Run("Message", func(t *testing.T) {
+		t.Run("Create Message", func(t *testing.T) {
+
+		})
+
+		t.Run("Update Message By Id", func(t *testing.T) {
+
+		})
+
+		t.Run("Delete Message By Id", func(t *testing.T) {
+
+		})
+
+		t.Run("Get Message By Id", func(t *testing.T) {
+
+		})
+
+		t.Run("Search Message", func(t *testing.T) {
+			t.Run("By Id", func(t *testing.T) {
+
+			})
+
+			t.Run("By creation time", func(t *testing.T) {
+
+			})
+
+			t.Run("By author", func(t *testing.T) {
+
+			})
+
+			t.Run("By channel", func(t *testing.T) {
+
+			})
+
+			t.Run("By pinned", func(t *testing.T) {
+
+			})
+
+			t.Run("By body", func(t *testing.T) {
+
+			})
 		})
 	})
 
 	/*
-
-		t.Run("Group", func(t *testing.T) {
-			t.Run("Create Group", func(t *testing.T) {
-				body := v1.PutGroupJSONRequestBody{
-					Id:          uuid.New(),
-					Name:        "Test Group",
-					Description: "Used for unit tests!",
-					Members:     []types.UUID{},
-					Channels:    []types.UUID{},
-				}
-
-				response, err := testClient.PutGroupWithResponse(context.Background(), body)
-				if err != nil {
-					panic(err)
-				}
-
-				require.Equal(t, 201, response.StatusCode())
-
-				var createdGroup v1.Group
-				data, err := base64.StdEncoding.DecodeString(string(response.Body)[1 : len(string(response.Body))-2])
-				if err != nil {
-					panic(err)
-				}
-				err = json.Unmarshal(data, &createdGroup)
-				if err != nil {
-					panic(err)
-				}
-
-				require.Equal(t, body.Id, createdGroup.Id)
-				require.Equal(t, body.Name, createdGroup.Name)
-				require.Equal(t, body.Description, createdGroup.Description)
-				require.Equal(t, body.Members, createdGroup.Members)
-				require.Equal(t, body.Channels, createdGroup.Channels)
-
-				// Test updating the group by wrong endpoing (should fail)!
-				body.Name = "Updated Group Name!"
-				response, err = testClient.PutGroupWithResponse(context.Background(), body)
-				if err != nil {
-					panic(err)
-				}
-				require.Equal(t, 500, response.StatusCode())
-
-				// Remove all store content
-				sectorAPI.DB.Store.Delete(context.Background(), body.Id.String())
-			})
-
-			t.Run("Get Group By Id", func(t *testing.T) {
-				id := uuid.New()
-				now := time.Now()
-				original := v1.Group{
-					Id:          id,
-					CreatedAt:   &now,
-					Name:        "Test Group",
-					Description: "Group for unit testing",
-					Members:     []types.UUID{},
-					Channels:    []types.UUID{},
-				}
-				_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
-				if err != nil {
-					panic(err)
-				}
-
-				// Get the account
-				response, err := testClient.GetGroupByIDWithResponse(context.Background(), original.Id)
-				if err != nil {
-					panic(err)
-				}
-				require.Equal(t, 200, response.StatusCode())
-
-				var fetchedGroup v1.Group
-				err = json.Unmarshal(response.Body, &fetchedGroup)
-				if err != nil {
-					panic(err)
-				}
-
-				require.Equal(t, original.Id, fetchedGroup.Id)
-				require.Equal(t, original.Name, fetchedGroup.Name)
-				require.Equal(t, original.Description, fetchedGroup.Description)
-				require.Equal(t, original.Members, fetchedGroup.Members)
-				require.Equal(t, original.Channels, fetchedGroup.Channels)
-
-				// Remove all store content
-				sectorAPI.DB.Store.Delete(context.Background(), id.String())
-			})
-
-			t.Run("Update Group By Id", func(t *testing.T) {
-				id := uuid.New()
-				now := time.Now()
-				original := v1.Group{
-					Id:          id,
-					CreatedAt:   &now,
-					Name:        "Test Group",
-					Description: "Group for unit testing",
-					Members:     []types.UUID{},
-					Channels:    []types.UUID{},
-				}
-				_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
-				if err != nil {
-					panic(err)
-				}
-
-				// Update the group
-				body := v1.UpdateGroupByIDJSONRequestBody{
-					Id:          id,
-					CreatedAt:   &now,
-					Name:        "Updated Test Group",
-					Description: "Group for unit testing",
-					Members:     []types.UUID{},
-					Channels:    []types.UUID{},
-				}
-				response, err := testClient.UpdateGroupByIDWithResponse(context.Background(), body.Id, body)
-				if err != nil {
-					sectorAPI.DB.Store.Delete(context.Background(), id.String())
-					panic(err)
-				}
-				require.Equal(t, 201, response.StatusCode())
-
-				var updatedGroup v1.Group
-				data, err := base64.StdEncoding.DecodeString(string(response.Body)[1 : len(string(response.Body))-2])
-				if err != nil {
-					panic(err)
-				}
-				err = json.Unmarshal(data, &updatedGroup)
-				if err != nil {
-					panic(err)
-				}
-
-				require.Equal(t, body.Id, updatedGroup.Id)
-				require.Equal(t, body.Name, updatedGroup.Name)
-				require.Equal(t, original.Description, updatedGroup.Description)
-				require.Equal(t, original.Members, updatedGroup.Members)
-				require.Equal(t, original.Channels, updatedGroup.Channels)
-
-				// Remove all store content
-				sectorAPI.DB.Store.Delete(context.Background(), id.String())
-			})
-
-			t.Run("Delete Group By Id", func(t *testing.T) {
-				id := uuid.New()
-				now := time.Now()
-				original := v1.Group{
-					Id:          id,
-					CreatedAt:   &now,
-					Name:        "Test Group",
-					Description: "Group for unit testing",
-					Members:     []types.UUID{},
-					Channels:    []types.UUID{},
-				}
-				_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(original))
-				if err != nil {
-					panic(err)
-				}
-
-				// Delete the account
-				response, err := testClient.DeleteGroupByIDWithResponse(context.Background(), id)
-				if err != nil {
-					sectorAPI.DB.Store.Delete(context.Background(), id.String())
-					panic(err)
-				}
-				require.Equal(t, 204, response.StatusCode())
-
-				// Second time should give internal server error
-				response, err = testClient.DeleteGroupByIDWithResponse(context.Background(), id)
-				if err != nil {
-					sectorAPI.DB.Store.Delete(context.Background(), id.String())
-					panic(err)
-				}
-				require.Equal(t, 500, response.StatusCode())
-			})
-
-			// TODO: search test
-
-			t.Run("Add Member", func(t *testing.T) {
-				now := time.Now()
-				originalGroup := v1.Group{
-					Id:          uuid.New(),
-					CreatedAt:   &now,
-					Name:        "Test Group",
-					Description: "Group for unit testing",
-					Members:     []types.UUID{},
-					Channels:    []types.UUID{},
-				}
-
-				originalAccout := v1.Account{
-					Id:         uuid.New(),
-					Username:   "Test Account 2",
-					ProfilePic: "",
-					CreatedAt:  &now,
-				}
-
-				_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalAccout))
-				if err != nil {
-					panic(err)
-				}
-				_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalGroup))
-				if err != nil {
-					panic(err)
-				}
-
-				response, err := testClient.AddGroupMemberWithResponse(context.Background(), originalGroup.Id, originalAccout.Id)
-				if err != nil {
-					panic(err)
-				}
-				require.Equal(t, 201, response.StatusCode())
-				// TODO: Check that member list updated
-			})
-
-			t.Run("Remove Member", func(t *testing.T) {
-				now := time.Now()
-				originalGroup := v1.Group{
-					Id:          uuid.New(),
-					CreatedAt:   &now,
-					Name:        "Test Group",
-					Description: "Group for unit testing",
-					Members:     []types.UUID{},
-					Channels:    []types.UUID{},
-				}
-
-				originalAccout := v1.Account{
-					Id:         uuid.New(),
-					Username:   "Test Account 2",
-					ProfilePic: "",
-					CreatedAt:  &now,
-				}
-
-				_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalAccout))
-				if err != nil {
-					panic(err)
-				}
-				_, err = sectorAPI.DB.Store.Put(context.Background(), v1.StructToMap(originalGroup))
-				if err != nil {
-					panic(err)
-				}
-
-				response, err := testClient.RemoveGroupMemberWithResponse(context.Background(), originalGroup.Id, originalAccout.Id)
-				if err != nil {
-					panic(err)
-				}
-				require.Equal(t, 204, response.StatusCode())
-				// TODO: Check that member list updated
-			})
-		})
 
 		t.Run("Channel", func(t *testing.T) {
 			t.Run("Create Channel", func(t *testing.T) {
