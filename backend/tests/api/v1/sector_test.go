@@ -71,11 +71,41 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 			ProfilePic: "",
 			Username:   "woefullyconsideringlove",
 		},
-		// v1.Group{},
-		// v1.Group{},
-		// v1.Group{},
-		// v1.Group{},
-		// v1.Group{},
+		v1.Group{
+			Id:          uuid.New(),
+			CreatedAt:   &then,
+			Name:        "Test Group 1",
+			Description: "A group for unit testing.",
+			Members:     []types.UUID{},
+		},
+		v1.Group{
+			Id:          uuid.New(),
+			CreatedAt:   &now,
+			Name:        "Test Group 2",
+			Description: "Another unit testing group.",
+			Members:     []types.UUID{},
+		},
+		v1.Group{
+			Id:          uuid.New(),
+			CreatedAt:   &now,
+			Name:        "Test Group 3",
+			Description: "A third group for unit testing.",
+			Members:     []types.UUID{},
+		},
+		v1.Group{
+			Id:          uuid.New(),
+			CreatedAt:   &then,
+			Name:        "Advanced Test Group 1",
+			Description: "For advanced testing.",
+			Members:     []types.UUID{},
+		},
+		v1.Group{
+			Id:          uuid.New(),
+			CreatedAt:   &now,
+			Name:        "Advanced Test Group 2",
+			Description: "For advanced testing.",
+			Members:     []types.UUID{},
+		},
 		// v1.Channel{},
 		// v1.Channel{},
 		// v1.Channel{},
@@ -301,6 +331,12 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 1, len(queryResult))
 				// TODO: could check that fields are equal too
 			})
+
+		})
+	})
+
+	t.Run("Group", func(t *testing.T) {
+		t.Run("Create Group", func(t *testing.T) {
 
 		})
 	})

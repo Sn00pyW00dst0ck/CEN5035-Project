@@ -148,7 +148,7 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
 	switch item := entry.(type) {
 	case *Account:
 		// When deleting an account, update groups so that there are no references to the account within the group members list
-		groups, err := searchItem(store, map[string]interface{}{
+		groups, err := searchItem(store, reflect.TypeOf(Group{}), map[string]interface{}{
 			"members": []string{item.Id.String()},
 		})
 		if err != nil {
@@ -172,7 +172,7 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
 
 	case *Group:
 		// Get all the channels associated with the group using a search in the DB.
-		channels, err := searchItem(store, map[string]interface{}{
+		channels, err := searchItem(store, reflect.TypeOf(Channel{}), map[string]interface{}{
 			"group": []string{item.Id.String()},
 		})
 		if err != nil {
@@ -199,7 +199,7 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
 		}
 
 		// Get all the messages associated with the channels associated with the group using a search in the DB.
-		messages, err := searchItem(store, map[string]interface{}{
+		messages, err := searchItem(store, reflect.TypeOf(Message{}), map[string]interface{}{
 			"channel": channelIds,
 		})
 		if err != nil {
@@ -222,7 +222,7 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
 
 	case *Channel:
 		// When deleting a channel, recursively delete all related messages
-		messages, err := searchItem(store, map[string]interface{}{
+		messages, err := searchItem(store, reflect.TypeOf(Message{}), map[string]interface{}{
 			"channel": []string{item.Id.String()},
 		})
 		if err != nil {
@@ -262,7 +262,7 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
  *
  * IF a field is null (on object or filter), the filter for it is skipped!
  */
-func searchItem(store orbitdb.DocumentStore, filter map[string]interface{}) ([]interface{}, error) {
+func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]interface{}) ([]interface{}, error) {
 	containsBehavior := func(entryValue, filterValue interface{}) bool {
 		if filterSlice, ok := filterValue.([]interface{}); ok {
 			return slices.Contains(filterSlice, entryValue)
@@ -339,6 +339,12 @@ func searchItem(store orbitdb.DocumentStore, filter map[string]interface{}) ([]i
 			return false, nil
 		}
 
+		// Ensure expected type... (THIS IS SOOO CURSED!)
+		detected, err := DetectAndUnmarshal(entry)
+		if err != nil || reflect.TypeOf(detected).Elem().Name() != t.Name() {
+			return false, nil
+		}
+
 		// Apply filters and discard 'entry' if not a match
 		for key, value := range filter {
 			entryKey := key
@@ -398,7 +404,6 @@ func MapToStruct(data map[string]interface{}, obj interface{}) error {
 
 // Function to determine struct type
 func DetectAndUnmarshal(data map[string]interface{}) (interface{}, error) {
-	// Convert map back to JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
@@ -406,22 +411,48 @@ func DetectAndUnmarshal(data map[string]interface{}) (interface{}, error) {
 
 	// List all possible struct types
 	var possibleTypes = []interface{}{&Account{}, &Group{}, &Channel{}, &Message{}}
+	var bestMatch interface{}
+	var bestMatchFieldCount int
 
 	// Try unmarshaling into each struct
 	for _, candidate := range possibleTypes {
-		// Create a new instance of the candidate type
 		target := reflect.New(reflect.TypeOf(candidate).Elem()).Interface()
 
 		err := json.Unmarshal(jsonData, target)
 		if err == nil {
-			// Check if any fields were actually populated
 			if !isEmpty(target) {
-				return target, nil
+				// Count non-zero fields
+				fieldCount := countNonEmptyFields(target)
+
+				// Pick the struct with the most matching fields
+				if fieldCount > bestMatchFieldCount {
+					bestMatch = target
+					bestMatchFieldCount = fieldCount
+				}
 			}
 		}
 	}
 
+	// Return best match if it exists
+	if bestMatch != nil {
+		return bestMatch, nil
+	}
+
 	return nil, fmt.Errorf("unknown struct type")
+}
+
+// Function to count the number of non empty fields in a struct.
+func countNonEmptyFields(target interface{}) int {
+	val := reflect.ValueOf(target).Elem()
+	count := 0
+
+	for i := 0; i < val.NumField(); i++ {
+		if !reflect.DeepEqual(val.Field(i).Interface(), reflect.Zero(val.Field(i).Type()).Interface()) {
+			count++
+		}
+	}
+
+	return count
 }
 
 // Function to check if a struct is empty (i.e., no fields populated)

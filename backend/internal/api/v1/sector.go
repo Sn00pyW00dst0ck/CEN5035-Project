@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"testing"
 	"time"
 
@@ -32,12 +33,14 @@ func (s *SectorAPI) SearchAccounts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accounts, err := searchItem(s.DB.Store, StructToMap(filter))
+	accounts, err := searchItem(s.DB.Store, reflect.TypeOf(Account{}), StructToMap(filter))
 	if err != nil {
 		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not perform database query.", http.StatusInternalServerError)
 		return
 	}
+
+	// Filter out everything that is not an account
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
@@ -126,7 +129,7 @@ func (s *SectorAPI) SearchGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groups, err := searchItem(s.DB.Store, StructToMap(filter))
+	groups, err := searchItem(s.DB.Store, reflect.TypeOf(Group{}), StructToMap(filter))
 	if err != nil {
 		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not perform database query.", http.StatusInternalServerError)
@@ -217,7 +220,7 @@ func (s *SectorAPI) SearchChannels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channels, err := searchItem(s.DB.Store, StructToMap(filter))
+	channels, err := searchItem(s.DB.Store, reflect.TypeOf(Channel{}), StructToMap(filter))
 	if err != nil {
 		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not perform database query.", http.StatusInternalServerError)
@@ -297,7 +300,7 @@ func (s *SectorAPI) SearchMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messages, err := searchItem(s.DB.Store, StructToMap(filter))
+	messages, err := searchItem(s.DB.Store, reflect.TypeOf(Message{}), StructToMap(filter))
 	if err != nil {
 		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not perform database query.", http.StatusInternalServerError)
