@@ -292,12 +292,26 @@ func (s *SectorAPI) UpdateChannelByID(w http.ResponseWriter, r *http.Request, gr
 
 // DeleteChannelByID implements ServerInterface.
 func (s *SectorAPI) DeleteChannelByID(w http.ResponseWriter, r *http.Request, groupId types.UUID, channelId types.UUID) {
-	panic("unimplemented")
+	err := removeItem(s.DB.Store, channelId)
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not delete within database.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GetChannelByID implements ServerInterface.
 func (s *SectorAPI) GetChannelByID(w http.ResponseWriter, r *http.Request, groupId types.UUID, channelId types.UUID) {
-	panic("unimplemented")
+	channel, err := getItem(s.DB.Store, channelId)
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not get within database.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(channel)
 }
 
 //#endregion Channel API
@@ -372,12 +386,26 @@ func (s *SectorAPI) UpdateMessageByID(w http.ResponseWriter, r *http.Request, gr
 
 // DeleteMessageByID implements ServerInterface.
 func (s *SectorAPI) DeleteMessageByID(w http.ResponseWriter, r *http.Request, groupId types.UUID, channelId types.UUID, messageId types.UUID) {
-	panic("unimplemented")
+	err := removeItem(s.DB.Store, messageId)
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not delete within database.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GetMessageByID implements ServerInterface.
 func (s *SectorAPI) GetMessageByID(w http.ResponseWriter, r *http.Request, groupId types.UUID, channelId types.UUID, messageId types.UUID) {
-	panic("unimplemented")
+	message, err := getItem(s.DB.Store, messageId)
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not get within database.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(message)
 }
 
 //#endregion Message API
