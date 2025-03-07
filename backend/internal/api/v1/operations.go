@@ -30,7 +30,7 @@ func addItem(store orbitdb.DocumentStore, obj interface{}) (interface{}, error) 
 	}
 
 	/*
-		Based on the type of item we are deleting, we have to perform other actions to keep consistency of data...
+		Based on the type of item we are inserting, we have to perform other actions to keep consistency of data...
 
 		=> Account - nothing
 		=> Group - nothing
@@ -127,12 +127,28 @@ func updateItem(store orbitdb.DocumentStore, id types.UUID, obj interface{}) (in
 	}
 
 	/*
-		If there are dependencies for the update, then check those dependencies here...
+		Based on the type of item we are updating, we have to perform other actions to keep consistency of data...
+
+		=> Account - none
+		=> Group - have to check that all members exist
+		=> Channel - none
+		=> Message - none
 	*/
 	switch item := obj.(type) {
 	case AccountUpdate:
 	case GroupUpdate:
-		// TODO: If we are updating the members list of the Group, then ensure that the members exist
+		members, ok := updatedItem["members"].([]interface{})
+		if ok {
+			found_members, err := searchItem(store, reflect.TypeOf(Account{}), map[string]interface{}{
+				"id": members,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("%s", "cannot find author associated with message"+err.Error())
+			}
+			if len(found_members) != len(members) {
+				return nil, fmt.Errorf("%s", "cannot find author associated with message"+err.Error())
+			}
+		}
 	case ChannelUpdate:
 	case MessageUpdate:
 	default:

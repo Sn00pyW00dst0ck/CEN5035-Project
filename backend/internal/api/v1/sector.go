@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -212,12 +213,66 @@ func (s *SectorAPI) GetGroupByID(w http.ResponseWriter, r *http.Request, id type
 
 // AddGroupMember implements ServerInterface.
 func (s *SectorAPI) AddGroupMember(w http.ResponseWriter, r *http.Request, groupId types.UUID, memberId types.UUID) {
-	panic("unimplemented")
+	group, err := getItem(s.DB.Store, groupId)
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not get within database.", http.StatusInternalServerError)
+		return
+	}
+
+	if slices.Contains(group.(Group).Members, memberId) {
+		http.Error(w, "Already a member of this group.", http.StatusInternalServerError)
+		return
+	}
+
+	// Update the group by sending the new list of members
+	newItem, err := updateItem(s.DB.Store, groupId, map[string]interface{}{
+		"members": append(group.(Group).Members, memberId),
+	})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(newItem)
 }
 
 // RemoveGroupMember implements ServerInterface.
 func (s *SectorAPI) RemoveGroupMember(w http.ResponseWriter, r *http.Request, groupId types.UUID, memberId types.UUID) {
-	panic("unimplemented")
+	group, err := getItem(s.DB.Store, groupId)
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Could not get within database.", http.StatusInternalServerError)
+		return
+	}
+
+	if !slices.Contains(group.(Group).Members, memberId) {
+		http.Error(w, "Already not a member of this group.", http.StatusInternalServerError)
+		return
+	}
+
+	// Construct list of new members
+	newMembers := group.(Group).Members
+	for i, v := range newMembers {
+		if v == memberId {
+			newMembers = append(newMembers[:i], newMembers[i+1:]...)
+		}
+	}
+
+	// Update the group by sending the new list of members
+	newItem, err := updateItem(s.DB.Store, groupId, map[string]interface{}{
+		"members": newMembers,
+	})
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(newItem)
 }
 
 //#endregion Group API
