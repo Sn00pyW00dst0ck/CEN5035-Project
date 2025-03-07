@@ -137,7 +137,11 @@ func updateItem(store orbitdb.DocumentStore, id types.UUID, obj interface{}) (in
 	switch item := obj.(type) {
 	case AccountUpdate:
 	case GroupUpdate:
-		members, ok := updatedItem["Members"].([]interface{})
+	case ChannelUpdate:
+	case MessageUpdate:
+	default:
+		// THE BELOW IS BAD, BUT FOR NOW WORKING... TODO: FIX THIS SO THAT WE HAVE SOME FORM OF 'INTERNAL UPDATE
+		members, ok := updatedItem["members"].([]interface{})
 		if ok {
 			found_members, err := searchItem(store, reflect.TypeOf(Account{}), map[string]interface{}{
 				"id": members,
@@ -148,11 +152,9 @@ func updateItem(store orbitdb.DocumentStore, id types.UUID, obj interface{}) (in
 			if len(found_members) != len(members) {
 				return nil, fmt.Errorf("%s", "cannot find author associated with message"+err.Error())
 			}
+		} else {
+			return nil, fmt.Errorf("cannot add unknown item '%v' type to database", item)
 		}
-	case ChannelUpdate:
-	case MessageUpdate:
-	default:
-		return nil, fmt.Errorf("cannot add unknown item '%v' type to database", item)
 	}
 
 	// Updates the item to the database
@@ -376,7 +378,7 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 		"group":    containsBehavior,
 		"author":   containsBehavior,
 		"channel":  containsBehavior,
-		"Members":  containsAllBehavior,
+		"members":  containsAllBehavior,
 		"from":     dateAfterBehavior,
 		"until":    dateBeforeBehavior,
 		"username": fuzzyMatchBehavior,

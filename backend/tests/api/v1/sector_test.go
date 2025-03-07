@@ -512,7 +512,12 @@ func TestSectorV1(t *testing.T) {
 		})
 
 		t.Run("Add Member", func(t *testing.T) {
+			entries, teardown := setupTest(t, *sectorAPI)
+			defer teardown(t)
 
+			result, err := testClient.AddGroupMemberWithResponse(context.Background(), entries[7].(v1.Group).Id, entries[2].(v1.Account).Id)
+			require.NoError(t, err)
+			require.Equal(t, 201, result.StatusCode())
 		})
 
 		t.Run("Remove Member", func(t *testing.T) {

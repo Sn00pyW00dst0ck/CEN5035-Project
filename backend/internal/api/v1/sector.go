@@ -221,7 +221,7 @@ func (s *SectorAPI) AddGroupMember(w http.ResponseWriter, r *http.Request, group
 	}
 
 	var group Group
-	err = MapToStruct(item.(map[string]interface{}), group)
+	err = MapToStruct(item.(map[string]interface{}), &group)
 	if err != nil {
 		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not get within database.", http.StatusInternalServerError)
@@ -257,7 +257,7 @@ func (s *SectorAPI) RemoveGroupMember(w http.ResponseWriter, r *http.Request, gr
 	}
 
 	var group Group
-	err = MapToStruct(item.(map[string]interface{}), group)
+	err = MapToStruct(item.(map[string]interface{}), &group)
 	if err != nil {
 		s.Logger.Debug(err.Error())
 		http.Error(w, "Could not get within database.", http.StatusInternalServerError)
