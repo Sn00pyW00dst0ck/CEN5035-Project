@@ -510,6 +510,14 @@ func TestSectorV1(t *testing.T) {
 				// TODO: actually have an account be a member of a group
 			})
 		})
+
+		t.Run("Add Member", func(t *testing.T) {
+
+		})
+
+		t.Run("Remove Member", func(t *testing.T) {
+
+		})
 	})
 
 	t.Run("Channel", func(t *testing.T) {

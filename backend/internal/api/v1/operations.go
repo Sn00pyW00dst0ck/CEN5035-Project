@@ -137,7 +137,7 @@ func updateItem(store orbitdb.DocumentStore, id types.UUID, obj interface{}) (in
 	switch item := obj.(type) {
 	case AccountUpdate:
 	case GroupUpdate:
-		members, ok := updatedItem["members"].([]interface{})
+		members, ok := updatedItem["Members"].([]interface{})
 		if ok {
 			found_members, err := searchItem(store, reflect.TypeOf(Account{}), map[string]interface{}{
 				"id": members,
@@ -376,7 +376,7 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 		"group":    containsBehavior,
 		"author":   containsBehavior,
 		"channel":  containsBehavior,
-		"members":  containsAllBehavior,
+		"Members":  containsAllBehavior,
 		"from":     dateAfterBehavior,
 		"until":    dateBeforeBehavior,
 		"username": fuzzyMatchBehavior,
