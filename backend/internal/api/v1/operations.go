@@ -29,16 +29,49 @@ func addItem(store orbitdb.DocumentStore, obj interface{}) (interface{}, error) 
 		return nil, fmt.Errorf("cannot add item to database")
 	}
 
-	// Check the type of the given obj, if it is something special then check for its special pre-reqs before adding...
+	/*
+		Based on the type of item we are deleting, we have to perform other actions to keep consistency of data...
+
+		=> Account - nothing
+		=> Group - nothing
+		=> Channel - must have valid group id
+		=> Message - must have valid channel id and author id
+	*/
 	switch item := obj.(type) {
 	case Account:
 		// Check dependencies when adding an account object
 	case Group:
 		// Check dependencies when adding a group object
 	case Channel:
-		// Check dependencies when adding a channel object
+		group, err := searchItem(store, reflect.TypeOf(Group{}), map[string]interface{}{
+			"group": []string{item.Group.String()},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("%s", "cannot find group associated with channel"+err.Error())
+		}
+		if len(group) != 1 {
+			return nil, fmt.Errorf("%s", "cannot find group associated with channel"+err.Error())
+		}
 	case Message:
-		// Check dependencies when adding a message object
+		channel, err := searchItem(store, reflect.TypeOf(Channel{}), map[string]interface{}{
+			"channel": []string{item.Channel.String()},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("%s", "cannot find channel associated with message"+err.Error())
+		}
+		if len(channel) != 1 {
+			return nil, fmt.Errorf("%s", "cannot find channel associated with message"+err.Error())
+		}
+
+		author, err := searchItem(store, reflect.TypeOf(Account{}), map[string]interface{}{
+			"author": []string{item.Author.String()},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("%s", "cannot find author associated with message"+err.Error())
+		}
+		if len(author) != 1 {
+			return nil, fmt.Errorf("%s", "cannot find author associated with message"+err.Error())
+		}
 	default:
 		return nil, fmt.Errorf("cannot add unknown item '%v' type to database", item)
 	}
@@ -163,8 +196,12 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
 				return fmt.Errorf("%s", "error updating group members list associated with user: "+err.Error())
 			}
 
-			// Update the group...
-			_, err = updateItem(store, group.Id, GroupUpdate{})
+			// Update the group members (TODO: this could probably be done in a batch update)
+			_, err = updateItem(store, group.Id, map[string]interface{}{
+				"members": slices.DeleteFunc(group.Members, func(x types.UUID) bool {
+					return x.String() == item.Id.String()
+				}),
+			})
 			if err != nil {
 				return fmt.Errorf("%s", "error updating group members list associated with user: "+err.Error())
 			}
