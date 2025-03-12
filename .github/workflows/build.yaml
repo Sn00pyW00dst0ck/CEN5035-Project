@@ -1,4 +1,4 @@
-name: Backend Build
+name: Build & Test
 
 on:
   push:
@@ -12,19 +12,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Go
+      - name: Setup Golang
         uses: actions/setup-go@v5
         with:
           go-version: '1.21.x'
       
       - name: Install dependencies
-        working-directory: ./backend
+        working-directory: ./Sector
         run: go get .
 
-      - name: Build
-        working-directory: ./backend
-        run: go build -v ./...
-      
-      - name: Test with the Go CLI
-        working-directory: ./backend
-        run: go test -p 1 ./...
+      - name: Build Wails
+        working-directory: ./Sector
+        run: wails build
