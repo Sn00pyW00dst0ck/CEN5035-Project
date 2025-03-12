@@ -1,8 +1,8 @@
 package api
 
 import (
-	v1 "app/internal/api/v1"
-	"app/internal/middleware"
+	v1 "Sector/internal/api/v1"
+	"Sector/internal/middleware"
 	"embed"
 	"encoding/json"
 	"net/http"

@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"app/internal/database"
-	"app/internal/logger"
+	"Sector/internal/database"
+	"Sector/internal/logger"
 	"context"
 	"encoding/json"
 	"fmt"

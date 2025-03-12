@@ -1,9 +1,9 @@
 package v1Test
 
 import (
-	"app/internal/api"
-	v1 "app/internal/api/v1"
-	"app/internal/database"
+	"Sector/internal/api"
+	v1 "Sector/internal/api/v1"
+	"Sector/internal/database"
 	"context"
 	"encoding/json"
 	"net/http/httptest"
