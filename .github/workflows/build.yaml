@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails
           build-platform: linux/amd64
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails
           build-platform: linux/amd64
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails
           build-platform: linux/amd64
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails
           build-platform: linux/amd64
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails
           build-platform: darwin/universal
@@ -84,7 +84,7 @@ jobs:
 #      - uses: actions/checkout@v4
 #        with:
 #          submodules: recursive
-#      - uses: Sector/wails-build-action@main
+#      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
 #        with:
 #          build-name: wails
 #          build-platform: darwin/universal
@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails
           build-platform: darwin/universal
@@ -123,7 +123,7 @@ jobs:
 #      - uses: actions/checkout@v4
 #        with:
 #          submodules: recursive
-#      - uses: Sector/wails-build-action@main
+#      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
 #        with:
 #          build-name: wails
 #          build-platform: darwin/universal
@@ -142,7 +142,7 @@ jobs:
 #      - uses: actions/checkout@v4
 #        with:
 #          submodules: recursive
-#      - uses: Sector/wails-build-action@main
+#      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
 #        with:
 #          build-name: wails
 #          build-platform: darwin/universal
@@ -161,7 +161,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails
           build-platform: darwin/universal
@@ -181,7 +181,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails
           build-platform: darwin/universal
@@ -195,7 +195,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails.exe
           build-platform: windows/amd64
@@ -208,7 +208,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails.exe
           build-platform: windows/amd64
@@ -221,7 +221,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails.exe
           build-platform: windows/amd64
@@ -234,7 +234,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails.exe
           build-platform: windows/amd64
@@ -247,7 +247,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: Sector/wails-build-action@main
+      - uses: Sn00pyW00dst0ck/CEN5035-Project@main
         with:
           build-name: wails.exe
           build-platform: windows/amd64
