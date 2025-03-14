@@ -18,7 +18,8 @@ jobs:
         ]
     runs-on: ${{ matrix.build.os }}
     defaults: 
-      working-directory: ./Sector
+      run:
+        working-directory: ./Sector
     steps:
       - uses: actions/checkout@v4
         with:
