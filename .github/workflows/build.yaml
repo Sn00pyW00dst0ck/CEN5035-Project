@@ -17,9 +17,7 @@ jobs:
           {name: wailsTest, platform: darwin/universal, os: macos-latest}
         ]
     runs-on: ${{ matrix.build.os }}
-    defaults: 
-      run:
-        working-directory: ./Sector
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,4 +28,3 @@ jobs:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
           build-obfuscate: true
-          working-directory: ./Sector
