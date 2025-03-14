@@ -17,13 +17,14 @@ jobs:
           {name: wailsTest, platform: darwin/universal, os: macos-latest}
         ]
     runs-on: ${{ matrix.build.os }}
+    defaults: 
+      working-directory: ./Sector
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - uses: dAppServer/wails-build-action@main
-        working-directory: ./Sector
         with:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
