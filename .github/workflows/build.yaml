@@ -30,5 +30,4 @@ jobs:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
           build-obfuscate: true
-        run: wails build
         workding-directory: ./Sector
