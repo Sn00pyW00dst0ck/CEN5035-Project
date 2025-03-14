@@ -30,4 +30,4 @@ jobs:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
           build-obfuscate: true
-        workding-directory: ./Sector
+          working-directory: ./Sector
