@@ -18,10 +18,13 @@ jobs:
         ]
     runs-on: ${{ matrix.build.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
+        run: ./generate.sh
+
       - uses: dAppServer/wails-build-action@main
+        working-directory: ./backend
         with:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
