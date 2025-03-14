@@ -21,7 +21,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-        run: ./generate.sh
 
       - uses: dAppServer/wails-build-action@main
         working-directory: ./Sector
