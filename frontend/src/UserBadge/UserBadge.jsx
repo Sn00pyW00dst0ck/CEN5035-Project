@@ -24,13 +24,13 @@ function UserBadge(props) {
             }}>
                 <Stack direction = "row" spacing ={2}>
                     <Badge invisible={!props.online} color="primary" variant ="dot">
-                        <Avatar src ={props.img} sx={{margin: ".25rem"}} alt = "test"></Avatar>
+                        <Avatar src ={props.img || "userDefault.png"} sx={{margin: ".25rem"}} alt = "UserBadgeIcon" ></Avatar>
                     </Badge>
 
                     <div>
-                        <h3>{props.user}</h3>
+                        <h3>{props.user || ""}</h3>
 
-                        <h6>{props.status}</h6>
+                        <h6>{props.status || ""}</h6>
                     </div>
                 </Stack>
             </Paper>
