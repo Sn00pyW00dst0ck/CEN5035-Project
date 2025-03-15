@@ -1,7 +1,7 @@
-// src/components/Button.test.jsx
+import {test, expect} from 'vitest';
 import { render } from '@testing-library/react';
 import App from "../App.jsx";
 
-test('renders button with label', () => {
+test('Renders without exceptions', () => {
     expect(() => render(<App />)).not.toThrow();
 });
