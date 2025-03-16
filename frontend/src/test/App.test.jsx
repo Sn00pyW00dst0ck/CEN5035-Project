@@ -5,3 +5,4 @@ import App from "../App.jsx";
 test('Renders without exceptions', () => {
     expect(() => render(<App />)).not.toThrow();
 });
+

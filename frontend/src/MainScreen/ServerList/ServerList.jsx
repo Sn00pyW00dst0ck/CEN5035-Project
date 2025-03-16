@@ -17,7 +17,7 @@ function searchServer(serverData)
 
 
 
-function ServerList() {
+function ServerList(props) {
 
     const [query, setQuery] = useState("");
 
@@ -25,15 +25,6 @@ function ServerList() {
         event.preventDefault();
         setQuery(event.target.value);
     }
-
-    const servers = [
-        { id: 1, name: "test1", icon: "public/vite.svg"},
-        { id: 2, name: "test2", icon: "public/vite.svg"},
-        { id: 3, name: "Test1", icon: "public/vite.svg"},
-        { id: 4, name: "Test2", icon: "public/vite.svg"},
-        { id: 5, name: "thisIsATest1", icon: "public/vite.svg"},
-        { id: 6, name: "Alice", icon: "public/vite.svg"}
-    ]
 
     return(
         <div>
@@ -62,10 +53,10 @@ function ServerList() {
                     subheader={<li />}
                 >
 
-                    <Search label={"Search"} return = {handleServerSearch}/>
+                    <Search id = "serverSearchInput" return = {handleServerSearch}/>
 
                     <div id='serverBadgeHolder'>
-                        {servers
+                        {props.servers
                             .filter((server) => server.name.toLowerCase().includes(query.toLowerCase()))
                             .map((server) => (
                                 <li key={`section-${server.id}`}>
