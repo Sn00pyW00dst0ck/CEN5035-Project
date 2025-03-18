@@ -1,33 +1,33 @@
 import UserBadge from "../../UserBadge/UserBadge.jsx";
-import {List, Paper, TextField} from "@mui/material";
-import {YourUser} from "../../App.jsx"
+import { List, Paper, TextField } from "@mui/material";
+import { YourUser } from "../../App.jsx";
 import ServerBadge from "./ServerBadge/ServerBadge.jsx";
-import "./ServerList.css";
-import {useState} from "react";
 import Search from "../../CommonComponents/Search/Search.jsx";
+import { useState } from "react";
+import "./ServerList.css";
 
-function searchServer(serverData)
-    {
-        serverData.preventDefault();
-        const data=new FormData(serverData.target);
-        const server_ID=formData.get("serverID");
-        console.log("Server ID:", server_ID);
-    }
-
-
-
-
-function ServerList(props) {
-
+function ServerList({ servers }) {
     const [query, setQuery] = useState("");
+    const [selectedServer, setSelectedServer] = useState(null);
 
     function handleServerSearch(event) {
-        event.preventDefault();
         setQuery(event.target.value);
     }
 
-    return(
-        <div>
+    function handleServerClick(server) {
+        console.log("Selected Server:", server);
+        setSelectedServer(server);
+    }
+
+    function searchServer(event) {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const server_ID = data.get("serverID");
+        console.log("Server ID:", server_ID);
+    }
+
+    return (
+        <div style={{ display: "flex" }}>
             <Paper elevation={3} sx={{
                 borderRadius: 7.5,
                 display: "flex",
@@ -37,34 +37,24 @@ function ServerList(props) {
                 margin: "1rem",
                 overflow: "hidden"
             }}>
-                <UserBadge user={YourUser.name} status={YourUser.status} online ={YourUser.online} img={YourUser.icon}/>
+                <UserBadge user={YourUser.name} status={YourUser.status} online={YourUser.online} img={YourUser.icon} />
 
-                <List
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        width: '100%',
-                        height: "100%",
-                        position: 'relative',
-                        overflow: 'auto',
+                <Search id="serverSearchInput" return={handleServerSearch} />
 
-                        '& ul': { padding: 0 },
-                    }}
-                    subheader={<li />}
-                >
-
-                    <Search id = "serverSearchInput" return = {handleServerSearch}/>
-
-                    <div id='serverBadgeHolder'>
-                        {props.servers
+                <List sx={{display: "flex", flexDirection: "column", width: "100%", height: "100%", overflow: "auto"}}>
+                    <div id="serverBadgeHolder">
+                        {servers
                             .filter((server) => server.name.toLowerCase().includes(query.toLowerCase()))
                             .map((server) => (
-                                <li key={`section-${server.id}`}>
+                                <li
+                                    key={server.id}
+                                    onClick={() => handleServerClick(server)}
+                                    style={{ cursor: "pointer" }}
+                                >
                                     <ServerBadge server={server} />
                                 </li>
                             ))}
                     </div>
-
                 </List>
 
                 <div className="joinServer">
@@ -73,10 +63,33 @@ function ServerList(props) {
                         <button type="submit">Join</button>
                     </form>
                 </div>
-
+                
             </Paper>
+
+            {selectedServer && selectedServer.channels && (
+                <Paper elevation={3} sx={{
+                    borderRadius: 7.5,
+                    display: "flex",
+                    flexDirection: "column",
+                    width: "15rem",
+                    height: "calc(100vh - 2rem)",
+                    margin: "1rem",
+                    overflow: "hidden"
+                }}>
+                    <h3 style={{ textAlign: "center", marginTop: "1rem" }}>
+                        {selectedServer.name} Channels
+                    </h3>
+                    <List sx={{ overflow: 'auto' }}>
+                        {selectedServer.channels.map((channel, index) => (
+                            <li key={`${selectedServer.id}-channel-${index}`}>
+                                <ServerBadge server={{ id: `${selectedServer.id}-channel-${index}`, name: channel }} />
+                            </li>
+                        ))}
+                    </List>
+                </Paper>
+            )}
         </div>
-    )
+    );
 }
 
 export default ServerList;
