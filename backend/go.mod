@@ -7,6 +7,7 @@ toolchain go1.23.4
 require (
 	berty.tech/go-orbit-db v1.22.1
 	github.com/getkin/kin-openapi v0.124.0
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/ipfs/go-datastore v0.6.0
 	github.com/ipfs/kubo v0.27.0
@@ -60,7 +61,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
