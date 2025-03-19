@@ -35,7 +35,7 @@ type Database struct {
 	IPFSCoreAPI coreiface.CoreAPI // The IPFS API the database is running on
 
 	OrbitDB orbitdb.OrbitDB       // The Go-Orbit-DB instance
-	Store   orbitdb.DocumentStore // The document store within teh Go-Orbit-DB instance
+	Store   orbitdb.DocumentStore // The document store within the Go-Orbit-DB instance
 	Events  event.Subscription    // Fires an event when Store is ready
 }
 

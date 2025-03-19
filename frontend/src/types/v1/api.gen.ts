@@ -124,7 +124,7 @@ export interface paths {
             /** @description Account details to add. */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Account"];
+                    "application/json": components["schemas"]["AccountUpdate"];
                 };
             };
             responses: {
@@ -335,7 +335,7 @@ export interface paths {
             /** @description Group details to add. */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Group"];
+                    "application/json": components["schemas"]["GroupUpdate"];
                 };
             };
             responses: {
@@ -558,7 +558,7 @@ export interface paths {
             /** @description Channel details to add. */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Channel"];
+                    "application/json": components["schemas"]["ChannelUpdate"];
                 };
             };
             responses: {
@@ -743,7 +743,7 @@ export interface paths {
             /** @description Message details to add. */
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Message"];
+                    "application/json": components["schemas"]["MessageUpdate"];
                 };
             };
             responses: {
@@ -825,7 +825,6 @@ export interface components {
              *       "550e8400-e29b-41d4-a716-446655440000"
              *     ] */
             members: string[];
-            channels: string[];
         };
         /** @description A set of messages within a Group, typically organized by topic. */
         Channel: {
@@ -833,12 +832,12 @@ export interface components {
             id: string;
             /** Format: date-time */
             created_at?: string;
+            /** Format: uuid */
+            group: string;
             /** @example Main */
             name: string;
             /** @example General conversations go here. */
             description?: string;
-            messages: string[];
-            pinned_messages: string[];
         };
         /** @description A message that is sent in a group. */
         Message: {
@@ -848,12 +847,37 @@ export interface components {
             created_at?: string;
             /** Format: uuid */
             author: string;
+            /** Format: uuid */
+            channel: string;
+            pinned: boolean;
             body: string;
+        };
+        /** @description User Account Update Details. */
+        AccountUpdate: {
+            /** @example John Doe */
+            username?: string;
+            /** Format: base64 */
+            profile_pic?: string;
+        };
+        /** @description Group Update Details. */
+        GroupUpdate: {
+            name?: string;
+            description?: string;
+        };
+        /** @description Channel Update Details. */
+        ChannelUpdate: {
+            name?: string;
+            description?: string;
+        };
+        /** @description Message Update Details. */
+        MessageUpdate: {
+            body?: string;
+            pinned?: boolean;
         };
         /** @description An object that is posted to the backend to query for accounts based on filter criteria. */
         AccountFilter: {
             /** @description Get accounts that have an id within this list of ids. */
-            ids?: string[];
+            id?: string[];
             /**
              * Format: date-time
              * @description Get accounts created from this date.
@@ -876,6 +900,7 @@ export interface components {
             until?: string;
             /** @example Testing */
             name?: string;
+            members?: string[];
         };
         /** @description An object that is posted to the backend to query for channels based on filter criteria. */
         ChannelFilter: {
@@ -886,6 +911,7 @@ export interface components {
             until?: string;
             /** @example Main */
             name?: string;
+            group?: string[];
         };
         /** @description An object that is posted to the backend to query for messages based on filter criteria. */
         MessageFilter: {
@@ -894,8 +920,9 @@ export interface components {
             from?: string;
             /** Format: date-time */
             until?: string;
-            /** Format: uuid */
-            author?: string;
+            author?: string[];
+            channel?: string[];
+            pinned?: boolean;
             body?: string;
         };
     };
