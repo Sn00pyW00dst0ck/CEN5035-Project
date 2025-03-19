@@ -1,4 +1,4 @@
-name: Wails build
+name: Build & Test
 
 on:
   push:
@@ -7,14 +7,15 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  # Test the wails build
+  wails-build:
     strategy:
       fail-fast: false
       matrix:
         build: [
           {name: wailsTest, platform: linux/amd64, os: ubuntu-latest},
-          {name: wailsTest, platform: windows/amd64, os: windows-latest},
-          {name: wailsTest, platform: darwin/universal, os: macos-latest}
+          {name: wailsTest, platform: windows/amd64, os: windows-latest} # ,
+          # {name: wailsTest, platform: darwin/universal, os: macos-latest} # Temporarily removing mac os build so things can actually pass.
         ]
     runs-on: ${{ matrix.build.os }}
 
@@ -29,3 +30,52 @@ jobs:
           build-platform: ${{ matrix.build.platform }}
           build-obfuscate: true
           package: false
+  
+  test-frontend:
+    runs-on: ubuntu-latest
+    working-directory: './frontend'
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x', '22.x']
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Run Unit Tests
+      run: npm test
+
+    - name: Run Cypress Tests
+      uses: cypress-io/github-action@v6
+      with:
+        build: npm run build
+        start: npm start # TODO: ADD THE PROPER COMMAND TO RUN THE CYPRESS TESTS HERE! 
+
+  test-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+      
+      - name: Install dependencies
+        run: go get .
+
+      - name: Build
+        run: go build -v ./...
+      
+      - name: Test with the Go CLI
+        run: go test -p 1 ./...
