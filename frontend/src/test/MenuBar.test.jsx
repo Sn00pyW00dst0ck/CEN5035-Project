@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import MenuBar from '../../src/MainScreen/ServerAndMembers/ActiveServer/MenuBar/MenuBar.jsx';
 import * as React from 'react';
 
-// Mock the imported components
+
 vi.mock('../../src/MainScreen/ServerList/ServerBadge/ServerBadge.jsx', () => ({
   default: ({ server }) => <div data-testid="server-badge">{server.name}</div>
 }));
@@ -29,7 +29,6 @@ describe('MenuBar Component', () => {
   let setVisibleMock;
   
   beforeEach(() => {
-    // Create a mock function for setVisible
     setVisibleMock = vi.fn();
   });
 
