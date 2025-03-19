@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.idea/*
+
+# Exclusions from wiails
+build/bin
+node_modules
+frontend/dist
+
+# Exclude backend stuff
+/cache
+log.txt
+log_test.txt

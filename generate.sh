@@ -51,7 +51,7 @@ for VERSION in "${VERSIONS[@]}"; do
 
     # TypeScript client generation
     echo "Generating Frontend $VERSION Types..."
-    npx openapi-typescript models/$VERSION/schema.yaml -o frontend/src/types/$VERSION/api.gen.ts
+    npx openapi-typescript models/$VERSION/schema.yaml -o ./Sector/frontend/src/types/$VERSION/api.gen.ts
 
     echo "$VERSION generation complete!"
 done
