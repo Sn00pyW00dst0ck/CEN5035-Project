@@ -33,7 +33,11 @@ jobs:
   
   test-frontend:
     runs-on: ubuntu-latest
-    working-directory: './frontend'
+    
+    default:
+      runs:
+        working-directory: './frontend'
+
     strategy:
       matrix:
         node-version: ['18.x', '20.x', '22.x']
