@@ -36,8 +36,8 @@ type AccountFilter struct {
 	// From Get accounts created from this date.
 	From *time.Time `json:"from,omitempty"`
 
-	// Ids Get accounts that have an id within this list of ids.
-	Ids *[]openapi_types.UUID `json:"ids,omitempty"`
+	// Id Get accounts that have an id within this list of ids.
+	Id *[]openapi_types.UUID `json:"id,omitempty"`
 
 	// Until Get accounts created from this date.
 	Until *time.Time `json:"until,omitempty"`
@@ -46,27 +46,38 @@ type AccountFilter struct {
 	Username *string `json:"username,omitempty"`
 }
 
+// AccountUpdate User Account Update Details.
+type AccountUpdate struct {
+	ProfilePic *string `json:"profile_pic,omitempty"`
+	Username   *string `json:"username,omitempty"`
+}
+
 // Channel A set of messages within a Group, typically organized by topic.
 type Channel struct {
-	CreatedAt      *time.Time           `json:"created_at,omitempty"`
-	Description    *string              `json:"description,omitempty"`
-	Id             openapi_types.UUID   `json:"id"`
-	Messages       []openapi_types.UUID `json:"messages"`
-	Name           string               `json:"name"`
-	PinnedMessages []openapi_types.UUID `json:"pinned_messages"`
+	CreatedAt   *time.Time         `json:"created_at,omitempty"`
+	Description *string            `json:"description,omitempty"`
+	Group       openapi_types.UUID `json:"group"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
 }
 
 // ChannelFilter An object that is posted to the backend to query for channels based on filter criteria.
 type ChannelFilter struct {
 	From  *time.Time            `json:"from,omitempty"`
+	Group *[]openapi_types.UUID `json:"group,omitempty"`
 	Id    *[]openapi_types.UUID `json:"id,omitempty"`
 	Name  *string               `json:"name,omitempty"`
 	Until *time.Time            `json:"until,omitempty"`
 }
 
+// ChannelUpdate Channel Update Details.
+type ChannelUpdate struct {
+	Description *string `json:"description,omitempty"`
+	Name        *string `json:"name,omitempty"`
+}
+
 // Group A group chat/server of users.
 type Group struct {
-	Channels    []openapi_types.UUID `json:"channels"`
 	CreatedAt   *time.Time           `json:"created_at,omitempty"`
 	Description string               `json:"description"`
 	Id          openapi_types.UUID   `json:"id"`
@@ -76,27 +87,44 @@ type Group struct {
 
 // GroupFilter An object that is posted to the backend to query for groups based on filter criteria.
 type GroupFilter struct {
-	From  *time.Time            `json:"from,omitempty"`
-	Id    *[]openapi_types.UUID `json:"id,omitempty"`
-	Name  *string               `json:"name,omitempty"`
-	Until *time.Time            `json:"until,omitempty"`
+	From    *time.Time            `json:"from,omitempty"`
+	Id      *[]openapi_types.UUID `json:"id,omitempty"`
+	Members *[]openapi_types.UUID `json:"members,omitempty"`
+	Name    *string               `json:"name,omitempty"`
+	Until   *time.Time            `json:"until,omitempty"`
+}
+
+// GroupUpdate Group Update Details.
+type GroupUpdate struct {
+	Description *string `json:"description,omitempty"`
+	Name        *string `json:"name,omitempty"`
 }
 
 // Message A message that is sent in a group.
 type Message struct {
 	Author    openapi_types.UUID `json:"author"`
 	Body      string             `json:"body"`
+	Channel   openapi_types.UUID `json:"channel"`
 	CreatedAt *time.Time         `json:"created_at,omitempty"`
 	Id        openapi_types.UUID `json:"id"`
+	Pinned    bool               `json:"pinned"`
 }
 
 // MessageFilter An object that is posted to the backend to query for messages based on filter criteria.
 type MessageFilter struct {
-	Author *openapi_types.UUID   `json:"author,omitempty"`
-	Body   *string               `json:"body,omitempty"`
-	From   *time.Time            `json:"from,omitempty"`
-	Id     *[]openapi_types.UUID `json:"id,omitempty"`
-	Until  *time.Time            `json:"until,omitempty"`
+	Author  *[]openapi_types.UUID `json:"author,omitempty"`
+	Body    *string               `json:"body,omitempty"`
+	Channel *[]openapi_types.UUID `json:"channel,omitempty"`
+	From    *time.Time            `json:"from,omitempty"`
+	Id      *[]openapi_types.UUID `json:"id,omitempty"`
+	Pinned  *bool                 `json:"pinned,omitempty"`
+	Until   *time.Time            `json:"until,omitempty"`
+}
+
+// MessageUpdate Message Update Details.
+type MessageUpdate struct {
+	Body   *string `json:"body,omitempty"`
+	Pinned *bool   `json:"pinned,omitempty"`
 }
 
 // PutAccountJSONRequestBody defines body for PutAccount for application/json ContentType.
@@ -106,7 +134,7 @@ type PutAccountJSONRequestBody = Account
 type SearchAccountsJSONRequestBody = AccountFilter
 
 // UpdateAccountByIDJSONRequestBody defines body for UpdateAccountByID for application/json ContentType.
-type UpdateAccountByIDJSONRequestBody = Account
+type UpdateAccountByIDJSONRequestBody = AccountUpdate
 
 // SearchChannelsJSONRequestBody defines body for SearchChannels for application/json ContentType.
 type SearchChannelsJSONRequestBody = ChannelFilter
@@ -118,19 +146,19 @@ type PutGroupJSONRequestBody = Group
 type SearchGroupsJSONRequestBody = GroupFilter
 
 // UpdateGroupByIDJSONRequestBody defines body for UpdateGroupByID for application/json ContentType.
-type UpdateGroupByIDJSONRequestBody = Group
+type UpdateGroupByIDJSONRequestBody = GroupUpdate
 
 // PutChannelJSONRequestBody defines body for PutChannel for application/json ContentType.
 type PutChannelJSONRequestBody = Channel
 
 // UpdateChannelByIDJSONRequestBody defines body for UpdateChannelByID for application/json ContentType.
-type UpdateChannelByIDJSONRequestBody = Channel
+type UpdateChannelByIDJSONRequestBody = ChannelUpdate
 
 // PutMessageJSONRequestBody defines body for PutMessage for application/json ContentType.
 type PutMessageJSONRequestBody = Message
 
 // UpdateMessageByIDJSONRequestBody defines body for UpdateMessageByID for application/json ContentType.
-type UpdateMessageByIDJSONRequestBody = Message
+type UpdateMessageByIDJSONRequestBody = MessageUpdate
 
 // SearchMessagesJSONRequestBody defines body for SearchMessages for application/json ContentType.
 type SearchMessagesJSONRequestBody = MessageFilter
@@ -4137,40 +4165,42 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/+xbW28buRX+KwTbhxaQJXnrpK3eHLt1XcBAmmSfAmNBzxxJ3MyQsyTHiWL4vxe8zE0z",
+	"nOF4NbIC7MuuIt4Oz/edcz5S9BOOeJpxBkxJvHrCMtpCSszHyyjiOVP6YwwyEjRTlDO8wj9LEMi1omtQ",
+	"hCZyjmc4EzwDoSiY4ZEAoiD+hZgZ1lyk+hOOiYIzRVPAM6x2GeAVlkpQtsHPM0xj3Re+kTRLdMubN0v4",
+	"x8VyeQY//fPh7OI8vjgjfz9/e3Zx8fbtmzcXF8vlcoln1eR5TuOueTPB1zSBXzIaNYx5IBLeXnSNyCUI",
+	"RlJo2vNfvmXomnfY/jzDAn7LqYAYrz5jY0Y5R9OA+3Iwf/gVIqWXc978N00UiLbHLxmyfZHaEoWoRBmX",
+	"CmKkOFJbQA8k+gLM/PO3HMQOrblAxM4pkd5ljDhDazM9igRVIChpY7YWPG2vfgOqmszBinRXpLZUIo3o",
+	"vI5CAMQ9C5gdbskjIMIQjdFXqraU2aUSKhXia0RjQziqIJUNQH0EcF8QIcjOwMsUTSbeaZ1CQ/v9yzr/",
+	"/p0mu7+ilKhoa0DNBH+kMcSomEgvDd9SUnGxk4c+cv2caXMHwtl28kf1USKptYOrLWEMOgC7RBIMI1KQ",
+	"kmxAFnQh6EbwPJshtctoRJJkh7jYEEa/Q4wedkjxjEaHSVoNi+p7vAEGgiQo4uwRhCS6h0QbjrYgDJit",
+	"qTba5iBC2zAa7NZ2/B2hLCx9WWPcHPd+VA6atCI750uSVhhapYtfnjys718+PhSUWpoK2VtP4PhC3zUP",
+	"Rv0exb00C7DopvD/fiAbYDT+aiFBPILQYa2Th5w4TD/p1E4lIkiBVJRtrCnzEIESIj5SSB9AyMbAz2HS",
+	"5n52UJp9cvu7cZEdkAScfqk7r9rRvQ/fg6YEg8Z0CeH3RnMN3gmwmiQrGIx8OcE0HjMj3NnS3ZUTXFUv",
+	"2SKBKWSqexmiTbNIrrZcBEHwwONdp+lRJTYGJ3n5IWf4zEIZg7hm4QPnCRDWHadu45X15QRup/d+zx80",
+	"WkshFh6vFWgvD6AQNF8++3Ezih/5A8S+w9wX/a55MP69/u6l7Z41+ivK1rxtxqctoA8g1VlCvwC6fH9r",
+	"uKVJ9xEipQ+3WZbQyEhqbZxVDBKvPj/hXCR4hReP5wuSUfysiU+Vyal2LJ5h3dcudD5fzpfabp4B0/1X",
+	"+G/mqxnOiNqavS70fzZgQlz7wKx6G9uD3AfOFdYBKTPOpHXOT8ulUSmcKbAXKDVzF79KmzPtVUvNU3W3",
+	"NN3xMY8ikNL4UOZpSsQOr7BeGv2LxRmnTNugyEZ7AN9RGc3xve68cMdMswUdvc09XOMVfp+r4qZntre9",
+	"RpNOOSDVOwd88Ob+LGCNV/hPi+qiaeFumRbF7B1bLg6ksWWgTjIkjue4nvuUyOG55fvzY5pnCgDlDEkL",
+	"0TpP5nswXZkagQgrzvw1qIoVmmBJICLa+iH7aNrdWNmCrdU8IXSudvR4yG5Gy86MCJKCcop+CMZxIVRm",
+	"2yA893Nu2/r/mYKm50hAl7wK3mS3D7D1d/POTZ/25Xqnt/1IBOW5RFUCnQ8y4InGzzYr6uXbDLg237ux",
+	"73a31y0SdPWoADCJsrnj22t94HIG6HCza5t7Nt2u02FxIFhZ0dGEcFaD49BXuDqL7/HjokOwOOO/Eums",
+	"j/exsm4pr7ve7ZDxTBuNWTvjX9uM3+f1VvM4l29Anay/l8dMq1+p2iKZQUTXFGJ0e72P4w2oIBCzvANE",
+	"K276cOzqMQ7KPCtui08FzclqgNOSBy3iR2GbNTwuYRtknVPFw8TTudydPAKrubuK81XzWvMUSDavcjtc",
+	"VdwUnlA1L34UmK6al5fRwdW8sMkywFxS9Evv4iquJbyLhinQtnN3+Mne/bym5B4wbYTcRsXvFwU2duo6",
+	"MmGRacb54rJsnAwnf0xal5xQRDrwJotHdxMcHI1txJ/M/25DxLUZ3COt6+0B0sD+vDEkq515J6itLdmG",
+	"lbXtt18ZCyT8qtrv7r3GMb726+kTcfTyWIkzSFAPYdcjpv3wtdvHINgro0NAfCVpXP+J5ccqtIUo3oTx",
+	"xknifup0JOBSHvfKo6vy14yWQKqaxvApJV+g0HW6pvx4zCplr1+kvyavAswbI+IKqMpnPfuqrktxt0n2",
+	"5D4EVX43ZU/tb/YYX/0rBgqeTkjBWbc1xepDaqR02u+PgyF5cVXDuZFvBuRGMY4yTwqq+OHXHn2At5pH",
+	"6o/TgdovhqbCeXnMrBKkcEbRpUfu9DGmq8d4yXM6vOmVYAekzmSl0i/DTrxgFlIsmOJOjI1geWDRXKTV",
+	"Ix2vWCse8nSItarpj/R53BgoPN9Br+Ktx2uyP8C8MXKxeDBWysXqOVT5OsKtOJr7iyf3IUhEumV6RGSz",
+	"xwsqRLHZE6kQIfYcJlQ8FpWvBQdqVgnj9LL2rsbHMbK2GEdZmcz3c3jFY7+w7SNhq3lsZj4Z+gUacyzu",
+	"+QvFVMRbHjMdB+nskfztUdp9FO7q8Uce/RHz6GS6x6/9fxD1E6r5R0Vcl/Jxf8egVY7+0BI5nfWteVls",
+	"R9q/0lQcCUj5I7hv5+6RbS3AP5h2c0K5M31aAd7VY0yANyx4pfh2i5fWeIPJen2UCTVisjxJhmqF7VN7",
+	"QNxyT8/P5rPy4OciYAQTzJ/zMvjq58JlHPcRodU8hgUkjisUXpMALr+cCPqXcVzDxNjX+2ZiCyRR2763",
+	"8P+xPQb1iYJvapElhHa/gy/tb78ne3+LqETWkt1eIrSro6stRF88r+GLk1zYww+XL31PP2rNExYw//OP",
+	"IuOf0AOQsp5N9gSk/POi4Ecgtar3/Pz/AAAA//+3DPYw70IAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
