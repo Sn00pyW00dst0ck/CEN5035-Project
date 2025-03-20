@@ -3407,7 +3407,6 @@ func (siw *ServerInterfaceWrapper) PutAccount(w http.ResponseWriter, r *http.Req
 
 // SearchAccounts operation middleware
 func (siw *ServerInterfaceWrapper) SearchAccounts(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchAccounts(w, r)
@@ -3417,7 +3416,7 @@ func (siw *ServerInterfaceWrapper) SearchAccounts(w http.ResponseWriter, r *http
 		handler = siw.HandlerMiddlewares[i](handler)
 	}
 
-	handler.ServeHTTP(w, r.WithContext(ctx))
+	handler.ServeHTTP(w, r)
 }
 
 // DeleteAccountByID operation middleware
