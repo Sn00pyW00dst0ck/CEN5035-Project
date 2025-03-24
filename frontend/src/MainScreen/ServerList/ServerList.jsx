@@ -8,7 +8,7 @@ import "./ServerList.css";
 const USER_STATUSES = [
   { value: 'online', label: 'Online', color: 'green' },
   { value: 'away', label: 'Away', color: 'orange' },
-  { value: 'do-not-disturb', label: 'Do Not Disturb', color: 'red' },
+  { value: 'do-not-disturb', label: 'DND', color: 'red' },
   { value: 'invisible', label: 'Invisible', color: 'gray' }
 ];
 
@@ -120,7 +120,6 @@ function CustomUserBadge({
   about,
   onEditProfile 
 }) {
-  
   const statusConfig = USER_STATUSES.find(s => s.value === status) || 
                        { value: 'online', label: 'Online', color: 'green' };
 
