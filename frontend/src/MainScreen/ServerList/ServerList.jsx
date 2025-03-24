@@ -1,23 +1,10 @@
 import React, { useState } from 'react';
 import UserBadge from "../../UserBadge/UserBadge.jsx";
-import { 
-  List, 
-  Paper, 
-  TextField, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
-  Avatar, 
-  Select, 
-  MenuItem 
-} from "@mui/material";
+import { List, Paper, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Button, Avatar, Select, MenuItem } from "@mui/material";
 import ServerBadge from "./ServerBadge/ServerBadge.jsx";
 import Search from "../../CommonComponents/Search/Search.jsx";
 import "./ServerList.css";
 
-// Expanded user status options
 const USER_STATUSES = [
   { value: 'online', label: 'Online', color: 'green' },
   { value: 'away', label: 'Away', color: 'orange' },
@@ -133,7 +120,7 @@ function CustomUserBadge({
   about,
   onEditProfile 
 }) {
-  // Find the current status configuration
+  
   const statusConfig = USER_STATUSES.find(s => s.value === status) || 
                        { value: 'online', label: 'Online', color: 'green' };
 
