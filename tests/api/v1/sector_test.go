@@ -601,14 +601,15 @@ func TestSectorV1(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
 
+			// Valid group ID test
+			validGroupID := entries[5].(v1.Group).Id
 			body := v1.PutChannelJSONRequestBody{
 				Id:          uuid.New(),
 				Name:        "New Channel",
 				Description: stringPtr("A new test channel"),
-				Group:       entries[5].(v1.Group).Id,
+				Group:       validGroupID,
 			}
-
-			response, err := testClient.PutChannelWithResponse(context.Background(), /*Group ID Here!*/, body)
+			response, err := testClient.PutChannelWithResponse(context.Background(), validGroupID, body)
 			require.NoError(t, err)
 			require.Equal(t, 201, response.StatusCode())
 
@@ -620,6 +621,13 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, body.Name, createdChannel.Name)
 			require.Equal(t, *body.Description, *createdChannel.Description)
 			require.Equal(t, body.Group, createdChannel.Group)
+
+			// Invalid group ID test
+			invalidGroupID := uuid.New() // Non-existent group ID
+			body.Group = invalidGroupID
+			response, err = testClient.PutChannelWithResponse(context.Background(), invalidGroupID, body)
+			require.NoError(t, err)
+			require.Equal(t, 400, response.StatusCode()) // Assuming 400 for bad request; adjust if API uses 404
 		})
 
 		t.Run("Update Channel By Id", func(t *testing.T) {
@@ -627,12 +635,13 @@ func TestSectorV1(t *testing.T) {
 			defer teardown(t)
 
 			selectedChannel := entries[10].(v1.Channel)
+			groupID := selectedChannel.Group
 
 			newName := "Updated Channel Name"
 			body := v1.UpdateChannelByIDJSONRequestBody{
 				Name: &newName,
 			}
-			response, err := testClient.UpdateChannelByIDWithResponse(context.Background(), /*Group ID Here!*/, selectedChannel.Id, body)
+			response, err := testClient.UpdateChannelByIDWithResponse(context.Background(), groupID, selectedChannel.Id, body)
 			require.NoError(t, err)
 			require.Equal(t, 201, response.StatusCode())
 
@@ -658,12 +667,13 @@ func TestSectorV1(t *testing.T) {
 			defer teardown(t)
 
 			selectedChannel := entries[11].(v1.Channel)
+			groupID := selectedChannel.Group
 
-			response, err := testClient.DeleteChannelByIDWithResponse(context.Background(), /* Group Id goes here */, selectedChannel.Id)
+			response, err := testClient.DeleteChannelByIDWithResponse(context.Background(), groupID, selectedChannel.Id)
 			require.NoError(t, err)
 			require.Equal(t, 204, response.StatusCode())
 
-			response, err = testClient.DeleteChannelByIDWithResponse(context.Background(), /* Group Id goes here */, selectedChannel.Id)
+			response, err = testClient.DeleteChannelByIDWithResponse(context.Background(), groupID, selectedChannel.Id)
 			require.NoError(t, err)
 			require.Equal(t, 500, response.StatusCode())
 		})
@@ -673,8 +683,9 @@ func TestSectorV1(t *testing.T) {
 			defer teardown(t)
 
 			selectedChannel := entries[12].(v1.Channel)
+			groupID := selectedChannel.Group
 
-			response, err := testClient.GetChannelByIDWithResponse(context.Background(), /* Group Id goes here */, selectedChannel.Id)
+			response, err := testClient.GetChannelByIDWithResponse(context.Background(), groupID, selectedChannel.Id)
 			require.NoError(t, err)
 			require.Equal(t, 200, response.StatusCode())
 
@@ -772,15 +783,17 @@ func TestSectorV1(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
 
+			// Valid group and channel ID test
+			validGroupID := entries[5].(v1.Group).Id
+			validChannelID := entries[10].(v1.Channel).Id
 			body := v1.PutMessageJSONRequestBody{
 				Id:      uuid.New(),
 				Author:  entries[0].(v1.Account).Id,
 				Body:    "Test message",
-				Channel: entries[10].(v1.Channel).Id,
+				Channel: validChannelID,
 				Pinned:  false,
 			}
-
-			response, err := testClient.PutMessageWithResponse(context.Background(), /* Group Id goes here */, /* Channel Id goes here */, body)
+			response, err := testClient.PutMessageWithResponse(context.Background(), validGroupID, validChannelID, body)
 			require.NoError(t, err)
 			require.Equal(t, 201, response.StatusCode())
 
@@ -793,6 +806,19 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, body.Body, createdMessage.Body)
 			require.Equal(t, body.Channel, createdMessage.Channel)
 			require.Equal(t, body.Pinned, createdMessage.Pinned)
+
+			// Invalid group ID test
+			invalidGroupID := uuid.New()
+			response, err = testClient.PutMessageWithResponse(context.Background(), invalidGroupID, validChannelID, body)
+			require.NoError(t, err)
+			require.Equal(t, 400, response.StatusCode()) // Assuming 400; adjust if 404
+
+			// Invalid channel ID test
+			invalidChannelID := uuid.New()
+			body.Channel = invalidChannelID
+			response, err = testClient.PutMessageWithResponse(context.Background(), validGroupID, invalidChannelID, body)
+			require.NoError(t, err)
+			require.Equal(t, 400, response.StatusCode()) // Assuming 400; adjust if 404
 		})
 
 		t.Run("Update Message By Id", func(t *testing.T) {
@@ -800,12 +826,14 @@ func TestSectorV1(t *testing.T) {
 			defer teardown(t)
 
 			selectedMessage := entries[15].(v1.Message)
+			selectedChannel := entries[10].(v1.Channel) // Message at 15 is in "Main" channel (index 10)
+			groupID := selectedChannel.Group
 
 			newBody := "Updated message content"
 			body := v1.UpdateMessageByIDJSONRequestBody{
 				Body: &newBody,
 			}
-			response, err := testClient.UpdateMessageByIDWithResponse(context.Background(), selectedMessage.Id, body)
+			response, err := testClient.UpdateMessageByIDWithResponse(context.Background(), groupID, selectedMessage.Channel, selectedMessage.Id, body)
 			require.NoError(t, err)
 			require.Equal(t, 201, response.StatusCode())
 
@@ -835,12 +863,14 @@ func TestSectorV1(t *testing.T) {
 			defer teardown(t)
 
 			selectedMessage := entries[16].(v1.Message)
+			selectedChannel := entries[10].(v1.Channel) // Message at 16 is in "Main" channel (index 10)
+			groupID := selectedChannel.Group
 
-			response, err := testClient.DeleteMessageByIDWithResponse(context.Background(), selectedMessage.Id)
+			response, err := testClient.DeleteMessageByIDWithResponse(context.Background(), groupID, selectedMessage.Channel, selectedMessage.Id)
 			require.NoError(t, err)
 			require.Equal(t, 204, response.StatusCode())
 
-			response, err = testClient.DeleteMessageByIDWithResponse(context.Background(), selectedMessage.Id)
+			response, err = testClient.DeleteMessageByIDWithResponse(context.Background(), groupID, selectedMessage.Channel, selectedMessage.Id)
 			require.NoError(t, err)
 			require.Equal(t, 500, response.StatusCode())
 		})
@@ -850,8 +880,10 @@ func TestSectorV1(t *testing.T) {
 			defer teardown(t)
 
 			selectedMessage := entries[17].(v1.Message)
+			selectedChannel := entries[12].(v1.Channel) // Message at 17 is in "Chat" channel (index 12)
+			groupID := selectedChannel.Group
 
-			response, err := testClient.GetMessageByIDWithResponse(context.Background(), selectedMessage.Id)
+			response, err := testClient.GetMessageByIDWithResponse(context.Background(), groupID, selectedMessage.Channel, selectedMessage.Id)
 			require.NoError(t, err)
 			require.Equal(t, 200, response.StatusCode())
 
