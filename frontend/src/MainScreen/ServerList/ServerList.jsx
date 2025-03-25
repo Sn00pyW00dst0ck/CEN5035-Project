@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import UserBadge from "../../UserBadge/UserBadge.jsx";
 import { List, Paper, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Button, Avatar, Select, MenuItem } from "@mui/material";
 import ServerBadge from "./ServerBadge/ServerBadge.jsx";
 import Search from "../../CommonComponents/Search/Search.jsx";
 import "./ServerList.css";
 
+// Constants for user statuses
 const USER_STATUSES = [
   { value: 'online', label: 'Online', color: 'green' },
   { value: 'away', label: 'Away', color: 'orange' },
   { value: 'do-not-disturb', label: 'DND', color: 'red' },
   { value: 'invisible', label: 'Invisible', color: 'gray' }
 ];
+
+// Create a context for global server state
+export const ServerContext = React.createContext();
 
 function ProfileEditModal({ 
   open, 
@@ -184,58 +188,91 @@ function CustomUserBadge({
   );
 }
 
-function ServerList({ servers }) {
-  const [query, setQuery] = useState("");
-  const [selectedServer, setSelectedServer] = useState(null);
-  const [newChannelName, setNewChannelName] = useState("");
-  const [showAddChannelForm, setShowAddChannelForm] = useState(false);
-  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
-
-  // Updated YourUser state to be more dynamic
-  const [YourUser, setYourUser] = useState({
-    name: "Your Username",
-    status: "online",
-    online: true,
-    icon: "/default-profile.png", // Default profile image
-    about: "Hello! I'm using the app."
+function ServerList({ servers, onServerSelect }) {
+  const [state, setState] = useState({
+    query: "",
+    selectedServer: null,
+    newChannelName: "",
+    showAddChannelForm: false,
+    joinServerInput: "",
+    isProfileEditOpen: false,
+    YourUser: {
+      name: "Your Username",
+      status: "online",
+      online: true,
+      icon: "/default-profile.png",
+      about: "Hello! I'm using the app."
+    }
   });
 
-  function handleServerSearch(event) {
-    setQuery(event.target.value);
-  }
+  const handleServerSearch = useCallback((event) => {
+    setState(prev => ({ ...prev, query: event.target.value }));
+  }, []);
 
-  function handleServerClick(server) {
-    console.log("Selected Server:", server);
-    setSelectedServer(server);
-  }
+  const handleServerClick = useCallback((server) => {
+    setState(prev => ({ 
+      ...prev, 
+      selectedServer: server,
+      showAddChannelForm: false
+    }));
+    
+    // Propagate server selection to parent
+    onServerSelect(server);
+  }, [onServerSelect]);
 
-  function searchServer(event) {
+  const handleInputChange = useCallback((field, value) => {
+    setState(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const filteredServers = useMemo(() => 
+    servers.filter((server) => 
+      server.name.toLowerCase().includes(state.query.toLowerCase())
+    ), 
+    [servers, state.query]
+  );
+
+  const searchServer = useCallback((event) => {
     event.preventDefault();
-    const data = new FormData(event.target);
-    const server_ID = data.get("serverID");
-    console.log("Server ID:", server_ID);
-  }
-
-  function handleAddChannel(event) {
-    event.preventDefault();
-    if (newChannelName.trim() && selectedServer) {
-      const updatedServer = {
-        ...selectedServer,
-        channels: [...(selectedServer.channels || []), newChannelName]
-      };
-      
-      setSelectedServer(updatedServer);
-      setNewChannelName("");
-      setShowAddChannelForm(false);
+    const serverId = state.joinServerInput.trim();
+    
+    if (serverId) {
+      console.log("Attempting to join server with ID:", serverId);
+      setState(prev => ({ ...prev, joinServerInput: "" }));
     }
-  }
+  }, [state.joinServerInput]);
 
-  const handleUpdateUser = (updatedUser) => {
-    setYourUser(updatedUser);
-  };
+  const handleAddChannel = useCallback((event) => {
+    event.preventDefault();
+    const channelName = state.newChannelName.trim();
+    
+    if (channelName && state.selectedServer) {
+      const updatedServer = {
+        ...state.selectedServer,
+        channels: [...(state.selectedServer.channels || []), channelName]
+      };
+
+      setState(prev => ({
+        ...prev,
+        selectedServer: updatedServer,
+        newChannelName: "",
+        showAddChannelForm: false
+      }));
+
+      // Notify parent of channel addition
+      onServerSelect(updatedServer);
+    }
+  }, [state.newChannelName, state.selectedServer, onServerSelect]);
+
+  const handleUpdateUser = useCallback((updatedUser) => {
+    setState(prev => ({
+      ...prev,
+      YourUser: updatedUser,
+      isProfileEditOpen: false
+    }));
+  }, []);
 
   return (
-    <>
+    <ServerContext.Provider value={state.selectedServer}>
       <div style={{ display: "flex" }}>
         <Paper elevation={3} sx={{
           borderRadius: 7.5,
@@ -247,38 +284,50 @@ function ServerList({ servers }) {
           overflow: "hidden"
         }}>
           <CustomUserBadge 
-            user={YourUser.name} 
-            status={YourUser.status} 
-            online={YourUser.online} 
-            img={YourUser.icon}
-            about={YourUser.about}
-            onEditProfile={() => setIsProfileEditOpen(true)}
+            user={state.YourUser.name} 
+            status={state.YourUser.status} 
+            online={state.YourUser.online} 
+            img={state.YourUser.icon}
+            about={state.YourUser.about}
+            onEditProfile={() => handleInputChange('isProfileEditOpen', true)}
           />
-          <Search id="serverSearchInput" return={handleServerSearch} />
-          <List sx={{display: "flex", flexDirection: "column", width: "100%", height: "100%", overflow: "auto"}}>
+          <Search 
+            id="serverSearchInput" 
+            return={handleServerSearch} 
+          />
+          <List sx={{
+            display: "flex", 
+            flexDirection: "column", 
+            width: "100%", 
+            height: "100%", 
+            overflow: "auto"
+          }}>
             <div id="serverBadgeHolder">
-              {servers
-                .filter((server) => server.name.toLowerCase().includes(query.toLowerCase()))
-                .map((server) => (
-                  <li
-                    key={server.id}
-                    onClick={() => handleServerClick(server)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <ServerBadge server={server} />
-                  </li>
-                ))}
+              {filteredServers.map((server) => (
+                <li
+                  key={server.id}
+                  onClick={() => handleServerClick(server)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <ServerBadge server={server} />
+                </li>
+              ))}
             </div>
           </List>
           <div className="joinServer">
             <form onSubmit={searchServer}>
-              <input name="serverID" placeholder="Enter a Server ID" />
+              <input 
+                name="serverID" 
+                placeholder="Enter a Server ID" 
+                value={state.joinServerInput}
+                onChange={(e) => handleInputChange('joinServerInput', e.target.value)}
+              />
               <button type="submit">Join</button>
             </form>
           </div>
         </Paper>
         
-        {selectedServer && (
+        {state.selectedServer && (
           <Paper elevation={3} sx={{
             borderRadius: 7.5,
             display: "flex",
@@ -289,35 +338,47 @@ function ServerList({ servers }) {
             overflow: "hidden"
           }}>
             <h3 style={{ textAlign: "center", marginTop: "1rem" }}>
-              {selectedServer.name} Channels
+              {state.selectedServer.name} Channels
             </h3>
             
             <List sx={{ overflow: 'auto', flexGrow: 1 }}>
-              {selectedServer.channels && selectedServer.channels.map((channel, index) => (
-                <li key={`${selectedServer.id}-channel-${index}`}>
-                  <ServerBadge server={{ id: `${selectedServer.id}-channel-${index}`, name: channel }} />
+              {state.selectedServer.channels && state.selectedServer.channels.map((channel, index) => (
+                <li key={`${state.selectedServer.id}-channel-${index}`}>
+                  <ServerBadge 
+                    server={{ 
+                      id: `${state.selectedServer.id}-channel-${index}`, 
+                      name: channel 
+                    }} 
+                  />
                 </li>
               ))}
             </List>
             
-            {showAddChannelForm ? (
+            {state.showAddChannelForm ? (
               <div className="addChannelForm">
                 <form onSubmit={handleAddChannel}>
                   <input
                     type="text"
-                    value={newChannelName}
-                    onChange={(e) => setNewChannelName(e.target.value)}
+                    value={state.newChannelName}
+                    onChange={(e) => handleInputChange('newChannelName', e.target.value)}
                     placeholder="Channel name"
                   />
                   <div className="formButtons">
                     <button type="submit">Add</button>
-                    <button type="button" onClick={() => setShowAddChannelForm(false)}>Cancel</button>
+                    <button 
+                      type="button" 
+                      onClick={() => handleInputChange('showAddChannelForm', false)}
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </form>
               </div>
             ) : (
               <div className="addChannelButton">
-                <button onClick={() => setShowAddChannelForm(true)}>+ Add Channel</button>
+                <button onClick={() => handleInputChange('showAddChannelForm', true)}>
+                  + Add Channel
+                </button>
               </div>
             )}
           </Paper>
@@ -325,12 +386,12 @@ function ServerList({ servers }) {
       </div>
 
       <ProfileEditModal 
-        open={isProfileEditOpen}
-        onClose={() => setIsProfileEditOpen(false)}
-        user={YourUser}
+        open={state.isProfileEditOpen}
+        onClose={() => handleInputChange('isProfileEditOpen', false)}
+        user={state.YourUser}
         onUpdateUser={handleUpdateUser}
       />
-    </>
+    </ServerContext.Provider>
   );
 }
 
