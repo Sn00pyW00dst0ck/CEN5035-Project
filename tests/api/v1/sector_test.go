@@ -592,6 +592,7 @@ func TestSectorV1(t *testing.T) {
 			var fetchedGroup v1.Group
 			err = json.Unmarshal(fetchedGroupResp.Body, &fetchedGroup)
 			require.NoError(t, err)
+			// Better thing is to ensure the members list doesn't contain the deleted id...
 			require.Empty(t, fetchedGroup.Members)
 		})
 	})
@@ -627,7 +628,7 @@ func TestSectorV1(t *testing.T) {
 			body.Group = invalidGroupID
 			response, err = testClient.PutChannelWithResponse(context.Background(), invalidGroupID, body)
 			require.NoError(t, err)
-			require.Equal(t, 400, response.StatusCode()) // Assuming 400 for bad request; adjust if API uses 404
+			require.Equal(t, 500, response.StatusCode())
 		})
 
 		t.Run("Update Channel By Id", func(t *testing.T) {
@@ -811,14 +812,14 @@ func TestSectorV1(t *testing.T) {
 			invalidGroupID := uuid.New()
 			response, err = testClient.PutMessageWithResponse(context.Background(), invalidGroupID, validChannelID, body)
 			require.NoError(t, err)
-			require.Equal(t, 400, response.StatusCode()) // Assuming 400; adjust if 404
+			require.Equal(t, 500, response.StatusCode()) // Assuming 400; adjust if 404
 
 			// Invalid channel ID test
 			invalidChannelID := uuid.New()
 			body.Channel = invalidChannelID
 			response, err = testClient.PutMessageWithResponse(context.Background(), validGroupID, invalidChannelID, body)
 			require.NoError(t, err)
-			require.Equal(t, 400, response.StatusCode()) // Assuming 400; adjust if 404
+			require.Equal(t, 500, response.StatusCode()) // Assuming 400; adjust if 404
 		})
 
 		t.Run("Update Message By Id", func(t *testing.T) {

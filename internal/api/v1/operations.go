@@ -44,7 +44,7 @@ func addItem(store orbitdb.DocumentStore, obj interface{}) (interface{}, error) 
 		// Check dependencies when adding a group object
 	case Channel:
 		group, err := searchItem(store, reflect.TypeOf(Group{}), map[string]interface{}{
-			"group": []string{item.Group.String()},
+			"id": []string{item.Group.String()}, // We search within groups by ID, from the item's group
 		})
 		if err != nil {
 			return nil, fmt.Errorf("%s", "cannot find group associated with channel"+err.Error())
@@ -54,7 +54,7 @@ func addItem(store orbitdb.DocumentStore, obj interface{}) (interface{}, error) 
 		}
 	case Message:
 		channel, err := searchItem(store, reflect.TypeOf(Channel{}), map[string]interface{}{
-			"channel": []string{item.Channel.String()},
+			"id": []string{item.Channel.String()}, // We search within channels by ID, from the item's channel
 		})
 		if err != nil {
 			return nil, fmt.Errorf("%s", "cannot find channel associated with message"+err.Error())
@@ -64,7 +64,7 @@ func addItem(store orbitdb.DocumentStore, obj interface{}) (interface{}, error) 
 		}
 
 		author, err := searchItem(store, reflect.TypeOf(Account{}), map[string]interface{}{
-			"author": []string{item.Author.String()},
+			"id": []string{item.Author.String()},
 		})
 		if err != nil {
 			return nil, fmt.Errorf("%s", "cannot find author associated with message"+err.Error())
@@ -319,8 +319,20 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
  */
 func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]interface{}) ([]interface{}, error) {
 	containsBehavior := func(entryValue, filterValue interface{}) bool {
-		if filterSlice, ok := filterValue.([]interface{}); ok {
-			return slices.Contains(filterSlice, entryValue)
+		// if filterSlice, ok := filterValue.([]interface{}); ok {
+		// 	return slices.Contains(filterSlice, entryValue)
+		// }
+		// return false
+
+		// Use reflection to check if filterValue is a slice
+		v := reflect.ValueOf(filterValue)
+		if v.Kind() == reflect.Slice {
+			// Iterate through the slice and check for equality
+			for i := 0; i < v.Len(); i++ {
+				if v.Index(i).Interface() == entryValue {
+					return true
+				}
+			}
 		}
 		return false
 	}

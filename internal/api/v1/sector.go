@@ -286,7 +286,7 @@ func (s *SectorAPI) RemoveGroupMember(w http.ResponseWriter, r *http.Request, gr
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusNoContent)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(newItem)
 }
