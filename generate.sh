@@ -10,7 +10,7 @@ check_command() {
                 echo "Please install Go, https://go.dev/doc/install."
                 ;;
             "oapi-codegen")
-                echo "Run 'go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest' to install oapi-codegen."
+                echo "Run 'go get github.com/oapi-codegen/oapi-codegen/v2' to install oapi-codegen."
                 ;;
             "npm")
                 echo "Please install NodeJS and npm, https://docs.npmjs.com/downloading-and-installing-node-js-and-npm."
