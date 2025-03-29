@@ -19,6 +19,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// setupSuite prepares the testing environment by creating a temporary database,
+// initializing the API server, and setting up HTTP test server.
+// Returns the HTTP test server, API instance, and a cleanup function.
 func setupSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, func(t *testing.T)) {
 	tmpDir, clean := database.TestingTempDir(t, "sectordb_cache_test")
 
@@ -35,14 +38,19 @@ func setupSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, func(t *testing.
 	}
 }
 
+// stringPtr is a helper function to convert a string to a string pointer
 func stringPtr(s string) *string {
 	return &s
 }
 
+// setupTest loads a standard set of test data into the database for testing.
+// Creates accounts, groups, channels, and messages with various attributes.
+// Returns the created entries and a cleanup function.
 func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T)) {
 	now := time.Now()
 	then := now.AddDate(0, 0, -7)
 
+	// Create test accounts
 	entries := []interface{}{
 		v1.Account{
 			Id:         uuid.New(),
@@ -74,6 +82,7 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 			ProfilePic: "",
 			Username:   "woefullyconsideringlove",
 		},
+		// Create test groups
 		v1.Group{
 			Id:          uuid.New(),
 			CreatedAt:   &then,
@@ -111,6 +120,7 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 		},
 	}
 
+	// Extract IDs for reference
 	group1ID := entries[5].(v1.Group).Id
 	group2ID := entries[6].(v1.Group).Id
 	group3ID := entries[7].(v1.Group).Id
@@ -121,6 +131,7 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 	account2ID := entries[1].(v1.Account).Id
 	account3ID := entries[2].(v1.Account).Id
 
+	// Create test channels
 	entries = append(entries, v1.Channel{
 		CreatedAt:   &now,
 		Description: stringPtr("Main discussion hub"),
@@ -161,6 +172,7 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 	chatChannelID := entries[len(entries)-3].(v1.Channel).Id
 	techChannelID := entries[len(entries)-2].(v1.Channel).Id
 
+	// Create test messages
 	entries = append(entries, v1.Message{
 		Author:    account1ID,
 		Body:      "Welcome to the Main channel!",
@@ -194,13 +206,17 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 		Pinned:    false,
 	})
 
+	// Convert all entries to maps for storage
 	result := make([]interface{}, len(entries))
 	for i, v := range entries {
 		result[i] = v1.StructToMap(v)
 	}
+
+	// Add all entries to the database
 	_, err := api.DB.Store.PutAll(context.Background(), result)
 	require.NoError(t, err)
 
+	// Return entries and a cleanup function
 	return entries, func(t *testing.T) {
 		err := api.DB.Store.Drop()
 		require.NoError(t, err)
@@ -212,7 +228,9 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 	}
 }
 
+// TestSectorV1 is the main test function that runs all API tests
 func TestSectorV1(t *testing.T) {
+	// Setup test environment and client
 	server, sectorAPI, teardownSuite := setupSuite(t)
 	defer teardownSuite(t)
 
@@ -221,6 +239,7 @@ func TestSectorV1(t *testing.T) {
 		panic(err)
 	}
 
+	// Test basic API endpoints
 	t.Run("Get Root", func(t *testing.T) {
 		response, err := testClient.GetRootWithResponse(context.Background())
 		if err != nil {
@@ -238,7 +257,9 @@ func TestSectorV1(t *testing.T) {
 		require.Equal(t, 200, response.StatusCode())
 	})
 
+	// Test Account API endpoints
 	t.Run("Account", func(t *testing.T) {
+		// Test account creation
 		t.Run("Create Account", func(t *testing.T) {
 			_, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -248,6 +269,7 @@ func TestSectorV1(t *testing.T) {
 				ProfilePic: "",
 			}
 
+			// Test successful creation
 			response, err := testClient.PutAccountWithResponse(context.Background(), body)
 			require.NoError(t, err)
 			require.Equal(t, 201, response.StatusCode())
@@ -260,12 +282,14 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, body.Username, createdAccount.Username)
 			require.Equal(t, body.ProfilePic, createdAccount.ProfilePic)
 
+			// Test duplicate ID error case
 			body.Username = "Updated Username!"
 			response, err = testClient.PutAccountWithResponse(context.Background(), body)
 			require.NoError(t, err)
 			require.Equal(t, 500, response.StatusCode())
 		})
 
+		// Test account update
 		t.Run("Update Account By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -295,21 +319,25 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, expected.ProfilePic, updatedAccount.ProfilePic)
 		})
 
+		// Test account deletion
 		t.Run("Delete Account By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
 
 			selectedAccount := entries[0].(v1.Account)
 
+			// Test successful deletion
 			response, err := testClient.DeleteAccountByIDWithResponse(context.Background(), selectedAccount.Id)
 			require.NoError(t, err)
 			require.Equal(t, 204, response.StatusCode())
 
+			// Test deletion of non-existent account
 			response, err = testClient.DeleteAccountByIDWithResponse(context.Background(), selectedAccount.Id)
 			require.NoError(t, err)
 			require.Equal(t, 500, response.StatusCode())
 		})
 
+		// Test account retrieval
 		t.Run("Get By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -329,7 +357,9 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, selectedAccount.ProfilePic, fetchedAccount.ProfilePic)
 		})
 
+		// Test account search functionality
 		t.Run("Search Accounts", func(t *testing.T) {
+			// Test search by ID
 			t.Run("By Id", func(t *testing.T) {
 				entries, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -348,6 +378,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 1, len(queryResult))
 			})
 
+			// Test search by creation date
 			t.Run("By creation time", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -391,6 +422,7 @@ func TestSectorV1(t *testing.T) {
 				}
 			})
 
+			// Test search by username
 			t.Run("By username", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -414,7 +446,9 @@ func TestSectorV1(t *testing.T) {
 		})
 	})
 
+	// Test Group API endpoints
 	t.Run("Group", func(t *testing.T) {
+		// Test group creation
 		t.Run("Create Group", func(t *testing.T) {
 			_, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -439,6 +473,7 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, body.Members, createdGroup.Members)
 		})
 
+		// Test group update
 		t.Run("Update Group By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -470,21 +505,25 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, expected.Members, updatedGroup.Members)
 		})
 
+		// Test group deletion
 		t.Run("Delete Group By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
 
 			selectedGroup := entries[5].(v1.Group)
 
+			// Test successful deletion
 			response, err := testClient.DeleteGroupByIDWithResponse(context.Background(), selectedGroup.Id)
 			require.NoError(t, err)
 			require.Equal(t, 204, response.StatusCode())
 
+			// Test deletion of non-existent group
 			response, err = testClient.DeleteGroupByIDWithResponse(context.Background(), selectedGroup.Id)
 			require.NoError(t, err)
 			require.Equal(t, 500, response.StatusCode())
 		})
 
+		// Test group retrieval
 		t.Run("Get Group By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -505,7 +544,9 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, selectedGroup.Members, fetchedGroup.Members)
 		})
 
+		// Test group search functionality
 		t.Run("Search Groups", func(t *testing.T) {
+			// Test search by ID
 			t.Run("By Id", func(t *testing.T) {
 				entries, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -524,6 +565,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 2, len(queryResult))
 			})
 
+			// Test search by creation date
 			t.Run("By creation time", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -544,6 +586,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 2, len(queryResult))
 			})
 
+			// Test search by name
 			t.Run("By name", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -562,6 +605,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 2, len(queryResult))
 			})
 
+			// Test search by members
 			t.Run("By members", func(t *testing.T) {
 				entries, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -581,6 +625,7 @@ func TestSectorV1(t *testing.T) {
 			})
 		})
 
+		// Test adding a member to a group
 		t.Run("Add Member", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -590,6 +635,7 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, 201, result.StatusCode())
 		})
 
+		// Test removing a member from a group
 		t.Run("Remove Member", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -597,13 +643,16 @@ func TestSectorV1(t *testing.T) {
 			groupID := entries[7].(v1.Group).Id
 			accountID := entries[2].(v1.Account).Id
 
+			// First add a member
 			_, err := testClient.AddGroupMemberWithResponse(context.Background(), groupID, accountID)
 			require.NoError(t, err)
 
+			// Then remove the member
 			result, err := testClient.RemoveGroupMemberWithResponse(context.Background(), groupID, accountID)
 			require.NoError(t, err)
 			require.Equal(t, 204, result.StatusCode())
 
+			// Verify member was removed
 			fetchedGroupResp, err := testClient.GetGroupByIDWithResponse(context.Background(), groupID)
 			require.NoError(t, err)
 			require.Equal(t, 200, fetchedGroupResp.StatusCode())
@@ -611,12 +660,13 @@ func TestSectorV1(t *testing.T) {
 			var fetchedGroup v1.Group
 			err = json.Unmarshal(fetchedGroupResp.Body, &fetchedGroup)
 			require.NoError(t, err)
-			// Better thing is to ensure the members list doesn't contain the deleted id...
 			require.Empty(t, fetchedGroup.Members)
 		})
 	})
 
+	// Test Channel API endpoints
 	t.Run("Channel", func(t *testing.T) {
+		// Test channel creation
 		t.Run("Create Channel", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -650,6 +700,7 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, 500, response.StatusCode())
 		})
 
+		// Test channel update
 		t.Run("Update Channel By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -682,6 +733,7 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, expected.Group, updatedChannel.Group)
 		})
 
+		// Test channel deletion
 		t.Run("Delete Channel By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -689,15 +741,18 @@ func TestSectorV1(t *testing.T) {
 			selectedChannel := entries[11].(v1.Channel)
 			groupID := selectedChannel.Group
 
+			// Test successful deletion
 			response, err := testClient.DeleteChannelByIDWithResponse(context.Background(), groupID, selectedChannel.Id)
 			require.NoError(t, err)
 			require.Equal(t, 204, response.StatusCode())
 
+			// Test deletion of non-existent channel
 			response, err = testClient.DeleteChannelByIDWithResponse(context.Background(), groupID, selectedChannel.Id)
 			require.NoError(t, err)
 			require.Equal(t, 500, response.StatusCode())
 		})
 
+		// Test channel retrieval
 		t.Run("Get Channel By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -721,7 +776,9 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, selectedChannel.Group, fetchedChannel.Group)
 		})
 
+		// Test channel search functionality
 		t.Run("Search Channels", func(t *testing.T) {
+			// Test search by ID
 			t.Run("By Id", func(t *testing.T) {
 				entries, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -740,6 +797,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 1, len(queryResult))
 			})
 
+			// Test search by creation date
 			t.Run("By creation time", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -760,6 +818,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 2, len(queryResult))
 			})
 
+			// Test search by name
 			t.Run("By name", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -778,6 +837,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 1, len(queryResult))
 			})
 
+			// Test search by group
 			t.Run("By group", func(t *testing.T) {
 				entries, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -798,7 +858,9 @@ func TestSectorV1(t *testing.T) {
 		})
 	})
 
+	// Test Message API endpoints
 	t.Run("Message", func(t *testing.T) {
+		// Test message creation
 		t.Run("Create Message", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -831,16 +893,17 @@ func TestSectorV1(t *testing.T) {
 			invalidGroupID := uuid.New()
 			response, err = testClient.PutMessageWithResponse(context.Background(), invalidGroupID, validChannelID, body)
 			require.NoError(t, err)
-			require.Equal(t, 500, response.StatusCode()) // Assuming 400; adjust if 404
+			require.Equal(t, 500, response.StatusCode())
 
 			// Invalid channel ID test
 			invalidChannelID := uuid.New()
 			body.Channel = invalidChannelID
 			response, err = testClient.PutMessageWithResponse(context.Background(), validGroupID, invalidChannelID, body)
 			require.NoError(t, err)
-			require.Equal(t, 500, response.StatusCode()) // Assuming 400; adjust if 404
+			require.Equal(t, 500, response.StatusCode())
 		})
 
+		// Test message update
 		t.Run("Update Message By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -878,6 +941,7 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, expected.Pinned, updatedMessage.Pinned)
 		})
 
+		// Test message deletion
 		t.Run("Delete Message By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -886,15 +950,18 @@ func TestSectorV1(t *testing.T) {
 			selectedChannel := entries[10].(v1.Channel) // Message at 16 is in "Main" channel (index 10)
 			groupID := selectedChannel.Group
 
+			// Test successful deletion
 			response, err := testClient.DeleteMessageByIDWithResponse(context.Background(), groupID, selectedMessage.Channel, selectedMessage.Id)
 			require.NoError(t, err)
 			require.Equal(t, 204, response.StatusCode())
 
+			// Test deletion of non-existent message
 			response, err = testClient.DeleteMessageByIDWithResponse(context.Background(), groupID, selectedMessage.Channel, selectedMessage.Id)
 			require.NoError(t, err)
 			require.Equal(t, 500, response.StatusCode())
 		})
 
+		// Test message retrieval
 		t.Run("Get Message By Id", func(t *testing.T) {
 			entries, teardown := setupTest(t, *sectorAPI)
 			defer teardown(t)
@@ -920,7 +987,9 @@ func TestSectorV1(t *testing.T) {
 			require.Equal(t, selectedMessage.Pinned, fetchedMessage.Pinned)
 		})
 
+		// Test message search functionality
 		t.Run("Search Message", func(t *testing.T) {
+			// Test search by ID
 			t.Run("By Id", func(t *testing.T) {
 				entries, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -939,6 +1008,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 1, len(queryResult))
 			})
 
+			// Test search by creation date
 			t.Run("By creation time", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -959,6 +1029,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 1, len(queryResult))
 			})
 
+			// Test search by author
 			t.Run("By author", func(t *testing.T) {
 				entries, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -977,6 +1048,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 2, len(queryResult))
 			})
 
+			// Test search by channel
 			t.Run("By channel", func(t *testing.T) {
 				entries, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -995,6 +1067,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 2, len(queryResult))
 			})
 
+			// Test search by pinned status
 			t.Run("By pinned", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
@@ -1013,6 +1086,7 @@ func TestSectorV1(t *testing.T) {
 				require.Equal(t, 1, len(queryResult))
 			})
 
+			// Test search by message body content
 			t.Run("By body", func(t *testing.T) {
 				_, teardown := setupTest(t, *sectorAPI)
 				defer teardown(t)
