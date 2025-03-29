@@ -39,7 +39,6 @@ describe('ServerList Component', () => {
             />
         );
 
-        // Check filtered results
         expect(screen.queryByText("test1")).toBeInTheDocument();
         expect(screen.queryByText("test2")).toBeInTheDocument();
         expect(screen.queryByText("Test1")).toBeInTheDocument();
@@ -57,12 +56,10 @@ describe('ServerList Component', () => {
             />
         );
 
-        // Use label "Search" to target the TextField
         const input = screen.getByLabelText("Search");
 
         fireEvent.input(input, { target: { value: "Alice" } });
 
-        // Check filtered results
         expect(screen.queryByText("test1")).not.toBeInTheDocument();
         expect(screen.queryByText("test2")).not.toBeInTheDocument();
         expect(screen.queryByText("Test1")).not.toBeInTheDocument();
@@ -80,14 +77,11 @@ describe('ServerList Component', () => {
             />
         );
 
-        // Find and click the first server
         const firstServer = screen.getByText("test1").closest('li');
         fireEvent.click(firstServer);
 
-        // Check if onServerSelect was called with the correct server
         expect(onServerSelectMock).toHaveBeenCalledWith(servers[0]);
         
-        // Check if onChannelSelect was called with the default first channel
         expect(onChannelSelectMock).toHaveBeenCalledWith("General");
     });
 
@@ -100,19 +94,15 @@ describe('ServerList Component', () => {
             />
         );
 
-        // First select a server to show channels
         const firstServer = screen.getByText("test1").closest('li');
         fireEvent.click(firstServer);
 
-        // Server and first channel should be selected automatically
         expect(onServerSelectMock).toHaveBeenCalledWith(servers[0]);
         expect(onChannelSelectMock).toHaveBeenCalledWith("General");
 
-        // Reset mocks for clarity
         onServerSelectMock.mockReset();
         onChannelSelectMock.mockReset();
 
-        // Rerender with the selected server
         rerender(
             <ServerList 
                 servers={servers}
@@ -166,7 +156,7 @@ describe('ServerList Component', () => {
     });
 
     test("Visual indication is applied to the selected channel", async () => {
-        // We'll need to implement a way to check styling for the selected channel
+
         const { rerender } = render(
             <ServerList 
                 servers={servers} 
@@ -175,15 +165,12 @@ describe('ServerList Component', () => {
             />
         );
 
-        // First select a server to show channels
         const firstServer = screen.getByText("test1").closest('li');
         fireEvent.click(firstServer);
 
-        // Since we can't easily test the backgroundColor style due to 
-        // how React handles inline styles, we'll mock the component state
-        // by manually calling setState through selecting a channel
+        
 
-        // Now get channel elements to check styling
+        
         rerender(
             <ServerList 
                 servers={servers}
@@ -192,13 +179,10 @@ describe('ServerList Component', () => {
             />
         );
 
-        // Select the first channel
         const generalChannel = screen.getByText("General").closest('li');
         fireEvent.click(generalChannel);
 
-        // The channel should be selected in the component's state - 
-        // we can't easily test the visual appearance directly in this test framework
-        // but we've tested the onClick handler which updates the state
+        
         expect(onChannelSelectMock).toHaveBeenCalledWith("General");
     });
 });
