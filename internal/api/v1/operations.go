@@ -352,27 +352,108 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 		return false
 	}
 
+	// Fixed date comparison functions to handle both RFC3339 and test format
 	dateBeforeBehavior := func(entryValue, filterValue interface{}) bool {
-		parsedEntryTime, err := time.Parse("2006-01-02T15:04:05.000000000-07:00", entryValue.(string))
+		var parsedEntryTime time.Time
+		var parsedFilterTime time.Time
+		var err error
+
+		entryStr, ok := entryValue.(string)
+		if !ok {
+			return false
+		}
+
+		// Try different time formats for entry time
+		formats := []string{
+			time.RFC3339,
+			"2006-01-02T15:04:05.000000000-07:00",
+		}
+
+		for _, format := range formats {
+			parsedEntryTime, err = time.Parse(format, entryStr)
+			if err == nil {
+				break
+			}
+		}
+
 		if err != nil {
 			return false
 		}
-		parsedFilterTime, err := time.Parse("2006-01-02T15:04:05.000000000-07:00", filterValue.(string))
-		if err != nil {
-			return false
+
+		// Get the time from the filter value
+		filterTimeObj, ok := filterValue.(*time.Time)
+		if ok {
+			parsedFilterTime = *filterTimeObj
+		} else {
+			filterStr, ok := filterValue.(string)
+			if !ok {
+				return false
+			}
+
+			for _, format := range formats {
+				parsedFilterTime, err = time.Parse(format, filterStr)
+				if err == nil {
+					break
+				}
+			}
+
+			if err != nil {
+				return false
+			}
 		}
+
 		return parsedEntryTime.Before(parsedFilterTime)
 	}
 
 	dateAfterBehavior := func(entryValue, filterValue interface{}) bool {
-		parsedEntryTime, err := time.Parse("2006-01-02T15:04:05.000000000-07:00", entryValue.(string))
+		var parsedEntryTime time.Time
+		var parsedFilterTime time.Time
+		var err error
+
+		entryStr, ok := entryValue.(string)
+		if !ok {
+			return false
+		}
+
+		// Try different time formats for entry time
+		formats := []string{
+			time.RFC3339,
+			"2006-01-02T15:04:05.000000000-07:00",
+		}
+
+		for _, format := range formats {
+			parsedEntryTime, err = time.Parse(format, entryStr)
+			if err == nil {
+				break
+			}
+		}
+
 		if err != nil {
 			return false
 		}
-		parsedFilterTime, err := time.Parse("2006-01-02T15:04:05.000000000-07:00", filterValue.(string))
-		if err != nil {
-			return false
+
+		// Get the time from the filter value
+		filterTimeObj, ok := filterValue.(*time.Time)
+		if ok {
+			parsedFilterTime = *filterTimeObj
+		} else {
+			filterStr, ok := filterValue.(string)
+			if !ok {
+				return false
+			}
+
+			for _, format := range formats {
+				parsedFilterTime, err = time.Parse(format, filterStr)
+				if err == nil {
+					break
+				}
+			}
+
+			if err != nil {
+				return false
+			}
 		}
+
 		return parsedEntryTime.After(parsedFilterTime)
 	}
 
@@ -425,8 +506,10 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 			}
 
 			// Use the associated filter behavior to determine if we discard this or not
-			if !filterBehaviors[key](entry[entryKey], value) {
-				return false, nil
+			if behavior, ok := filterBehaviors[key]; ok {
+				if !behavior(entry[entryKey], value) {
+					return false, nil
+				}
 			}
 		}
 

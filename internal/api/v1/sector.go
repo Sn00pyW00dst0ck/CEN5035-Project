@@ -270,16 +270,16 @@ func (s *SectorAPI) RemoveGroupMember(w http.ResponseWriter, r *http.Request, gr
 	}
 
 	// Construct list of new members
-	newMembers := group.Members
-	for i, v := range newMembers {
-		if v == memberId {
-			newMembers = append(newMembers[:i], newMembers[i+1:]...)
+	newMembers := make([]types.UUID, 0)
+	for _, v := range group.Members {
+		if v != memberId {
+			newMembers = append(newMembers, v)
 		}
 	}
 
 	// Update the group by sending the new list of members
 	newItem, err := updateItem(s.DB.Store, groupId, map[string]interface{}{
-		"Members": newMembers,
+		"members": newMembers,
 	})
 	if err != nil {
 		s.Logger.Debug(err.Error())
