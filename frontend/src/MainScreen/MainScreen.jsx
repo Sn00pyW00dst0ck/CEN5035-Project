@@ -67,13 +67,14 @@ function MainScreen() {
     { id: 5, name: "thisIsATest1", icon: "public/vite.svg", channels: ["kn", "dknf", "kdlfna"] },
     { id: 6, name: "Alice", icon: "public/vite.svg", channels: ["1", "2", "3"] },
     { id: 7, name: "George", icon: "public/vite.svg", channels: ["H", "E", "Y"] }
-];
+  ];
 
   return (
     <div className="ColorBox" style={{ display: "flex", height: "100vh", width: "100vw"}}>
       <ServerList 
         servers={servers} 
-        onServerSelect={handleServerSelect} 
+        onServerSelect={handleServerSelect}
+        onChannelSelect={handleChannelSelect} 
       />
       <ServerAndMembers 
         selectedServer={selectedServer}

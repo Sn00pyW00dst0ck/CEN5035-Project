@@ -54,6 +54,7 @@ function MenuBar({
           <MenuItem 
             key={channel} 
             onClick={() => handleChannelSelect(channel)}
+            selected={channel === selectedChannel}
           >
             {channel}
           </MenuItem>

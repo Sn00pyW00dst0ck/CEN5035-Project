@@ -188,10 +188,11 @@ function CustomUserBadge({
   );
 }
 
-function ServerList({ servers, onServerSelect }) {
+function ServerList({ servers, onServerSelect, onChannelSelect }) {
   const [state, setState] = useState({
     query: "",
     selectedServer: null,
+    selectedChannel: null,
     newChannelName: "",
     showAddChannelForm: false,
     joinServerInput: "",
@@ -213,12 +214,28 @@ function ServerList({ servers, onServerSelect }) {
     setState(prev => ({ 
       ...prev, 
       selectedServer: server,
+      selectedChannel: server.channels && server.channels.length > 0 ? server.channels[0] : null,
       showAddChannelForm: false
     }));
     
     // Propagate server selection to parent
     onServerSelect(server);
-  }, [onServerSelect]);
+    
+    // Also select the first channel by default
+    if (server.channels && server.channels.length > 0) {
+      onChannelSelect(server.channels[0]);
+    }
+  }, [onServerSelect, onChannelSelect]);
+
+  const handleChannelClick = useCallback((channel) => {
+    setState(prev => ({
+      ...prev,
+      selectedChannel: channel
+    }));
+    
+    // Propagate channel selection to parent
+    onChannelSelect(channel);
+  }, [onChannelSelect]);
 
   const handleInputChange = useCallback((field, value) => {
     setState(prev => ({ ...prev, [field]: value }));
@@ -343,7 +360,14 @@ function ServerList({ servers, onServerSelect }) {
             
             <List sx={{ overflow: 'auto', flexGrow: 1 }}>
               {state.selectedServer.channels && state.selectedServer.channels.map((channel, index) => (
-                <li key={`${state.selectedServer.id}-channel-${index}`}>
+                <li 
+                  key={`${state.selectedServer.id}-channel-${index}`}
+                  style={{ 
+                    cursor: "pointer",
+                    backgroundColor: state.selectedChannel === channel ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
+                  }}
+                  onClick={() => handleChannelClick(channel)}
+                >
                   <ServerBadge 
                     server={{ 
                       id: `${state.selectedServer.id}-channel-${index}`, 
