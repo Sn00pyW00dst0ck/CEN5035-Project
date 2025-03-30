@@ -45,8 +45,5 @@ In Sprint 3, the unit tests have been leveled up by scaling test coverage across
 These unit tests are located in the `backend/tests/api/v1/` directory. To execute the tests, navigate to the `backend` directory and run:
 
 
+```bash
 go test -p 1 ./...
-
-The -p 1 flag ensures sequential test execution, preventing conflicts in the test database.
-
-By fortifying our testing framework, we aim to maintain high code quality and reliability as Sector continues to evolve.
