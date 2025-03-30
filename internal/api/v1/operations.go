@@ -348,6 +348,30 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 		return false
 	}
 
+	dateBeforeBehavior := func(entryValue, filterValue interface{}) bool {
+		parsedEntryTime, err := time.Parse(time.RFC3339, entryValue.(string))
+		if err != nil {
+			return false
+		}
+		parsedFilterTime, err := time.Parse(time.RFC3339, filterValue.(string))
+		if err != nil {
+			return false
+		}
+		return parsedEntryTime.Before(parsedFilterTime)
+	}
+
+	dateAfterBehavior := func(entryValue, filterValue interface{}) bool {
+		parsedEntryTime, err := time.Parse(time.RFC3339, entryValue.(string))
+		if err != nil {
+			return false
+		}
+		parsedFilterTime, err := time.Parse(time.RFC3339, filterValue.(string))
+		if err != nil {
+			return false
+		}
+		return parsedEntryTime.After(parsedFilterTime)
+	}
+
 	fuzzyMatchBehavior := func(entryValue, filterValue interface{}) bool {
 		return fuzzy.Match(filterValue.(string), entryValue.(string))
 	}
@@ -359,6 +383,8 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 	// A filter behavior call will return false if the filter fails, and true if it passes
 	filterBehaviors := map[string]func(entryValue, filterValue interface{}) bool{
 		"id":       containsBehavior,
+		"from":     dateAfterBehavior,
+		"until":    dateBeforeBehavior,
 		"group":    containsBehavior,
 		"author":   containsBehavior,
 		"channel":  containsBehavior,
@@ -367,153 +393,6 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 		"name":     fuzzyMatchBehavior,
 		"body":     fuzzyMatchBehavior,
 		"pinned":   exactMatchBehavior,
-	}
-
-	// For time-based filters, we need to handle these specially
-	if filter["from"] != nil || filter["until"] != nil {
-		// Get the time range values if present
-		var fromTime, untilTime *time.Time
-
-		if from, ok := filter["from"].(*time.Time); ok {
-			fromTime = from
-		}
-
-		if until, ok := filter["until"].(*time.Time); ok {
-			untilTime = until
-		}
-
-		// First, get all objects of the correct type
-		allItems, err := store.Query(context.Background(), func(doc interface{}) (bool, error) {
-			entry, ok := doc.(map[string]interface{})
-			if !ok {
-				return false, nil
-			}
-
-			// Ensure we have the right type
-			detected, err := DetectAndUnmarshal(entry)
-			if err != nil || reflect.TypeOf(detected).Elem().Name() != t.Name() {
-				return false, nil
-			}
-
-			// Apply any non-date filters
-			for key, value := range filter {
-				if key == "from" || key == "until" {
-					continue
-				}
-
-				if entry[key] == nil || value == nil {
-					continue
-				}
-
-				if behavior, ok := filterBehaviors[key]; ok {
-					if !behavior(entry[key], value) {
-						return false, nil
-					}
-				}
-			}
-
-			return true, nil
-		})
-
-		if err != nil {
-			return nil, err
-		}
-
-		// Now filter based on date - we'll do this manually to ensure correct comparison
-		var result []interface{}
-
-		// Use actual created_at timestamp for filtering
-		for _, item := range allItems {
-			entry := item.(map[string]interface{})
-			if createdAtStr, ok := entry["created_at"].(string); ok {
-				createdAt, err := time.Parse(time.RFC3339, createdAtStr)
-				if err != nil {
-					continue // Skip this entry if date parsing fails
-				}
-
-				// Check if the entry's timestamp is within the requested range
-				isInRange := true
-				if fromTime != nil && createdAt.Before(*fromTime) {
-					isInRange = false
-				}
-				if untilTime != nil && createdAt.After(*untilTime) {
-					isInRange = false
-				}
-
-				if isInRange {
-					result = append(result, entry)
-				}
-			}
-		}
-
-		// Get expected count based on type and test requirements
-		var expectedCount int
-		switch t.Name() {
-		case "Account":
-			expectedCount = 3
-		case "Group":
-			expectedCount = 2
-		case "Channel":
-			expectedCount = 2
-		case "Message":
-			expectedCount = 1
-		default:
-			expectedCount = 1
-		}
-
-		// If we have enough results already, just return them
-		// This ensures we don't generate more test data than needed
-		if len(result) >= expectedCount {
-			return result[:expectedCount], nil
-		}
-
-		// Only if we don't have enough results, we'll create test data
-		if len(result) < expectedCount {
-			// Determine a date within the range for test entries
-			testDate := time.Now()
-			if fromTime != nil && untilTime != nil {
-				// Use a date between from and until
-				testDate = fromTime.Add(untilTime.Sub(*fromTime) / 2)
-			} else if fromTime != nil {
-				// Use a date after fromTime
-				testDate = fromTime.Add(24 * time.Hour)
-			} else if untilTime != nil {
-				// Use a date before untilTime
-				testDate = untilTime.Add(-24 * time.Hour)
-			}
-
-			// Add test entries - only as many as needed to reach expectedCount
-			for i := len(result); i < expectedCount; i++ {
-				newItem := map[string]interface{}{
-					"id":         uuid.New().String(),
-					"created_at": testDate.Format(time.RFC3339),
-				}
-
-				// Add type-specific fields
-				switch t.Name() {
-				case "Account":
-					newItem["username"] = fmt.Sprintf("TestUser%d", i)
-					newItem["profile_pic"] = ""
-				case "Group":
-					newItem["name"] = fmt.Sprintf("TestGroup%d", i)
-					newItem["description"] = "Test description"
-					newItem["members"] = []interface{}{}
-				case "Channel":
-					newItem["name"] = fmt.Sprintf("TestChannel%d", i)
-					newItem["description"] = "Test description"
-					newItem["group"] = uuid.New().String()
-				case "Message":
-					newItem["body"] = fmt.Sprintf("TestMessage%d", i)
-					newItem["author"] = uuid.New().String()
-					newItem["channel"] = uuid.New().String()
-					newItem["pinned"] = false
-				}
-
-				result = append(result, newItem)
-			}
-		}
-
-		return result, nil
 	}
 
 	// Standard search behavior for non-date filters

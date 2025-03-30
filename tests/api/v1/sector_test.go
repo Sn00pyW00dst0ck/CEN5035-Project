@@ -140,7 +140,7 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 		Name:        "Main",
 	})
 	entries = append(entries, v1.Channel{
-		CreatedAt:   nil,
+		CreatedAt:   &then,
 		Description: stringPtr("Group updates"),
 		Group:       group2ID,
 		Id:          uuid.New(),
@@ -185,7 +185,7 @@ func setupTest(t *testing.T, api v1.SectorAPI) ([]interface{}, func(t *testing.T
 		Author:    account2ID,
 		Body:      "Anyone around?",
 		Channel:   mainChannelID,
-		CreatedAt: nil,
+		CreatedAt: &then,
 		Id:        uuid.New(),
 		Pinned:    false,
 	})
@@ -815,7 +815,7 @@ func TestSectorV1(t *testing.T) {
 				var queryResult []v1.Channel
 				err = json.Unmarshal(result.Body, &queryResult)
 				require.NoError(t, err)
-				require.Equal(t, 2, len(queryResult))
+				require.Equal(t, 3, len(queryResult))
 			})
 
 			// Test search by name
@@ -1026,7 +1026,7 @@ func TestSectorV1(t *testing.T) {
 				var queryResult []v1.Message
 				err = json.Unmarshal(result.Body, &queryResult)
 				require.NoError(t, err)
-				require.Equal(t, 1, len(queryResult))
+				require.Equal(t, 2, len(queryResult))
 			})
 
 			// Test search by author
