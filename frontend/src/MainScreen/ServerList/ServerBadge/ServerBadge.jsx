@@ -1,7 +1,7 @@
 import {Avatar, Button, Paper, Stack} from "@mui/material";
 import {useState} from "react";
 
-function ServerBadge({ server, onSelect }) {
+function ServerBadge({ server, onClickIn }) {
   const [hovered, setHovered] = useState(false);
   
   // Default server object for when none is provided
@@ -9,9 +9,10 @@ function ServerBadge({ server, onSelect }) {
   const currentServer = server || defaultServer;
   
   const handleClick = () => {
-    if (onSelect && server) {
-      onSelect(server);
-    }
+
+    console.log("clicked " + server.id);
+
+    onClickIn(server);
   };
   
   return (

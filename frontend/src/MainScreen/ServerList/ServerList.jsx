@@ -16,6 +16,7 @@ import ServerBadge from "./ServerBadge/ServerBadge.jsx";
 import Search from "../../CommonComponents/Search/Search.jsx";
 import "./ServerList.css";
 import {useUser} from "../../UserContext.jsx";
+import {useGroup} from "../ServerAndMembers/ActiveServer/groupContext.jsx";
 
 // Constants for user statuses
 const USER_STATUSES = [
@@ -24,6 +25,7 @@ const USER_STATUSES = [
     {value: 'do-not-disturb', label: 'DND', color: 'red'},
     {value: 'invisible', label: 'Invisible', color: 'gray'}
 ];
+
 
 // Create a context for global server state
 export const ServerContext = React.createContext();
@@ -202,7 +204,10 @@ function CustomUserBadge({
 
 function ServerList({onServerSelect, onChannelSelect}) {
 
+    const channelList = useGroup().channelList;
+    const {activeGroup, setActiveGroup}  = useUser();
 
+    //console.log("activeGroup", activeGroup);
 
     const [state, setState] = useState({
         query: "",
@@ -225,43 +230,24 @@ function ServerList({onServerSelect, onChannelSelect}) {
         setState(prev => ({...prev, query: event.target.value}));
     }, []);
 
-    const handleServerClick = useCallback((server) => {
-        setState(prev => ({
-            ...prev,
-            selectedServer: server,
-            selectedChannel: server.channels && server.channels.length > 0 ? server.channels[0] : null,
-            showAddChannelForm: false
-        }));
-
-        // Propagate server selection to parent
-        onServerSelect(server);
-
-        // Also select the first channel by default
-        if (server.channels && server.channels.length > 0) {
-            onChannelSelect(server.channels[0]);
-        }
-    }, [onServerSelect, onChannelSelect]);
+    function handleServerClick(server){
+        console.log(server);
+        setActiveGroup(server);
+    }
 
     const handleChannelClick = useCallback((channel) => {
-        setState(prev => ({
+        /*setState(prev => ({
             ...prev,
             selectedChannel: channel
         }));
 
         // Propagate channel selection to parent
-        onChannelSelect(channel);
+        onChannelSelect(channel);*/
     }, [onChannelSelect]);
 
     const handleInputChange = useCallback((field, value) => {
         setState(prev => ({...prev, [field]: value}));
     }, []);
-
-    /*const filteredServers = useMemo(() =>
-            groups.filter((server) =>
-                server.name.toLowerCase().includes(state.query.toLowerCase())
-            ),
-        [groups, state.query]
-    );*/
 
     const filteredServers =
             useUser().groupList.filter((server) =>
@@ -343,10 +329,9 @@ function ServerList({onServerSelect, onChannelSelect}) {
                             {filteredServers.map((server) => (
                                 <li
                                     key={server.id}
-                                    onClick={() => handleServerClick(server)}
                                     style={{cursor: "pointer"}}
                                 >
-                                    <ServerBadge server={server}/>
+                                    <ServerBadge server={server} onClickIn={handleServerClick}/>
                                 </li>
                             ))}
                         </div>
@@ -364,34 +349,36 @@ function ServerList({onServerSelect, onChannelSelect}) {
                     </div>
                 </Paper>
 
-                {state.selectedServer && (
+                {activeGroup.id !== '' && (
                     <Paper elevation={3} sx={{
                         borderRadius: 7.5,
                         display: "flex",
                         flexDirection: "column",
                         width: "15rem",
                         height: "calc(100vh - 2rem)",
-                        margin: "1rem",
+                        margin: "0rem",
+                        marginTop: "1rem",
                         overflow: "hidden"
                     }}>
                         <h3 style={{textAlign: "center", marginTop: "1rem"}}>
-                            {state.selectedServer.name} Channels
+                            {activeGroup.name} Channels
                         </h3>
 
                         <List sx={{overflow: 'auto', flexGrow: 1}}>
-                            {state.selectedServer.channels && state.selectedServer.channels.map((channel, index) => (
+                            {channelList && channelList.map((channel, index) => (
+
                                 <li
-                                    key={`${state.selectedServer.id}-channel-${index}`}
+                                    key={`${activeGroup.id}-channel-${index}`}
                                     style={{
                                         cursor: "pointer",
-                                        backgroundColor: state.selectedChannel === channel ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
+                                        backgroundColor: /*state.selectedChannel === channel ?*/ 'rgba(25, 118, 210, 0.08)' /*: 'transparent'*/
                                     }}
-                                    onClick={() => handleChannelClick(channel)}
+                                    onClick={() => handleChannelClick(channel.name)}
                                 >
                                     <ServerBadge
                                         server={{
-                                            id: `${state.selectedServer.id}-channel-${index}`,
-                                            name: channel
+                                            id: `${activeGroup.id}-channel-${index}`,
+                                            name: channel.name
                                         }}
                                     />
                                 </li>
@@ -436,6 +423,7 @@ function ServerList({onServerSelect, onChannelSelect}) {
                 onUpdateUser={handleUpdateUser}
             />
         </ServerContext.Provider>
+
     );
 }
 

@@ -4,15 +4,20 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 // Create the context to hold user data
 const UserContext = createContext();
 
-
-
 // Provider component to wrap the part of your app that needs access to user data
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState({created_at:'', id: '', profile_pic: '', username: ''});
-
     const [groupList, setGroupList] = useState([]);
+    const [activeGroup, setActiveGroup] = useState({created_at:'', description:'', group:'', id:'', name:''});
+
+
 
     async function FetchGroups() {
+
+        if(user === null || user.id === ''){
+            return;
+        }
+
         try {
             const response = await fetch("http://localhost:3000/v1/api/group/search", {
                 method: "POST",
@@ -36,10 +41,10 @@ export const UserProvider = ({ children }) => {
 
         FetchGroups();
 
-    }, [user, setUser])
+    }, [user])
 
     return (
-        <UserContext.Provider value={{ user, setUser, groupList}}>
+        <UserContext.Provider value={{ user, setUser, groupList, activeGroup, setActiveGroup }}>
             {children}
         </UserContext.Provider>
     );
