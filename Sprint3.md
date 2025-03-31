@@ -42,8 +42,12 @@ In Sprint 3, the unit tests have been leveled up by scaling test coverage across
 - Managing creation, retrieval, updating, and deletion of messages within channels, supporting complete message handling.
 - Searching messages using criteria like ID, creation date, author, channel, pinned status, and content, ensuring comprehensive message filtering.
 
-These unit tests are located in the `backend/tests/api/v1/` directory. To execute the tests, navigate to the `backend` directory and run:
-
-
-```bash
+These unit tests are implemented using the Go testing framework and are located in the `backend/tests/api/v1/` directory of the repository. To run the tests, navigate to the `backend` directory and execute the following command:
+```
 go test -p 1 ./...
+```
+
+# Backend API Documentation
+
+The following API documentation is **auto-generated** using **Swagger UI** for this project, which is hosted by the server.
+A PDF printout of the Swagger UI has been inserted into the repository. Please view it here: [Sprint 3 Swagger UI.pdf](Swagger%20UI.pdf)
