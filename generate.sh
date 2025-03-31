@@ -46,12 +46,12 @@ for VERSION in "${VERSIONS[@]}"; do
 
     # Go server generation
     echo "Generating Backend $VERSION Server API..."
-    touch backend/internal/api/$VERSION/sector.gen.go
+    touch ./internal/api/$VERSION/sector.gen.go
     oapi-codegen --config=models/$VERSION/config.yaml models/$VERSION/schema.yaml
 
     # TypeScript client generation
     echo "Generating Frontend $VERSION Types..."
-    npx openapi-typescript models/$VERSION/schema.yaml -o ./Sector/frontend/src/types/$VERSION/api.gen.ts
+    npx openapi-typescript models/$VERSION/schema.yaml -o ./frontend/src/types/$VERSION/api.gen.ts
 
     echo "$VERSION generation complete!"
 done

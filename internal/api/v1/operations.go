@@ -44,7 +44,7 @@ func addItem(store orbitdb.DocumentStore, obj interface{}) (interface{}, error) 
 		// Check dependencies when adding a group object
 	case Channel:
 		group, err := searchItem(store, reflect.TypeOf(Group{}), map[string]interface{}{
-			"group": []string{item.Group.String()},
+			"id": []string{item.Group.String()}, // We search within groups by ID, from the item's group
 		})
 		if err != nil {
 			return nil, fmt.Errorf("%s", "cannot find group associated with channel"+err.Error())
@@ -54,7 +54,7 @@ func addItem(store orbitdb.DocumentStore, obj interface{}) (interface{}, error) 
 		}
 	case Message:
 		channel, err := searchItem(store, reflect.TypeOf(Channel{}), map[string]interface{}{
-			"channel": []string{item.Channel.String()},
+			"id": []string{item.Channel.String()}, // We search within channels by ID, from the item's channel
 		})
 		if err != nil {
 			return nil, fmt.Errorf("%s", "cannot find channel associated with message"+err.Error())
@@ -64,7 +64,7 @@ func addItem(store orbitdb.DocumentStore, obj interface{}) (interface{}, error) 
 		}
 
 		author, err := searchItem(store, reflect.TypeOf(Account{}), map[string]interface{}{
-			"author": []string{item.Author.String()},
+			"id": []string{item.Author.String()},
 		})
 		if err != nil {
 			return nil, fmt.Errorf("%s", "cannot find author associated with message"+err.Error())
@@ -317,10 +317,18 @@ func removeItem(store orbitdb.DocumentStore, id types.UUID) error {
  *
  * IF a field is null (on object or filter), the filter for it is skipped!
  */
+
 func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]interface{}) ([]interface{}, error) {
 	containsBehavior := func(entryValue, filterValue interface{}) bool {
-		if filterSlice, ok := filterValue.([]interface{}); ok {
-			return slices.Contains(filterSlice, entryValue)
+		// Use reflection to check if filterValue is a slice
+		v := reflect.ValueOf(filterValue)
+		if v.Kind() == reflect.Slice {
+			// Iterate through the slice and check for equality
+			for i := 0; i < v.Len(); i++ {
+				if v.Index(i).Interface() == entryValue {
+					return true
+				}
+			}
 		}
 		return false
 	}
@@ -341,11 +349,11 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 	}
 
 	dateBeforeBehavior := func(entryValue, filterValue interface{}) bool {
-		parsedEntryTime, err := time.Parse("2006-01-02T15:04:05.000000000-07:00", entryValue.(string))
+		parsedEntryTime, err := time.Parse(time.RFC3339, entryValue.(string))
 		if err != nil {
 			return false
 		}
-		parsedFilterTime, err := time.Parse("2006-01-02T15:04:05.000000000-07:00", filterValue.(string))
+		parsedFilterTime, err := time.Parse(time.RFC3339, filterValue.(string))
 		if err != nil {
 			return false
 		}
@@ -353,11 +361,11 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 	}
 
 	dateAfterBehavior := func(entryValue, filterValue interface{}) bool {
-		parsedEntryTime, err := time.Parse("2006-01-02T15:04:05.000000000-07:00", entryValue.(string))
+		parsedEntryTime, err := time.Parse(time.RFC3339, entryValue.(string))
 		if err != nil {
 			return false
 		}
-		parsedFilterTime, err := time.Parse("2006-01-02T15:04:05.000000000-07:00", filterValue.(string))
+		parsedFilterTime, err := time.Parse(time.RFC3339, filterValue.(string))
 		if err != nil {
 			return false
 		}
@@ -375,26 +383,26 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 	// A filter behavior call will return false if the filter fails, and true if it passes
 	filterBehaviors := map[string]func(entryValue, filterValue interface{}) bool{
 		"id":       containsBehavior,
+		"from":     dateAfterBehavior,
+		"until":    dateBeforeBehavior,
 		"group":    containsBehavior,
 		"author":   containsBehavior,
 		"channel":  containsBehavior,
 		"members":  containsAllBehavior,
-		"from":     dateAfterBehavior,
-		"until":    dateBeforeBehavior,
 		"username": fuzzyMatchBehavior,
 		"name":     fuzzyMatchBehavior,
 		"body":     fuzzyMatchBehavior,
 		"pinned":   exactMatchBehavior,
 	}
 
-	// Actually perform the query
+	// Standard search behavior for non-date filters
 	result, err := store.Query(context.Background(), func(doc interface{}) (bool, error) {
 		entry, ok := doc.(map[string]interface{})
 		if !ok {
 			return false, nil
 		}
 
-		// Ensure expected type... (THIS IS SOOO CURSED!)
+		// Ensure expected type
 		detected, err := DetectAndUnmarshal(entry)
 		if err != nil || reflect.TypeOf(detected).Elem().Name() != t.Name() {
 			return false, nil
@@ -413,8 +421,10 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 			}
 
 			// Use the associated filter behavior to determine if we discard this or not
-			if !filterBehaviors[key](entry[entryKey], value) {
-				return false, nil
+			if behavior, ok := filterBehaviors[key]; ok {
+				if !behavior(entry[entryKey], value) {
+					return false, nil
+				}
 			}
 		}
 
