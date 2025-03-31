@@ -28,7 +28,7 @@ const USER_STATUSES = [
 
 
 // Create a context for global server state
-export const ServerContext = React.createContext();
+//export const ServerContext = React.createContext();
 
 function ProfileEditModal({
                               open,
@@ -276,31 +276,15 @@ function ChannelForm() {
     );
 }
 
-
 function ServerList({onChannelSelect}) {
 
     const channelList = useGroup().channelList;
     const {activeGroup, setActiveGroup}  = useUser();
 
-    const [state, setState] = useState({
-        query: "",
-        selectedServer: null,
-        selectedChannel: null,
-        newChannelName: "",
-        showAddChannelForm: false,
-        joinServerInput: "",
-        isProfileEditOpen: false,
-        YourUser: {
-            name: "Your Username",
-            status: "online",
-            online: true,
-            icon: "/default-profile.png",
-            about: "Hello! I'm using the app."
-        }
-    });
+    const [query, setQuery] = useState('');
 
     const handleServerSearch = useCallback((event) => {
-        setState(prev => ({...prev, query: event.target.value}));
+        setQuery(event.target.value);
     }, []);
 
     function handleServerClick(server){
@@ -318,13 +302,9 @@ function ServerList({onChannelSelect}) {
         onChannelSelect(channel);*/
     }, [onChannelSelect]);
 
-    const handleInputChange = useCallback((field, value) => {
-        setState(prev => ({...prev, [field]: value}));
-    }, []);
-
     const filteredServers =
             useUser().groupList.filter((server) =>
-                server.name.toLowerCase().includes(state.query.toLowerCase())
+                server.name.toLowerCase().includes(query.toLowerCase())
     );
 
     const searchServer = useCallback((event) => {
@@ -340,32 +320,6 @@ function ServerList({onChannelSelect}) {
         }*/
     }, [/*state.joinServerInput*/]);
 
-    const handleAddChannel = useCallback((event) => {
-        event.preventDefault();
-
-
-
-        /*
-        const channelName = state.newChannelName.trim();
-
-        if (channelName && state.selectedServer) {
-            const updatedServer = {
-                ...state.selectedServer,
-                channels: [...(state.selectedServer.channels || []), channelName]
-            };
-
-            setState(prev => ({
-                ...prev,
-                selectedServer: updatedServer,
-                newChannelName: "",
-                showAddChannelForm: false
-            }));
-
-            // Notify parent of channel addition
-            onServerSelect(updatedServer);
-        }*/
-    }, [/*state.newChannelName, state.selectedServer, onServerSelect*/]);
-
     const handleUpdateUser = useCallback((updatedUser) => {
         setState(prev => ({
             ...prev,
@@ -375,7 +329,7 @@ function ServerList({onChannelSelect}) {
     }, []);
 
     return (
-        <ServerContext.Provider value={state.selectedServer}>
+        <div>
             <div style={{display: "flex"}}>
                 <Paper elevation={3} sx={{
                     borderRadius: 7.5,
@@ -421,8 +375,8 @@ function ServerList({onChannelSelect}) {
                             <input
                                 name="serverID"
                                 placeholder="Enter a Server ID"
-                                value={state.joinServerInput}
-                                onChange={(e) => handleInputChange('joinServerInput', e.target.value)}
+                                //value={state.joinServerInput}
+                                //onChange={(e) => handleInputChange('joinServerInput', e.target.value)}
                             />
                             <button type="submit">Join</button>
                         </form>
@@ -473,12 +427,12 @@ function ServerList({onChannelSelect}) {
             </div>
 
             <ProfileEditModal
-                open={state.isProfileEditOpen}
+                open={false/*state.isProfileEditOpen*/}
                 onClose={() => handleInputChange('isProfileEditOpen', false)}
-                user={state.YourUser}
+                user={"online"/*state.YourUser*/}
                 onUpdateUser={handleUpdateUser}
             />
-        </ServerContext.Provider>
+        </div>
 
     );
 }
