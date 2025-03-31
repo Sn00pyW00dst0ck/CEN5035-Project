@@ -1,6 +1,7 @@
 import { test, expect, vi, describe, beforeEach } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import ServerList from "../MainScreen/ServerList/ServerList.jsx";
+import {UserProvider} from "../UserContext.jsx";
 
 const servers = [
     { id: 1, name: "test1", icon: "public/vite.svg", channels: ["General", "Gaming", "Music"] },
@@ -16,27 +17,35 @@ describe('ServerList Component', () => {
     let onChannelSelectMock;
 
     beforeEach(() => {
+
         onServerSelectMock = vi.fn();
         onChannelSelectMock = vi.fn();
     });
 
     test('Renders without exceptions', () => {
         expect(() => render(
-            <ServerList 
-                servers={servers} 
-                onServerSelect={onServerSelectMock} 
-                onChannelSelect={onChannelSelectMock} 
-            />
+            <UserProvider>
+
+                useUser().setGroupList(servers);
+                <ServerList
+                    onServerSelect={onServerSelectMock}
+                    onChannelSelect={onChannelSelectMock}
+                />
+
+            </UserProvider>
         )).not.toThrow();
     });
 
     test("Server list renders all test servers", () => {
         render(
-            <ServerList 
-                servers={servers} 
-                onServerSelect={onServerSelectMock} 
-                onChannelSelect={onChannelSelectMock} 
-            />
+            <UserProvider>
+
+                useUser().setGroupList(servers);
+                <ServerList
+                    onServerSelect={onServerSelectMock}
+                    onChannelSelect={onChannelSelectMock}
+                />
+            </UserProvider>
         );
 
         expect(screen.queryByText("test1")).toBeInTheDocument();
@@ -49,11 +58,15 @@ describe('ServerList Component', () => {
 
     test("Search filters servers returned", () => {
         render(
-            <ServerList 
-                servers={servers} 
-                onServerSelect={onServerSelectMock} 
-                onChannelSelect={onChannelSelectMock} 
-            />
+            <UserProvider>
+
+                useUser().setGroupList(servers);
+                <ServerList
+                    servers={servers}
+                    onServerSelect={onServerSelectMock}
+                    onChannelSelect={onChannelSelectMock}
+                />
+            </UserProvider>
         );
 
         const input = screen.getByLabelText("Search");
@@ -70,11 +83,16 @@ describe('ServerList Component', () => {
 
     test("Selecting a server calls onServerSelect and onChannelSelect with default channel", () => {
         render(
-            <ServerList 
-                servers={servers} 
-                onServerSelect={onServerSelectMock} 
-                onChannelSelect={onChannelSelectMock} 
-            />
+
+            <UserProvider>
+
+                useUser().setGroupList(servers);
+                <ServerList
+                    servers={servers}
+                    onServerSelect={onServerSelectMock}
+                    onChannelSelect={onChannelSelectMock}
+                />
+            </UserProvider>
         );
 
         const firstServer = screen.getByText("test1").closest('li');
@@ -87,11 +105,16 @@ describe('ServerList Component', () => {
 
     test("Clicking on a channel calls onChannelSelect", async () => {
         const { rerender } = render(
-            <ServerList 
-                servers={servers} 
-                onServerSelect={onServerSelectMock} 
-                onChannelSelect={onChannelSelectMock} 
-            />
+
+            <UserProvider>
+
+                useUser().setGroupList(servers);
+                <ServerList
+                    servers={servers}
+                    onServerSelect={onServerSelectMock}
+                    onChannelSelect={onChannelSelectMock}
+                />
+            </UserProvider>
         );
 
         const firstServer = screen.getByText("test1").closest('li');
@@ -104,11 +127,15 @@ describe('ServerList Component', () => {
         onChannelSelectMock.mockReset();
 
         rerender(
-            <ServerList 
-                servers={servers}
-                onServerSelect={onServerSelectMock}
-                onChannelSelect={onChannelSelectMock}
-            />
+            <UserProvider>
+
+                useUser().setGroupList(servers);
+                <ServerList
+                    servers={servers}
+                    onServerSelect={onServerSelectMock}
+                    onChannelSelect={onChannelSelectMock}
+                />
+            </UserProvider>
         );
 
         // Now find and click a different channel
@@ -123,11 +150,16 @@ describe('ServerList Component', () => {
 
     test("Adding a new channel works", async () => {
         const { rerender } = render(
-            <ServerList 
-                servers={servers} 
-                onServerSelect={onServerSelectMock} 
-                onChannelSelect={onChannelSelectMock} 
-            />
+
+            <UserProvider>
+
+                useUser().setGroupList(servers);
+                <ServerList
+                    servers={servers}
+                    onServerSelect={onServerSelectMock}
+                    onChannelSelect={onChannelSelectMock}
+                />
+            </UserProvider>
         );
 
         // First select a server to show channels
@@ -158,11 +190,14 @@ describe('ServerList Component', () => {
     test("Visual indication is applied to the selected channel", async () => {
 
         const { rerender } = render(
-            <ServerList 
-                servers={servers} 
-                onServerSelect={onServerSelectMock} 
-                onChannelSelect={onChannelSelectMock} 
-            />
+
+            <UserProvider>
+                <ServerList
+                    servers={servers}
+                    onServerSelect={onServerSelectMock}
+                    onChannelSelect={onChannelSelectMock}
+                />
+            </UserProvider>
         );
 
         const firstServer = screen.getByText("test1").closest('li');

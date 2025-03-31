@@ -1,28 +1,32 @@
-import './App.css'
+import './App.css';
+import { UserProvider } from './UserContext';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import MainScreen from "./MainScreen/MainScreen.jsx";
 import Login from "./Login/Login.jsx";
-import { useState } from 'react';
+import {useState} from 'react';
 
-export const YourUser = {id: 1, name: "YourUsername", status: "Hi", online: true, icon: "public/vite.svg"}
-
+// Detect system theme preference
 const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
 const theme = createTheme({
-  palette: {
-    mode: darkThemeMq.matches ? 'dark' : 'light',
-  },
+    palette: {
+        mode: darkThemeMq.matches ? 'dark' : 'light',
+    },
 });
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  return (
-    <div>
-      <ThemeProvider theme={theme}>
-        {isLoggedIn ? <MainScreen /> : <Login onLogin={setIsLoggedIn} />}
-      </ThemeProvider>
-    </div>
-  )
+    return (
+        <UserProvider>
+            <ThemeProvider theme={theme}>
+                {isLoggedIn ? (
+                    <MainScreen /> // ✅ Pass userData to MainScreen
+                ) : (
+                    <Login onLogin={setIsLoggedIn} /> // ✅ Fix prop name
+                )}
+            </ThemeProvider>
+        </UserProvider>
+    );
 }
 
-export default App
+export default App;
