@@ -202,12 +202,85 @@ function CustomUserBadge({
     );
 }
 
-function ServerList({onServerSelect, onChannelSelect}) {
+function ChannelForm() {
+    const [showAddChannelForm, setShowAddChannelForm] = useState(false);
+    const [newChannelName, setNewChannelName] = useState(""); // Use state for newChannelName
+
+    const group = useUser().activeGroup;
+    const setGroup = useUser().setActiveGroup;
+
+    return (
+        <div>
+            {showAddChannelForm ? (
+                <div className="addChannelForm">
+                    <form onSubmit={() =>{
+
+                        if (newChannelName.trim() === "") return; // Prevent adding empty channel names
+
+                        if(group == null){
+                            return;
+                        }
+
+                        try {
+                            const response = fetch("http://localhost:3000/v1/api/group/" + group.id + "/channel/", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({name:newChannelName, id:crypto.randomUUID(), group: group.id },),
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
+
+                            setGroup(group);
+
+                            //const jsonData = response.json();
+
+                        } catch (error) {
+                            console.error("Error:", error.message);
+                        }
+
+                        // Perform action (like updating a list or calling a function to add the channel)
+                        console.log("New channel added:", newChannelName);
+
+                        // Reset the input field and hide the form after submission
+                        setNewChannelName("");
+                        setShowAddChannelForm(false);}
+
+                    }>
+                        <input
+                            type="text"
+                            value={newChannelName}
+                            onChange={(e) => setNewChannelName(e.target.value)} // Update state
+                            placeholder="Channel name"
+                        />
+                        <div className="formButtons">
+                            <button type="submit">Add</button>
+                            <button
+                                type="button"
+                                onClick={() => { setShowAddChannelForm(false) }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            ) : (
+                <div className="addChannelButton">
+                    <button onClick={() => { setShowAddChannelForm(true) }}>
+                        + Add Channel
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+
+function ServerList({onChannelSelect}) {
 
     const channelList = useGroup().channelList;
     const {activeGroup, setActiveGroup}  = useUser();
-
-    //console.log("activeGroup", activeGroup);
 
     const [state, setState] = useState({
         query: "",
@@ -256,16 +329,23 @@ function ServerList({onServerSelect, onChannelSelect}) {
 
     const searchServer = useCallback((event) => {
         event.preventDefault();
+
+        /*
         const serverId = state.joinServerInput.trim();
+
 
         if (serverId) {
             console.log("Attempting to join server with ID:", serverId);
             setState(prev => ({...prev, joinServerInput: ""}));
-        }
-    }, [state.joinServerInput]);
+        }*/
+    }, [/*state.joinServerInput*/]);
 
     const handleAddChannel = useCallback((event) => {
         event.preventDefault();
+
+
+
+        /*
         const channelName = state.newChannelName.trim();
 
         if (channelName && state.selectedServer) {
@@ -283,8 +363,8 @@ function ServerList({onServerSelect, onChannelSelect}) {
 
             // Notify parent of channel addition
             onServerSelect(updatedServer);
-        }
-    }, [state.newChannelName, state.selectedServer, onServerSelect]);
+        }*/
+    }, [/*state.newChannelName, state.selectedServer, onServerSelect*/]);
 
     const handleUpdateUser = useCallback((updatedUser) => {
         setState(prev => ({
@@ -308,7 +388,7 @@ function ServerList({onServerSelect, onChannelSelect}) {
                 }}>
                     <CustomUserBadge
                         user={useUser().user.username}
-                        status={state.YourUser.status}
+                        status="no status"
                         online={useUser().user.online}
                         img={useUser().user.icon}
                         about={useUser().user.status}
@@ -385,33 +465,9 @@ function ServerList({onServerSelect, onChannelSelect}) {
                             ))}
                         </List>
 
-                        {state.showAddChannelForm ? (
-                            <div className="addChannelForm">
-                                <form onSubmit={handleAddChannel}>
-                                    <input
-                                        type="text"
-                                        value={state.newChannelName}
-                                        onChange={(e) => handleInputChange('newChannelName', e.target.value)}
-                                        placeholder="Channel name"
-                                    />
-                                    <div className="formButtons">
-                                        <button type="submit">Add</button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleInputChange('showAddChannelForm', false)}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        ) : (
-                            <div className="addChannelButton">
-                                <button onClick={() => handleInputChange('showAddChannelForm', true)}>
-                                    + Add Channel
-                                </button>
-                            </div>
-                        )}
+                        <ChannelForm/>
+
+
                     </Paper>
                 )}
             </div>

@@ -12,7 +12,8 @@ function ServerBadge({ server, onClickIn }) {
 
     console.log("clicked " + server.id);
 
-    onClickIn(server);
+    if(onClickIn)
+      onClickIn(server);
   };
   
   return (
