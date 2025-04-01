@@ -1,0 +1,17 @@
+The frontend has two primary pages: the Login Page and the Main Page.
+
+# Login
+The login page consists of two forms: Username and Password. Currently, only the Username box must be filled to permit login as credentials have not been implemented. Upon sign in, a query is sent to the backend to fetch the user's data, before switching to the main page.
+We also intend to add a Register page in which the user can create a new account.
+
+# Main
+This is where the user will spend most of their time. It displays the user's groups, channels, messages, etc.
+
+***Basic Anatomy***
+The main page is broken into two primary components: the Group List and the Active Server.
+
+***Group List***
+Consists of the user's info, a server search bar, and a list of all the servers the client is in. When a server is selected, it becomes the 'active server'.
+
+### Component Breakdown
+******
