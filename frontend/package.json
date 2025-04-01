@@ -9,6 +9,8 @@
     "test": "vitest",
     "test:watch": "vitest",
     "lint": "eslint .",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
     "preview": "vite preview"
   },
   "dependencies": {
