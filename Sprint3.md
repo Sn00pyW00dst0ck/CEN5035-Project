@@ -51,3 +51,103 @@ go test -p 1 ./...
 
 The following API documentation is **auto-generated** using **Swagger UI** for this project, which is hosted by the server.
 A PDF printout of the Swagger UI has been inserted into the repository. Please view it here: [Sprint 3 Swagger UI.pdf](Swagger%20UI.pdf)
+
+# Frontend Documentation
+
+The frontend has two primary pages: the Login Page and the Main Page.
+
+# Login
+The login page consists of two forms: Username and Password. Currently, only the Username box must be filled to permit login as credentials have not been implemented. Upon sign in, a query is sent to the backend to fetch the user's data, before switching to the main page. We also intend to add a Register page in which the user can create a new account.
+
+# Main
+This is where the user will spend most of their time. It displays the user's groups, channels, messages, etc.
+
+***Basic Anatomy***  
+The main page is broken into two primary components: the Group List and the Active Server.
+
+***Group List***  
+Consists of the user's info, a server search bar, and a list of all the servers the client is in. When a server is selected, it becomes the 'active server'.
+
+***Active Server***
+Holds the messages of a selected channel in addition to a menu bar and member list.
+
+# Unit Tests
+
+**ActiveServer.test**
+- Renders a placeholder when no server is selected
+- Renders the main chat interface when a server is selected
+- Passes the correct props to MenuBar
+- Displays messages correctly
+- Forwards channel selection from MenuBar
+- Allows sending messages when a server and channel are selected
+- Does not send empty messages
+- Handles message sending via Enter key
+- Does not call onChannelSelect when no channel is selected
+
+**App.test**
+- Renders without exceptions
+
+**MainScreen.test**
+- Renders without crashing
+- Initializes with no selected server and channel
+- Updates the selected server and channel when a server is selected
+- Updates the selected channel when a channel is selected from the server list
+- Updates the selected channel when a channel is selected from the dropdown menu
+- Loads messages when a server and channel are selected
+- Retains channel selection when changing between servers
+- Handles state updates properly when changing channels
+
+**MenuBar.test**
+- Renders without crashing
+- Renders ServerBadge with correct props
+- Renders search component with correct label
+- Renders menu button with icon
+- Calls setVisible with opposite value when menu button is clicked
+- Displays the selected channel name in the channel button
+- Displays "select channel" when no channel is selected
+- Opens the channel menu when the channel button is clicked
+- Selects a channel when a menu item is clicked
+- Marks the current selected channel as selected in the menu
+- Handles the case when selected Server has no channels
+- Handles the case when selectedServer is null
+
+**ServerAndMembers.test**
+- Renders without crashing
+- Passes the correct props to ActiveServer
+- Does not render Members by default (visible is false)
+- Renders Members when visible state is true
+- Forwards channel selection to parent component
+- Handles null server and channel gracefully
+
+**ServerBadge.test**
+- Renders without exceptions
+- Renders server name
+- Renders default server icon
+- Renders provided server icon
+
+**ServerList.test**
+- Renders without exceptions
+- Server list renders all test servers
+- Search filters servers returned
+- Selecting a server calls onServerSelect and onChannelSelect with default channel
+- Clicking on a channel calls onChannelSelect
+- Adding a new channel works
+- Visual indication is applied to the selected channel
+
+**UserBadge.test**
+- Renders without exceptions
+- Renders server name
+- Renders default server icon
+- Renders provided server icon
+
+# Cypress Tests
+
+- Should display login screen on initial load
+- Should require both username and password to login
+- Should log in with valid credentials and show the main screen
+- Should display server list with multiple servers
+- Should select a server and display its channels
+- Should allow adding a new channel to a server
+- Should switch between channels and display correct messages
+- Should send a new message in a channel
+- Should open the user profile edit modal
