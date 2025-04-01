@@ -5,7 +5,7 @@
 ### Integration of Wails Framework
 
 #### Overview
-In Sprint 3, Integrating the [Wails framework](https://github.com/wailsapp/wails) has transformed Sector into a cross-platform desktop application, delivering a native experience on Windows, macOS, and Linux. By embedding the React frontend within the Go backend, Wails enables the creation of a single executable file, simplifying distribution and installation. This integration facilitates direct function calls between the frontend and backend, eliminating the need for HTTP requests and enhancing communication efficiency. Additionally, packaging the application as a unified executable streamlines deployment, reduces compatibility issues, and improves user accessibility
+In Sprint 3, Integrating the [Wails framework](https://github.com/wailsapp/wails) has transformed Sector into a cross-platform desktop application, delivering a native experience on Windows, macOS, and Linux. By embedding the React frontend within the Go backend, Wails enables the creation of a single executable file, simplifying distribution and installation. This integration facilitates direct function calls between the frontend and backend, eliminating the need for HTTP requests and enhancing communication efficiency. However, in order to maintain the web interface's functionality, the team has decided that both the web and desktop versions will interact with the backend via HTTP requests for simplicity of development. Additionally, packaging the application as a unified executable streamlines deployment, reduces compatibility issues, and improves user accessibility.
 
 Key implementation steps included:
 
