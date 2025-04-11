@@ -23,6 +23,18 @@ type SectorAPI struct {
 	DB     *database.Database
 }
 
+//#region Authentication API
+
+func (s *SectorAPI) GetChallenge(w http.ResponseWriter, r *http.Request, parameters GetChallengeParams) {
+	return;
+}
+
+func (s *SectorAPI) Login(w http.ResponseWriter, r *http.Request) {
+	return;
+}
+
+//#endregion Authentication API
+
 //#region Account API
 
 // SearchAccounts implements ServerInterface.
