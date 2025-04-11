@@ -38,7 +38,7 @@ func (a *App) startup(ctx context.Context) {
 	api.AddV1SectorAPIToRouter(r, sectorAPI)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{"http://localhost:34115", "http://localhost:3000"},
 		AllowCredentials: true,
 	})
 

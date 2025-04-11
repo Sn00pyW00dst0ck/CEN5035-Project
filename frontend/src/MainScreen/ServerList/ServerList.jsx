@@ -16,7 +16,6 @@ import ServerBadge from "./ServerBadge/ServerBadge.jsx";
 import Search from "../../CommonComponents/Search/Search.jsx";
 import "./ServerList.css";
 import {useUser} from "../../UserContext.jsx";
-import {useGroup} from "../ServerAndMembers/ActiveServer/groupContext.jsx";
 
 // Constants for user statuses
 const USER_STATUSES = [
@@ -202,84 +201,7 @@ function CustomUserBadge({
     );
 }
 
-function ChannelForm() {
-    const [showAddChannelForm, setShowAddChannelForm] = useState(false);
-    const [newChannelName, setNewChannelName] = useState(""); // Use state for newChannelName
-
-    const group = useUser().activeGroup;
-    const setGroup = useUser().setActiveGroup;
-
-    return (
-        <div>
-            {showAddChannelForm ? (
-                <div className="addChannelForm">
-                    <form onSubmit={() =>{
-
-                        if (newChannelName.trim() === "") return; // Prevent adding empty channel names
-
-                        if(group == null){
-                            return;
-                        }
-
-                        try {
-                            const response = fetch("http://localhost:3000/v1/api/group/" + group.id + "/channel/", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({name:newChannelName, id:crypto.randomUUID(), group: group.id },),
-                            });
-
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! Status: ${response.status}`);
-                            }
-
-                            setGroup(group);
-
-                            //const jsonData = response.json();
-
-                        } catch (error) {
-                            console.error("Error:", error.message);
-                        }
-
-                        // Perform action (like updating a list or calling a function to add the channel)
-                        console.log("New channel added:", newChannelName);
-
-                        // Reset the input field and hide the form after submission
-                        setNewChannelName("");
-                        setShowAddChannelForm(false);}
-
-                    }>
-                        <input
-                            type="text"
-                            value={newChannelName}
-                            onChange={(e) => setNewChannelName(e.target.value)} // Update state
-                            placeholder="Channel name"
-                        />
-                        <div className="formButtons">
-                            <button type="submit">Add</button>
-                            <button
-                                type="button"
-                                onClick={() => { setShowAddChannelForm(false) }}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            ) : (
-                <div className="addChannelButton">
-                    <button onClick={() => { setShowAddChannelForm(true) }}>
-                        + Add Channel
-                    </button>
-                </div>
-            )}
-        </div>
-    );
-}
-
 function ServerList({onChannelSelect}) {
-
-    const channelList = useGroup().channelList;
-    const {activeGroup, setActiveGroup}  = useUser();
 
     const [query, setQuery] = useState('');
 
@@ -289,18 +211,8 @@ function ServerList({onChannelSelect}) {
 
     function handleServerClick(server){
         console.log(server);
-        setActiveGroup(server);
+        serverContext.setActiveGroup(server);
     }
-
-    const handleChannelClick = useCallback((channel) => {
-        /*setState(prev => ({
-            ...prev,
-            selectedChannel: channel
-        }));
-
-        // Propagate channel selection to parent
-        onChannelSelect(channel);*/
-    }, [onChannelSelect]);
 
     const filteredServers =
             useUser().groupList.filter((server) =>
@@ -309,15 +221,6 @@ function ServerList({onChannelSelect}) {
 
     const searchServer = useCallback((event) => {
         event.preventDefault();
-
-        /*
-        const serverId = state.joinServerInput.trim();
-
-
-        if (serverId) {
-            console.log("Attempting to join server with ID:", serverId);
-            setState(prev => ({...prev, joinServerInput: ""}));
-        }*/
     }, [/*state.joinServerInput*/]);
 
     const handleUpdateUser = useCallback((updatedUser) => {
@@ -327,6 +230,8 @@ function ServerList({onChannelSelect}) {
             isProfileEditOpen: false
         }));
     }, []);
+
+    const serverContext = useUser();
 
     return (
         <div>
@@ -341,11 +246,11 @@ function ServerList({onChannelSelect}) {
                     overflow: "hidden"
                 }}>
                     <CustomUserBadge
-                        user={useUser().user.username}
+                        user={serverContext.user.username}
                         status="no status"
-                        online={useUser().user.online}
-                        img={useUser().user.icon}
-                        about={useUser().user.status}
+                        online={serverContext.user.online}
+                        img={serverContext.user.icon}
+                        about={serverContext.user.status}
                         onEditProfile={() => handleInputChange('isProfileEditOpen', true)}
                     />
                     <Search
@@ -383,7 +288,7 @@ function ServerList({onChannelSelect}) {
                     </div>
                 </Paper>
 
-                {activeGroup.id !== '' && (
+                {serverContext.id !== '' && (
                     <Paper elevation={3} sx={{
                         borderRadius: 7.5,
                         display: "flex",
@@ -395,32 +300,29 @@ function ServerList({onChannelSelect}) {
                         overflow: "hidden"
                     }}>
                         <h3 style={{textAlign: "center", marginTop: "1rem"}}>
-                            {activeGroup.name} Channels
+                            {serverContext.activeGroup.name} Channels
                         </h3>
 
                         <List sx={{overflow: 'auto', flexGrow: 1}}>
-                            {channelList && channelList.map((channel, index) => (
+                            {serverContext.channelList && serverContext.channelList.map((channel, index) => (
 
                                 <li
-                                    key={`${activeGroup.id}-channel-${index}`}
+                                    key={`${serverContext.activeGroup.id}-channel-${index}`}
                                     style={{
                                         cursor: "pointer",
                                         backgroundColor: /*state.selectedChannel === channel ?*/ 'rgba(25, 118, 210, 0.08)' /*: 'transparent'*/
                                     }}
-                                    onClick={() => handleChannelClick(channel.name)}
+                                    onClick={() => serverContext.setActiveChannel(channel)}
                                 >
                                     <ServerBadge
                                         server={{
-                                            id: `${activeGroup.id}-channel-${index}`,
+                                            id: `${channel.id}-channel-${index}`,
                                             name: channel.name
                                         }}
                                     />
                                 </li>
                             ))}
                         </List>
-
-                        <ChannelForm/>
-
 
                     </Paper>
                 )}

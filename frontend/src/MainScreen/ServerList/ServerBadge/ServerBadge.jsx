@@ -1,5 +1,6 @@
 import {Avatar, Button, Paper, Stack} from "@mui/material";
 import {useState} from "react";
+import {useUser} from "../../../UserContext.jsx";
 
 function ServerBadge({ server, onClickIn }) {
   const [hovered, setHovered] = useState(false);

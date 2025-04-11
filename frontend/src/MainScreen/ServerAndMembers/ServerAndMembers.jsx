@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { Paper } from "@mui/material";
 import ActiveServer from "./ActiveServer/ActiveServer.jsx";
 import Members from "./Members/Members.jsx";
+import {useUser} from "../../UserContext.jsx";
 
 function ServerAndMembers({ 
-  selectedServer, 
+  /*selectedServer,
   selectedChannel, 
   messages, 
-  onChannelSelect 
+  onChannelSelect */
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -24,15 +25,9 @@ function ServerAndMembers({
         overflow: "hidden"
       }}
     >
-      <ActiveServer 
-        setVisible={setVisible}
-        selectedServer={selectedServer}
-        selectedChannel={selectedChannel}
-        messages={messages}
-        onChannelSelect={onChannelSelect}
-      />
+      <ActiveServer setVisible={setVisible}/>
 
-      {visible && <Members selectedServer={selectedServer} />}
+      {<Members selectedServer={useUser().group} /> && visible}
     </Paper>
   );
 }

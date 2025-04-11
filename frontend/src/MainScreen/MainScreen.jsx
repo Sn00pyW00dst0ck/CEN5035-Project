@@ -2,8 +2,6 @@ import React, { useState } from 'react'
 import './MainScreen.css'
 import ServerAndMembers from "./ServerAndMembers/ServerAndMembers.jsx";
 import ServerList from "./ServerList/ServerList.jsx";
-import {Group} from "@mui/icons-material";
-import {GroupProvider} from "./ServerAndMembers/ActiveServer/groupContext.jsx";
 
 // IMPROVEMENT: Create mock messages structure to simulate backend
 const mockMessages = {
@@ -73,19 +71,14 @@ function MainScreen() {
 
   return (
     <div className="ColorBox" style={{ display: "flex", height: "100vh", width: "100vw"}}>
-      <GroupProvider>
+
         <ServerList
             servers={servers}
             onServerSelect={handleServerSelect}
             onChannelSelect={handleChannelSelect}
         />
         <ServerAndMembers
-            selectedServer={selectedServer}
-            selectedChannel={selectedChannel}
-            messages={messages}
-            onChannelSelect={handleChannelSelect}
         />
-      </GroupProvider>
     </div>
   );
 }
