@@ -25,11 +25,25 @@ type SectorAPI struct {
 
 //#region Authentication API
 
+// TODO: IN ADDITION TO BELOW, WE WILL NEED JWT MIDDLEWARE TO APPLY TO ALL THE ROUTES!
+
 func (s *SectorAPI) GetChallenge(w http.ResponseWriter, r *http.Request, parameters GetChallengeParams) {
+	// Get user with username/id from database
+	// Create a challenge for the user, something like this:
+	/*
+	nonce := make([]byte, 32)
+	rand.Read(nonce)
+	challenges[username] = nonce
+	*/
+	// Return the challenge to the user
 	return;
 }
 
 func (s *SectorAPI) Login(w http.ResponseWriter, r *http.Request) {
+	// Get the username/id from the database
+	// Decode the signed challenge the user made (by using the stored public key)
+	// Verify the signature is correct
+	// Return a JWT Token
 	return;
 }
 
