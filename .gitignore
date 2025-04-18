@@ -33,3 +33,4 @@ frontend/dist
 /cache
 log.txt
 log_test.txt
+test_db_cache/*

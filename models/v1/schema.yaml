@@ -34,6 +34,60 @@ paths:
               schema:
                 type: string
 
+  # Authentication Endpoints
+  "/challenge":
+    get:
+      summary: Get login challenge
+      tags: 
+        - Authentication
+      operationId: GetChallenge
+      parameters:
+        - in: query
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Challenge issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenge:
+                    type: string
+                    format: base64
+
+  "/login":
+    post:
+      summary: Login using signed challenge
+      tags: 
+        - Authentication
+      operationId: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                signature:
+                  type: string
+                  format: byte
+      responses:
+        '200':
+          description: Token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
   # Account Endpoints
   "/account/":
     post:
@@ -623,6 +677,9 @@ components:
         profile_pic: 
           type: string
           format: base64
+        pubkey:
+          type: string
+          format: byte # base64-encoded PEM
       required: 
         - id
         - username

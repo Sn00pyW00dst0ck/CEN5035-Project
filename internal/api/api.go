@@ -27,6 +27,7 @@ func AddV1SectorAPIToRouter(router *mux.Router, api *v1.SectorAPI) {
 	swaggerV1.Servers = nil
 	fixSwaggerPrefix("/v1/api", swaggerV1)
 
+	// Add middleware
 	router.Use(middleware.RequestLogger(api.Logger))
 
 	// Serve the swagger.json file directly at /docs/swagger.json
@@ -47,11 +48,31 @@ func AddV1SectorAPIToRouter(router *mux.Router, api *v1.SectorAPI) {
 		w.Write([]byte(data))
 	})
 
-	// Subrouter to validate requests to the /v1/api/
+	// Create public API subrouter (no JWT authentication)
+	publicRouter := router.PathPrefix("/v1/api").Subrouter()
+	// Register /challenge
+	publicRouter.HandleFunc("/challenge", func(w http.ResponseWriter, r *http.Request) {
+		params := v1.GetChallengeParams{
+			Username: r.URL.Query().Get("username"),
+		}
+		api.GetChallenge(w, r, params)
+	}).Methods("GET")
+
+	// Register /login
+	publicRouter.HandleFunc("/login", api.Login).Methods("POST")
+
+	// Apply OpenAPI validation
+	publicRouter.Use(oapimiddleware.OapiRequestValidator(swaggerV1))
+
+	// Create protected API subrouter with JWT authentication
+	protectedRouter := router.PathPrefix("/v1/api").Subrouter()
+	protectedRouter.Use(middleware.JWTAuth)
 	v1.HandlerWithOptions(api, v1.GorillaServerOptions{
-		BaseURL:     "/v1/api",
-		BaseRouter:  router,
-		Middlewares: []v1.MiddlewareFunc{oapimiddleware.OapiRequestValidator(swaggerV1)},
+		BaseURL:    "/v1/api",
+		BaseRouter: protectedRouter,
+		Middlewares: []v1.MiddlewareFunc{
+			oapimiddleware.OapiRequestValidator(swaggerV1),
+		},
 	})
 }
 
