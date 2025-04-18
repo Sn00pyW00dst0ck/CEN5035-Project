@@ -16,6 +16,8 @@ import ServerBadge from "./ServerBadge/ServerBadge.jsx";
 import Search from "../../CommonComponents/Search/Search.jsx";
 import "./ServerList.css";
 import {useUser} from "../../UserContext.jsx";
+import CreateGroup from "./CreateGroup.jsx";
+import CreateChannel from "./CreateChannel.jsx";
 
 // Constants for user statuses
 const USER_STATUSES = [
@@ -203,20 +205,22 @@ function CustomUserBadge({
 
 function ServerList({onChannelSelect}) {
 
+    const serverContext = useUser();
+
     const [query, setQuery] = useState('');
 
-    const handleServerSearch = useCallback((event) => {
-        setQuery(event.target.value);
+    const handleServerSearch = useCallback((value) => {
+        setQuery(value);
     }, []);
 
+
     function handleServerClick(server){
-        console.log(server);
+        console.log("Active server changing to " + server.id);
         serverContext.setActiveGroup(server);
     }
 
-    const filteredServers =
-            useUser().groupList.filter((server) =>
-                server.name.toLowerCase().includes(query.toLowerCase())
+    const filteredServers = serverContext.groupList == null ? [] : serverContext.groupList.filter((server) =>
+        server.name.toLowerCase().includes(query.toLowerCase())
     );
 
     const searchServer = useCallback((event) => {
@@ -230,8 +234,6 @@ function ServerList({onChannelSelect}) {
             isProfileEditOpen: false
         }));
     }, []);
-
-    const serverContext = useUser();
 
     return (
         <div>
@@ -255,7 +257,7 @@ function ServerList({onChannelSelect}) {
                     />
                     <Search
                         id="serverSearchInput"
-                        return={handleServerSearch}
+                        onChange={handleServerSearch}
                     />
                     <List sx={{
                         display: "flex",
@@ -275,16 +277,8 @@ function ServerList({onChannelSelect}) {
                             ))}
                         </div>
                     </List>
-                    <div className="joinServer">
-                        <form onSubmit={searchServer}>
-                            <input
-                                name="serverID"
-                                placeholder="Enter a Server ID"
-                                //value={state.joinServerInput}
-                                //onChange={(e) => handleInputChange('joinServerInput', e.target.value)}
-                            />
-                            <button type="submit">Join</button>
-                        </form>
+                    <div>
+                        <CreateGroup/>
                     </div>
                 </Paper>
 
@@ -323,6 +317,8 @@ function ServerList({onChannelSelect}) {
                                 </li>
                             ))}
                         </List>
+
+                        <CreateChannel/>
 
                     </Paper>
                 )}

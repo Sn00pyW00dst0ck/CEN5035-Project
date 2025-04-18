@@ -1,19 +1,20 @@
 import { TextField } from "@mui/material";
 
-function Search(props) {
+function Search({ id = "Search", label = "Search", onChange }) {
     return (
         <TextField
-            id={props.id || "Search"}
+            id={id}
             sx={{
                 display: "flex",
                 width: "calc(100% - 1rem)",
                 margin: ".5rem",
                 alignSelf: "center",
             }}
-            label={props.label || "Search"}
+            label={label}
             type="search"
             size="small"
-            onChange={props.return}
+            //value={value}
+            onChange={(e) => onChange(e.target.value)}
         />
     );
 }

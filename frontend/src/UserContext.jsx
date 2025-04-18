@@ -65,17 +65,49 @@ export const UserProvider = ({ children }) => {
         }
     }
 
-    async function CreateChannel({channelName}) {
-
-        if(group == null){
-            return;
-        }
+    async function CreateGroup({groupName}) {
 
         try {
-            const response = await fetch("http://localhost:3000/v1/api/group/" + group.id + "/channel/", {
+            const response = await fetch("http://localhost:3000/v1/api/group/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({name:{channelName}, id:"509133f2-fd45-4f1b-8bf2-72e4cb83c018"}),
+                body: JSON.stringify({
+                    name:groupName,
+                    id:crypto.randomUUID(),
+                    description:"",
+                    members:[user.id],
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const jsonData = await response.json();
+
+            await FetchChannels();
+
+        } catch (error) {
+            console.error("Error:", error.message);
+        }
+    }
+
+    async function CreateChannel({channelName}) {
+
+        if(activeGroup.id == null)
+            return;
+
+        console.log("Active Group " + activeGroup.id);
+
+        try {
+            const response = await fetch("http://localhost:3000/v1/api/group/" + activeGroup.id + "/channel/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name:channelName,
+                    id:crypto.randomUUID(),
+                    group:activeGroup.id
+                    }),
             });
 
             if (!response.ok) {
@@ -135,7 +167,7 @@ export const UserProvider = ({ children }) => {
     }, [activeChannel])
 
     return (
-        <UserContext.Provider value={{ user, setUser, groupList, activeGroup, channelList, setActiveGroup, activeChannel, setActiveChannel, messages, FetchMessages }}>
+        <UserContext.Provider value={{ user, setUser, groupList, activeGroup, channelList, setActiveGroup, activeChannel, setActiveChannel, messages, CreateGroup, CreateChannel}}>
             {children}
         </UserContext.Provider>
     );
