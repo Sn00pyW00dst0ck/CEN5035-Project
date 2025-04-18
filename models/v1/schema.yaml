@@ -34,6 +34,20 @@ paths:
               schema:
                 type: string
 
+  "/ws":
+    get:
+      summary: WebSocket endpoint for real-time database updates
+      description: >
+        This route upgrades to a WebSocket connection for receiving notifications
+        when the OrbitDB store changes.
+      operationId: websocketConnect
+      responses:
+        '101':
+          description: Switching Protocols (WebSocket Upgrade)
+        '400':
+          description: Bad Request
+      x-websocket: true  # <- custom extension to mark it as a WS
+
   # Account Endpoints
   "/account/":
     post:

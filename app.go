@@ -30,15 +30,14 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	// Startup the Database instance here
-	// Startup the API interfaces here
 
+	// Startup the API interfaces here
 	r := mux.NewRouter().StrictSlash(true)
 	sectorAPI := v1.NewSector(context.WithoutCancel(openapi3.NewLoader().Context), "log.txt", "cache")
 	api.AddV1SectorAPIToRouter(r, sectorAPI)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:8000"},
+		AllowedOrigins:   []string{"http://localhost:8000", "http://localhost:3000"},
 		AllowCredentials: true,
 	})
 

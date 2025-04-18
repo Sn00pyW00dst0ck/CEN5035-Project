@@ -80,7 +80,7 @@ func (db *Database) init() error {
 	}
 
 	db.Logger.Debug("Subscribing to EventBus ...")
-	db.Events, err = db.Store.EventBus().Subscribe(new(stores.EventReady))
+	db.Events, err = db.Store.EventBus().Subscribe([]interface{}{new(stores.EventReady), new(stores.EventLoad), new(stores.EventWrite)})
 	return err
 }
 

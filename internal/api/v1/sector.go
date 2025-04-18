@@ -2,6 +2,7 @@ package v1
 
 import (
 	"Sector/internal/database"
+	websockethub "Sector/internal/websocket"
 	"Sector/internal/logger"
 	"context"
 	"encoding/json"
@@ -13,14 +14,32 @@ import (
 	"time"
 
 	orbitdb "berty.tech/go-orbit-db"
+	"berty.tech/go-orbit-db/stores"
 	"berty.tech/go-orbit-db/iface"
 	"github.com/oapi-codegen/runtime/types"
 	"go.uber.org/zap"
+	"github.com/gorilla/websocket"
 )
 
 type SectorAPI struct {
 	Logger *zap.Logger
 	DB     *database.Database
+	Hub *websockethub.WebSocketHub
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true }, // allow all origins
+}
+
+// Upgrade connection to websocket for getting data update notifications.
+func (s *SectorAPI) WebsocketConnect(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		s.Logger.Debug(err.Error())
+		http.Error(w, "Upgrade failed", http.StatusBadRequest)
+		return
+	}
+	s.Hub.Register <- conn
 }
 
 //#region Account API
@@ -509,13 +528,17 @@ func NewSector(ctx context.Context, logfile, dbCache string) *SectorAPI {
 		panic(err)
 	}
 
+	// Setup the websocket hub
+	hub := websockethub.NewWebSocketHub()
+	go hub.Run()
+
 	// Setup the database
 	db, err := database.NewDatabase(ctx, dbCache, logger)
 	if err != nil {
 		panic(err)
 	}
 	// defer db.Disconnect() (TODO: FIGURE OUT WHEN TO CALL DISCONNECT)
-
+	
 	err = db.Connect(func(address string) {
 		fmt.Println("Connected: ", address)
 	})
@@ -523,10 +546,29 @@ func NewSector(ctx context.Context, logfile, dbCache string) *SectorAPI {
 		panic(err)
 	}
 
+	// Listen to db events and publish on the websocket accordingly...
+	go func() {
+		for {
+			for ev := range db.Events.Out() {
+				db.Logger.Debug("got event", zap.Any("event", ev))
+				switch ev.(type) {
+				case stores.EventWrite:
+					hub.Broadcast <- []byte(`{"event":"store_updated"}`);
+					continue;
+				
+				case stores.EventLoad:
+					hub.Broadcast <- []byte(`{"event":"store_updated"}`);
+					continue;
+				}
+			}
+		}
+	}();
+
 	return &SectorAPI{
 		Logger: logger,
 		DB:     db,
-	}
+		Hub: hub,
+	};
 }
 
 // Create a new SectorAPI instance for unit testing
