@@ -139,6 +139,17 @@ type LoginJSONBody struct {
 	Username  *string `json:"username,omitempty"`
 }
 
+// GetChallengeParams defines parameters for GetChallenge.
+type GetChallengeParams struct {
+	Username string `form:"username" json:"username"`
+}
+
+// LoginJSONBody defines parameters for Login.
+type LoginJSONBody struct {
+	Signature *[]byte `json:"signature,omitempty"`
+	Username  *string `json:"username,omitempty"`
+}
+
 // PutAccountJSONRequestBody defines body for PutAccount for application/json ContentType.
 type PutAccountJSONRequestBody = Account
 
@@ -171,6 +182,9 @@ type PutMessageJSONRequestBody = Message
 
 // UpdateMessageByIDJSONRequestBody defines body for UpdateMessageByID for application/json ContentType.
 type UpdateMessageByIDJSONRequestBody = MessageUpdate
+
+// LoginJSONRequestBody defines body for Login for application/json ContentType.
+type LoginJSONRequestBody LoginJSONBody
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody LoginJSONBody
@@ -278,6 +292,9 @@ type ClientInterface interface {
 	// GetChallenge request
 	GetChallenge(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetChallenge request
+	GetChallenge(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SearchChannelsWithBody request with any body
 	SearchChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -344,6 +361,11 @@ type ClientInterface interface {
 
 	// GetHealth request
 	GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LoginWithBody request with any body
+	LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// LoginWithBody request with any body
 	LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -454,6 +476,18 @@ func (c *Client) UpdateAccountByIDWithBody(ctx context.Context, id openapi_types
 
 func (c *Client) UpdateAccountByID(ctx context.Context, id openapi_types.UUID, body UpdateAccountByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateAccountByIDRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetChallenge(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetChallengeRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -766,6 +800,30 @@ func (c *Client) AddGroupMember(ctx context.Context, groupId openapi_types.UUID,
 
 func (c *Client) GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetHealthRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoginRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoginRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1979,6 +2037,9 @@ type ClientWithResponsesInterface interface {
 	// GetChallengeWithResponse request
 	GetChallengeWithResponse(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*GetChallengeResponse, error)
 
+	// GetChallengeWithResponse request
+	GetChallengeWithResponse(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*GetChallengeResponse, error)
+
 	// SearchChannelsWithBodyWithResponse request with any body
 	SearchChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SearchChannelsResponse, error)
 
@@ -2045,6 +2106,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetHealthWithResponse request
 	GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error)
+
+	// LoginWithBodyWithResponse request with any body
+	LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error)
+
+	LoginWithResponse(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginResponse, error)
 
 	// LoginWithBodyWithResponse request with any body
 	LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error)
@@ -2182,6 +2248,30 @@ func (r UpdateAccountByIDResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateAccountByIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetChallengeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Challenge *string `json:"challenge,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetChallengeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetChallengeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2604,6 +2694,30 @@ func (r LoginResponse) StatusCode() int {
 	return 0
 }
 
+type LoginResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Token *string `json:"token,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r LoginResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoginResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SearchMessagesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -2702,6 +2816,15 @@ func (c *ClientWithResponses) UpdateAccountByIDWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseUpdateAccountByIDResponse(rsp)
+}
+
+// GetChallengeWithResponse request returning *GetChallengeResponse
+func (c *ClientWithResponses) GetChallengeWithResponse(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*GetChallengeResponse, error) {
+	rsp, err := c.GetChallenge(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetChallengeResponse(rsp)
 }
 
 // GetChallengeWithResponse request returning *GetChallengeResponse
@@ -2947,6 +3070,23 @@ func (c *ClientWithResponses) LoginWithResponse(ctx context.Context, body LoginJ
 	return ParseLoginResponse(rsp)
 }
 
+// LoginWithBodyWithResponse request with arbitrary body returning *LoginResponse
+func (c *ClientWithResponses) LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error) {
+	rsp, err := c.LoginWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoginResponse(rsp)
+}
+
+func (c *ClientWithResponses) LoginWithResponse(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginResponse, error) {
+	rsp, err := c.Login(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoginResponse(rsp)
+}
+
 // SearchMessagesWithBodyWithResponse request with arbitrary body returning *SearchMessagesResponse
 func (c *ClientWithResponses) SearchMessagesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SearchMessagesResponse, error) {
 	rsp, err := c.SearchMessagesWithBody(ctx, contentType, body, reqEditors...)
@@ -3100,6 +3240,34 @@ func ParseUpdateAccountByIDResponse(rsp *http.Response) (*UpdateAccountByIDRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Account
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetChallengeResponse parses an HTTP response from a GetChallengeWithResponse call
+func ParseGetChallengeResponse(rsp *http.Response) (*GetChallengeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetChallengeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Challenge *string `json:"challenge,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3548,6 +3716,34 @@ func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
 	return response, nil
 }
 
+// ParseLoginResponse parses an HTTP response from a LoginWithResponse call
+func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoginResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Token *string `json:"token,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseSearchMessagesResponse parses an HTTP response from a SearchMessagesWithResponse call
 func ParseSearchMessagesResponse(rsp *http.Response) (*SearchMessagesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -3773,6 +3969,75 @@ func (siw *ServerInterfaceWrapper) UpdateAccountByID(w http.ResponseWriter, r *h
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateAccountByID(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetChallenge operation middleware
+func (siw *ServerInterfaceWrapper) GetChallenge(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetChallengeParams
+
+	// ------------- Required query parameter "username" -------------
+
+	if paramValue := r.URL.Query().Get("username"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "username"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "username", r.URL.Query(), &params.Username)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "username", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetChallenge(w, r, params)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetChallenge operation middleware
+func (siw *ServerInterfaceWrapper) GetChallenge(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetChallengeParams
+
+	// ------------- Required query parameter "username" -------------
+
+	if paramValue := r.URL.Query().Get("username"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "username"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "username", r.URL.Query(), &params.Username)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "username", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetChallenge(w, r, params)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -4296,6 +4561,35 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Login operation middleware
+func (siw *ServerInterfaceWrapper) Login(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Login(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Login operation middleware
+func (siw *ServerInterfaceWrapper) Login(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Login(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
