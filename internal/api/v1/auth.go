@@ -27,6 +27,8 @@ type LoginRequest struct {
 
 // GetChallenge handler for the challenge endpoint
 func (s *SectorAPI) GetChallenge(w http.ResponseWriter, r *http.Request, params GetChallengeParams) {
+	fmt.Println("MAKING CHALLENGE")
+
 	username := params.Username
 	if username == "" {
 		http.Error(w, "Username is required", http.StatusBadRequest)
@@ -46,6 +48,7 @@ func (s *SectorAPI) GetChallenge(w http.ResponseWriter, r *http.Request, params 
 
 	if len(accounts) == 0 {
 		http.Error(w, "User not found", http.StatusNotFound)
+		fmt.Println("HI")
 		return
 	}
 

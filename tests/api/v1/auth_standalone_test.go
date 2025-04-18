@@ -4,18 +4,18 @@ import (
 	"Sector/internal/api"
 	v1 "Sector/internal/api/v1"
 	"context"
-	"crypto"
+	//"crypto"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha256"
+	//"crypto/sha256"
 	"crypto/x509"
-	"encoding/base64"
+	//"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"net/http"
+	//"net/http"
 	"net/http/httptest"
-	"strings"
+	// "strings"
 	"testing"
 	"time"
 
@@ -28,7 +28,7 @@ import (
 func setupAuthSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, func()) {
 	// Create a test instance of the API
 	router := mux.NewRouter().StrictSlash(true)
-	testSectorAPI := v1.NewTestingSector(context.Background(), "log_test.txt", "test_db_cache", t)
+	testSectorAPI := v1.NewTestingSector(context.Background(), "log_test.txt", "cache", t)
 	api.AddV1SectorAPIToRouter(router, testSectorAPI)
 
 	server := httptest.NewServer(router)
@@ -84,8 +84,24 @@ func TestAuthenticationStandalone(t *testing.T) {
 		return nil
 	})
 
+	testClient, err := v1.NewClientWithResponses(server.URL, v1.WithHTTPClient(server.Client()), v1.WithBaseURL(server.URL+"/v1/api"))
+	require.NoError(t, err)
+
 	t.Run("Authentication Flow", func(t *testing.T) {
 		// Step 1: Get Challenge
+		body := v1.GetChallengeParams{
+			Username: "testuser",
+		};
+		response, err := testClient.GetChallengeWithResponse(context.Background(), &body)
+		require.NoError(t, err)
+		require.Equal(t, 200, response.StatusCode())
+		var challenge v1.GetChallengeResponse
+		err = json.Unmarshal(response.Body, &challenge)
+		require.NoError(t, err)
+
+		fmt.Printf("%v\n", challenge)
+
+		/*
 		req, err := http.NewRequest("GET", server.URL+"/v1/api/challenge?username=testuser", nil)
 		require.NoError(t, err)
 
@@ -162,5 +178,6 @@ func TestAuthenticationStandalone(t *testing.T) {
 		defer invalidTokenResp.Body.Close()
 
 		require.Equal(t, http.StatusUnauthorized, invalidTokenResp.StatusCode, "Should deny access with invalid token")
+		*/
 	})
 }

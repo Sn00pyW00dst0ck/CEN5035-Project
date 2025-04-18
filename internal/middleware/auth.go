@@ -5,6 +5,8 @@ import (
 	"context"
 	"net/http"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 // AuthUserCtxKey is the context key for the authenticated user
@@ -17,37 +19,39 @@ type UserInfo struct {
 }
 
 // JWTAuth is a middleware that validates JWT tokens
-func JWTAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Skip authentication for specific endpoints
-		if isExemptPath(r.URL.Path) {
-			next.ServeHTTP(w, r)
-			return
-		}
+func JWTAuth() mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Skip authentication for specific endpoints
+			if isExemptPath(r.URL.Path) {
+				next.ServeHTTP(w, r)
+				return
+			}
 
-		// Extract the token from the Authorization header
-		tokenString, err := auth.ExtractTokenFromRequest(r)
-		if err != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+			// Extract the token from the Authorization header
+			tokenString, err := auth.ExtractTokenFromRequest(r)
+			if err != nil {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
 
-		// Validate the token
-		claims, err := auth.ValidateToken(tokenString)
-		if err != nil {
-			http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
-			return
-		}
+			// Validate the token
+			claims, err := auth.ValidateToken(tokenString)
+			if err != nil {
+				http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
+				return
+			}
 
-		// Add user information to the request context
-		userInfo := UserInfo{
-			UserID:   claims.UserID,
-			Username: claims.Username,
-		}
+			// Add user information to the request context
+			userInfo := UserInfo{
+				UserID:   claims.UserID,
+				Username: claims.Username,
+			}
 
-		ctx := context.WithValue(r.Context(), AuthUserCtxKey{}, userInfo)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+			ctx := context.WithValue(r.Context(), AuthUserCtxKey{}, userInfo)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }
 
 // GetUserFromContext extracts the UserInfo from the request context
