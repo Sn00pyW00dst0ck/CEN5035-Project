@@ -7,7 +7,7 @@ import {
   Box
 } from '@mui/material';
 
-function Login({ onLogin }) {
+function Login({ onLogin, onRegisterClick }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -66,7 +66,10 @@ function Login({ onLogin }) {
           Sign In
         </Button>
         <Typography variant="body2" align="center">
-          Don't have an account? Register
+          Don't have an account? 
+          <Button variant="text" size="small" onClick={onRegisterClick}>
+            Register
+          </Button>
         </Typography>
       </Paper>
     </Box>
