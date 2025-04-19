@@ -76,7 +76,7 @@ paths:
                   type: string
                 signature:
                   type: string
-                  format: byte
+                  formata: base64
       responses:
         '200':
           description: Token issued
@@ -679,7 +679,6 @@ components:
           format: base64
         pubkey:
           type: string
-          format: byte # base64-encoded PEM
       required: 
         - id
         - username

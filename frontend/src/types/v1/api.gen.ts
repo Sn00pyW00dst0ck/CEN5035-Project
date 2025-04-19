@@ -841,7 +841,6 @@ export interface components {
             username: string;
             /** Format: base64 */
             profile_pic: string;
-            /** Format: byte */
             pubkey: string;
         };
         /** @description A group chat/server of users. */
@@ -1046,7 +1045,6 @@ export interface operations {
             content: {
                 "application/json": {
                     username?: string;
-                    /** Format: byte */
                     signature?: string;
                 };
             };

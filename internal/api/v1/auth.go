@@ -27,8 +27,6 @@ type LoginRequest struct {
 
 // GetChallenge handler for the challenge endpoint
 func (s *SectorAPI) GetChallenge(w http.ResponseWriter, r *http.Request, params GetChallengeParams) {
-	fmt.Println("MAKING CHALLENGE")
-
 	username := params.Username
 	if username == "" {
 		http.Error(w, "Username is required", http.StatusBadRequest)
@@ -48,7 +46,6 @@ func (s *SectorAPI) GetChallenge(w http.ResponseWriter, r *http.Request, params 
 
 	if len(accounts) == 0 {
 		http.Error(w, "User not found", http.StatusNotFound)
-		fmt.Println("HI")
 		return
 	}
 
@@ -146,6 +143,13 @@ func (s *SectorAPI) Login(w http.ResponseWriter, r *http.Request) {
 
 // verifySignature verifies that the signature is valid for the given challenge and public key
 func verifySignature(challenge, signatureBase64, publicKeyPEM string) bool {
+	// Decode the challenge
+	challengeBytes, err := base64.StdEncoding.DecodeString(challenge)
+	if err != nil {
+		fmt.Println("Error decoding challenge:", err)
+		return false
+	}
+
 	// Decode the signature
 	signatureBytes, err := base64.StdEncoding.DecodeString(signatureBase64)
 	if err != nil {
@@ -173,7 +177,7 @@ func verifySignature(challenge, signatureBase64, publicKeyPEM string) bool {
 	}
 
 	// Create hash of the challenge
-	hashed := sha256.Sum256([]byte(challenge))
+	hashed := sha256.Sum256(challengeBytes)
 
 	// Verify the signature
 	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, hashed[:], signatureBytes)
