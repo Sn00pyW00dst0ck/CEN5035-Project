@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"Sector/internal/config"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -14,8 +16,6 @@ import (
 const (
 	// TokenExpiry is the default token expiration time
 	TokenExpiry = time.Hour * 24
-	// Secret key used for signing tokens - in production this should be loaded from environment variables or secure storage
-	jwtSigningKey = "your-secret-signing-key-change-in-production"
 )
 
 // Claims defines the custom claims for the JWT token
@@ -32,6 +32,7 @@ func GenerateChallenge() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	fmt.Println(config.GetEnv("JWT_SECRET", "fallback"))
 	return base64.StdEncoding.EncodeToString(b), nil
 }
 
@@ -49,7 +50,7 @@ func GenerateToken(userID, username string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(jwtSigningKey))
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
 		return "", err
 	}
@@ -60,12 +61,11 @@ func GenerateToken(userID, username string) (string, error) {
 // ValidateToken validates a JWT token and returns the claims if valid
 func ValidateToken(tokenString string) (*Claims, error) {
 	claims := &Claims{}
-
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(jwtSigningKey), nil
+		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
 	if err != nil {

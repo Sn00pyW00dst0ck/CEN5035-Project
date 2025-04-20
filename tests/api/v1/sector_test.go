@@ -3,6 +3,7 @@ package v1Test
 import (
 	"Sector/internal/api"
 	v1 "Sector/internal/api/v1"
+	"Sector/internal/config"
 	"Sector/internal/database"
 	"context"
 	"encoding/json"
@@ -23,6 +24,8 @@ import (
 // initializing the API server, and setting up HTTP test server.
 // Returns the HTTP test server, API instance, and a cleanup function.
 func setupSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, func(t *testing.T)) {
+	config.LoadEnv()
+
 	tmpDir, clean := database.TestingTempDir(t, "sectordb_cache_test")
 
 	router := mux.NewRouter().StrictSlash(true)

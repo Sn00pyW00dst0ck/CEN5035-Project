@@ -23,6 +23,10 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
 // Account User Account Details.
 type Account struct {
 	CreatedAt  *time.Time         `json:"created_at,omitempty"`
@@ -3669,6 +3673,8 @@ type MiddlewareFunc func(http.Handler) http.Handler
 func (siw *ServerInterfaceWrapper) GetRoot(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetRoot(w, r)
 	}))
@@ -3684,6 +3690,8 @@ func (siw *ServerInterfaceWrapper) GetRoot(w http.ResponseWriter, r *http.Reques
 func (siw *ServerInterfaceWrapper) PutAccount(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PutAccount(w, r)
 	}))
@@ -3698,6 +3706,8 @@ func (siw *ServerInterfaceWrapper) PutAccount(w http.ResponseWriter, r *http.Req
 // SearchAccounts operation middleware
 func (siw *ServerInterfaceWrapper) SearchAccounts(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchAccounts(w, r)
@@ -3725,6 +3735,8 @@ func (siw *ServerInterfaceWrapper) DeleteAccountByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteAccountByID(w, r, id)
 	}))
@@ -3751,6 +3763,8 @@ func (siw *ServerInterfaceWrapper) GetAccountByID(w http.ResponseWriter, r *http
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetAccountByID(w, r, id)
 	}))
@@ -3776,6 +3790,8 @@ func (siw *ServerInterfaceWrapper) UpdateAccountByID(w http.ResponseWriter, r *h
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateAccountByID(w, r, id)
@@ -3827,6 +3843,8 @@ func (siw *ServerInterfaceWrapper) GetChallenge(w http.ResponseWriter, r *http.R
 func (siw *ServerInterfaceWrapper) SearchChannels(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchChannels(w, r)
 	}))
@@ -3842,6 +3860,8 @@ func (siw *ServerInterfaceWrapper) SearchChannels(w http.ResponseWriter, r *http
 func (siw *ServerInterfaceWrapper) PutGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PutGroup(w, r)
 	}))
@@ -3856,6 +3876,8 @@ func (siw *ServerInterfaceWrapper) PutGroup(w http.ResponseWriter, r *http.Reque
 // SearchGroups operation middleware
 func (siw *ServerInterfaceWrapper) SearchGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchGroups(w, r)
@@ -3883,6 +3905,8 @@ func (siw *ServerInterfaceWrapper) DeleteGroupByID(w http.ResponseWriter, r *htt
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteGroupByID(w, r, groupId)
 	}))
@@ -3908,6 +3932,8 @@ func (siw *ServerInterfaceWrapper) GetGroupByID(w http.ResponseWriter, r *http.R
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetGroupByID(w, r, groupId)
@@ -3935,6 +3961,8 @@ func (siw *ServerInterfaceWrapper) UpdateGroupByID(w http.ResponseWriter, r *htt
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateGroupByID(w, r, groupId)
 	}))
@@ -3960,6 +3988,8 @@ func (siw *ServerInterfaceWrapper) PutChannel(w http.ResponseWriter, r *http.Req
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PutChannel(w, r, groupId)
@@ -3996,6 +4026,8 @@ func (siw *ServerInterfaceWrapper) DeleteChannelByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteChannelByID(w, r, groupId, channelId)
 	}))
@@ -4030,6 +4062,8 @@ func (siw *ServerInterfaceWrapper) GetChannelByID(w http.ResponseWriter, r *http
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "channelId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetChannelByID(w, r, groupId, channelId)
@@ -4066,6 +4100,8 @@ func (siw *ServerInterfaceWrapper) UpdateChannelByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateChannelByID(w, r, groupId, channelId)
 	}))
@@ -4100,6 +4136,8 @@ func (siw *ServerInterfaceWrapper) PutMessage(w http.ResponseWriter, r *http.Req
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "channelId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PutMessage(w, r, groupId, channelId)
@@ -4145,6 +4183,8 @@ func (siw *ServerInterfaceWrapper) DeleteMessageByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteMessageByID(w, r, groupId, channelId, messageId)
 	}))
@@ -4188,6 +4228,8 @@ func (siw *ServerInterfaceWrapper) GetMessageByID(w http.ResponseWriter, r *http
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "messageId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetMessageByID(w, r, groupId, channelId, messageId)
@@ -4233,6 +4275,8 @@ func (siw *ServerInterfaceWrapper) UpdateMessageByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateMessageByID(w, r, groupId, channelId, messageId)
 	}))
@@ -4267,6 +4311,8 @@ func (siw *ServerInterfaceWrapper) RemoveGroupMember(w http.ResponseWriter, r *h
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.RemoveGroupMember(w, r, groupId, memberId)
@@ -4303,6 +4349,8 @@ func (siw *ServerInterfaceWrapper) AddGroupMember(w http.ResponseWriter, r *http
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AddGroupMember(w, r, groupId, memberId)
 	}))
@@ -4317,6 +4365,8 @@ func (siw *ServerInterfaceWrapper) AddGroupMember(w http.ResponseWriter, r *http
 // GetHealth operation middleware
 func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
@@ -4347,6 +4397,8 @@ func (siw *ServerInterfaceWrapper) Login(w http.ResponseWriter, r *http.Request)
 // SearchMessages operation middleware
 func (siw *ServerInterfaceWrapper) SearchMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchMessages(w, r)
@@ -4530,45 +4582,46 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"ded/9kxGAAA=",
+	"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",
+	"AP//Y2bvZt9GAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -34,3 +34,4 @@ frontend/dist
 log.txt
 log_test.txt
 test_db_cache/*
+.env

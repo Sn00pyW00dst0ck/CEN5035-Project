@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gorilla/mux"
 	oapimiddleware "github.com/oapi-codegen/nethttp-middleware"
 )
@@ -29,7 +30,6 @@ func AddV1SectorAPIToRouter(router *mux.Router, api *v1.SectorAPI) {
 
 	// Add middleware
 	router.Use(middleware.RequestLogger(api.Logger))
-	router.Use(middleware.JWTAuth())
 
 	// Serve the swagger.json file directly at /docs/swagger.json
 	router.HandleFunc("/v1/swagger.json", func(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +69,14 @@ func AddV1SectorAPIToRouter(router *mux.Router, api *v1.SectorAPI) {
 		BaseURL:    "/v1/api",
 		BaseRouter: router,
 		Middlewares: []v1.MiddlewareFunc{
-			oapimiddleware.OapiRequestValidator(swaggerV1),
+			oapimiddleware.OapiRequestValidatorWithOptions(
+				swaggerV1,
+				&oapimiddleware.Options{
+					Options: openapi3filter.Options{
+						AuthenticationFunc: middleware.NewAuthenticator(),
+					},
+				},
+			),
 		},
 	})
 }

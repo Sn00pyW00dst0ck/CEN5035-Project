@@ -3,6 +3,7 @@ package v1Test
 import (
 	"Sector/internal/api"
 	v1 "Sector/internal/api/v1"
+	"Sector/internal/config"
 	"Sector/internal/database"
 	"context"
 	"crypto"
@@ -15,9 +16,9 @@ import (
 
 	"encoding/pem"
 
-	//"net/http"
+	"net/http"
 	"net/http/httptest"
-	// "strings"
+
 	"testing"
 	"time"
 
@@ -27,7 +28,9 @@ import (
 )
 
 // setupAuthSuite sets up a test environment for authentication tests
-func setupAuthSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, *rsa.PrivateKey, func()) {
+func setupAuthSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, v1.Account, *rsa.PrivateKey, func()) {
+	config.LoadEnv()
+
 	// Create a test instance of the API
 	tmpDir, clean := database.TestingTempDir(t, "sectordb_auth_cache_test")
 
@@ -68,7 +71,7 @@ func setupAuthSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, *rsa.Private
 	_, err = testSectorAPI.DB.Store.Put(context.Background(), userData)
 	require.NoError(t, err)
 
-	return server, testSectorAPI, privateKey, func() {
+	return server, testSectorAPI, testUser, privateKey, func() {
 		testSectorAPI.DB.Disconnect()
 		server.Close()
 		clean()
@@ -77,7 +80,7 @@ func setupAuthSuite(t *testing.T) (*httptest.Server, *v1.SectorAPI, *rsa.Private
 
 func TestAuthenticationStandalone(t *testing.T) {
 	// Setup test environment
-	server, _, privateKey, cleanup := setupAuthSuite(t)
+	server, _, testAccount, privateKey, cleanup := setupAuthSuite(t)
 	defer cleanup()
 
 	testClient, err := v1.NewClientWithResponses(server.URL, v1.WithHTTPClient(server.Client()), v1.WithBaseURL(server.URL+"/v1/api"))
@@ -94,12 +97,12 @@ func TestAuthenticationStandalone(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 200, challengeResponse.StatusCode())
 
-		var result map[string]interface{}
-		err = json.Unmarshal(challengeResponse.Body, &result)
+		var challengeResponseJson map[string]interface{}
+		err = json.Unmarshal(challengeResponse.Body, &challengeResponseJson)
 		require.NoError(t, err)
 
 		// Step 2: Sign the challenge
-		decoded, err := base64.StdEncoding.DecodeString(result["challenge"].(string))
+		decoded, err := base64.StdEncoding.DecodeString(challengeResponseJson["challenge"].(string))
 		require.NoError(t, err)
 		hashed := sha256.Sum256(decoded)
 		signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, hashed[:])
@@ -117,50 +120,32 @@ func TestAuthenticationStandalone(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 200, loginResponse.StatusCode())
 
-		/*
-			// Step 3: Login with signature
+		var loginResponseJson map[string]interface{}
+		err = json.Unmarshal(loginResponse.Body, &loginResponseJson)
+		require.NoError(t, err)
 
-			require.Equal(t, http.StatusOK, loginResp.StatusCode, "Should return 200 OK for successful login")
+		// Step 4: Test accessing a protected endpoint with JWT Token
+		authorizedReq, err := testClient.GetAccountByIDWithResponse(context.Background(), testAccount.Id, func(ctx context.Context, req *http.Request) error {
+			req.Header.Set("Authorization", "Bearer "+loginResponseJson["token"].(string))
+			return nil
+		})
+		require.NoError(t, err)
+		require.Equal(t, 200, authorizedReq.StatusCode())
 
-			var tokenResp map[string]string
-			err = json.NewDecoder(loginResp.Body).Decode(&tokenResp)
-			require.NoError(t, err)
-			require.Contains(t, tokenResp, "token", "Response should contain a token")
+		// Step 5: Test accessing a protected endpoint without JWT Token
+		unauthorizedReq, err := testClient.GetAccountByIDWithResponse(context.Background(), testAccount.Id, func(ctx context.Context, req *http.Request) error {
+			req.Header.Set("Authorization", "")
+			return nil
+		})
+		require.NoError(t, err)
+		require.Equal(t, 401, unauthorizedReq.StatusCode())
 
-			token := tokenResp["token"]
-			require.NotEmpty(t, token, "Token should not be empty")
-
-			// Step 4: Test accessing a protected endpoint
-			protectedReq, err := http.NewRequest("GET", server.URL+"/v1/api/account/"+testUser.Id.String(), nil)
-			require.NoError(t, err)
-			protectedReq.Header.Set("Authorization", "Bearer "+token)
-
-			protectedResp, err := http.DefaultClient.Do(protectedReq)
-			require.NoError(t, err)
-			defer protectedResp.Body.Close()
-
-			require.Equal(t, http.StatusOK, protectedResp.StatusCode, "Should allow access to protected endpoint with valid token")
-
-			// Step 5: Test accessing without token
-			unauthorizedReq, err := http.NewRequest("GET", server.URL+"/v1/api/account/"+testUser.Id.String(), nil)
-			require.NoError(t, err)
-
-			unauthorizedResp, err := http.DefaultClient.Do(unauthorizedReq)
-			require.NoError(t, err)
-			defer unauthorizedResp.Body.Close()
-
-			require.Equal(t, http.StatusUnauthorized, unauthorizedResp.StatusCode, "Should deny access without token")
-
-			// Step 6: Test with invalid token
-			invalidTokenReq, err := http.NewRequest("GET", server.URL+"/v1/api/account/"+testUser.Id.String(), nil)
-			require.NoError(t, err)
-			invalidTokenReq.Header.Set("Authorization", "Bearer invalidtoken")
-
-			invalidTokenResp, err := http.DefaultClient.Do(invalidTokenReq)
-			require.NoError(t, err)
-			defer invalidTokenResp.Body.Close()
-
-			require.Equal(t, http.StatusUnauthorized, invalidTokenResp.StatusCode, "Should deny access with invalid token")
-		*/
+		// Step 6: Test accessing a protected endpoint with an invalid JWT Token
+		maliciousReq, err := testClient.GetAccountByIDWithResponse(context.Background(), testAccount.Id, func(ctx context.Context, req *http.Request) error {
+			req.Header.Set("Authorization", "Bearer INVALID_TOKEN")
+			return nil
+		})
+		require.NoError(t, err)
+		require.Equal(t, 401, maliciousReq.StatusCode())
 	})
 }

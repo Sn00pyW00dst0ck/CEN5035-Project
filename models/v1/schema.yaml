@@ -40,6 +40,7 @@ paths:
       summary: Get login challenge
       tags: 
         - Authentication
+      security: []
       operationId: GetChallenge
       parameters:
         - in: query
@@ -64,6 +65,7 @@ paths:
       summary: Login using signed challenge
       tags: 
         - Authentication
+      security: []
       operationId: Login
       requestBody:
         required: true
@@ -903,3 +905,12 @@ components:
           type: boolean
         body: 
           type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: [ ]
