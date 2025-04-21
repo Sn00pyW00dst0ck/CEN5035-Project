@@ -1,6 +1,6 @@
 # Sector
 
-A peer-to-peer end-to-end encrypted communication application
+A peer-to-peer communication application
 
 **Team Members:** 
 - Chase Hap - Frontend Engineer
@@ -17,8 +17,6 @@ Numerous communication platforms currently exist to allow groups to communicate 
 Sector is a cross-platform desktop application built with Go and React that tackles the privacy concerns of modern messaging platforms. By leveraging peer-to-peer technologies and end-to-end encryption, Sector ensures that your conversations remain private and are stored only on the devices of the participants. The application provides a user-friendly interface for creating group chats, adding channels within those groups, and communicating securely with other users.
 
 ## Key Features
-
-End-to-end encryption: All messages are encrypted, ensuring only the intended recipients can read them
 
 Decentralized architecture: No central server storing your messages or metadata
 
@@ -72,7 +70,7 @@ Version Control: Git/GitHub
 
 ## Installation and Setup
 
-# Frontend Setup
+### Frontend Setup
 
 Install Node.js and npm:
 
@@ -95,8 +93,6 @@ Install Vite for development and building:
 npm install -D vite @vitejs/plugin-react
 ```
 Install React and related dependencies:
-
-Install other dependencies:
 ```
 npm install
 
@@ -112,9 +108,9 @@ npm install -D cypress @cypress/react
 ```
 Install Material UI components:
 ```
-npm install @mui/material @emotion/react @emotion/styled @mui/icons-materi
+npm install @mui/material @emotion/react @emotion/styled @mui/icons-material
 ```
-# Frontend Development
+### Frontend Development
 
 Navigate to the frontend directory:
 ```
@@ -128,6 +124,14 @@ Open your browser and navigate to:
 ```
 http://localhost:5173/
 ```
+For running tests during development:
+```
+cd src/test
+npm run test
+```
+
+
+
 ### Live Development
 
 To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
