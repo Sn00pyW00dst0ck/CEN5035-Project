@@ -42,7 +42,7 @@ export const UserProvider = ({ children }) => {
 
     async function FetchChannels() {
 
-        if(activeGroup == null){
+        if(activeGroup === null || activeGroup.id === ''){
             return;
         }
 
@@ -148,6 +148,42 @@ export const UserProvider = ({ children }) => {
         }
     }
 
+    async function SendMessage(message){
+
+        console.log("Active group: " + activeGroup.id);
+
+        if(activeGroup.id == null)
+            return;
+
+        if(activeChannel.id == null)
+            return;
+
+        try {
+            const response = await fetch("http://localhost:3000/v1/api/group/" + activeGroup.id + "/channel/" + activeChannel.id + "/message", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    author:user.id,
+                    body: message,
+                    channel:activeChannel.id,
+                    id:crypto.randomUUID(),
+                    pinned:false
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const jsonData = await response.json();
+
+            await FetchChannels();
+
+        } catch (error) {
+            console.error("Error:", error.message);
+        }
+    }
+
     useEffect(() => {
 
         FetchChannels();
@@ -167,7 +203,7 @@ export const UserProvider = ({ children }) => {
     }, [activeChannel])
 
     return (
-        <UserContext.Provider value={{ user, setUser, groupList, activeGroup, channelList, setActiveGroup, activeChannel, setActiveChannel, messages, CreateGroup, CreateChannel}}>
+        <UserContext.Provider value={{ user, setUser, groupList, activeGroup, channelList, setActiveGroup, activeChannel, setActiveChannel, messages, CreateGroup, CreateChannel, SendMessage}}>
             {children}
         </UserContext.Provider>
     );

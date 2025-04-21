@@ -3,6 +3,7 @@ import {Paper, TextField} from "@mui/material";
 import "./ActiveServer.css";
 import MenuBar from "./MenuBar/MenuBar.jsx";
 import {useUser} from "../../../UserContext.jsx";
+import Search from "../../../CommonComponents/Search/Search.jsx";
 
 function ActiveServer({
                           setVisible/*,
@@ -16,13 +17,23 @@ function ActiveServer({
 
     const [messageInput, setMessageInput] = useState('');
 
-    const handleSendMessage = useCallback(() => {
-        if (messageInput.trim() && serverContext.activeGroup && serverContext.activeChannel) {
+    const handleUpdateMessage = useCallback((value) => {
+        setMessageInput(value);
+    }, []);
+
+    function handleSendMessage() {
+
+        console.log("Send message clicked.");
+        console.log('Sending message:', messageInput);
+
+        if (messageInput !== "" && serverContext.activeGroup && serverContext.activeChannel) {
             // In a real app, this would send to backend
-            console.log('Sending message:', messageInput);
+
+            serverContext.SendMessage(messageInput);
             setMessageInput('');
+
         }
-    }, [messageInput, serverContext.activeGroup, serverContext.activeChannel]);
+    }
 
     // Render nothing if no server selected
     if (!serverContext.activeGroup) {
@@ -82,6 +93,8 @@ function ActiveServer({
                 }}
                 className="text"
             >
+                <Search onChange={handleUpdateMessage} label = "Message"/>
+
                 <TextField
                     sx={{
                         width: "100%",
