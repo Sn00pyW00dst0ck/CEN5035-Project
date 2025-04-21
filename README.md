@@ -31,7 +31,9 @@ Numerous communication platforms currently exist to allow groups to communicate 
 
 ## Usage
 
-Clone this repository, then to build a redistributable, production mode package, utilize `./generate.sh` then `wails build` within your terminal. You will also need to ensure that Kubo version 0.27.0 is installed on your system!
+Clone this repository. Create a copy of the `sample.env` file named `.env` and change the JWT secret to a private one.
+
+Then to build a redistributable, production mode package, utilize `./generate.sh` then `wails build` within your terminal. You will also need to ensure that Kubo version 0.27.0 is installed on your system!
 
 Then, you can run the executable file/bundle which was generated and the application should open in a desktop window.
 
@@ -43,7 +45,7 @@ Then, you can run the executable file/bundle which was generated and the applica
 
 ## Development Setup
 
-1.  Follow the `kubo` installation instructions for your operating system. Kubo version 0.27.0 must be used!
+1.  Follow the `Kubo` installation instructions for your operating system. Kubo version 0.27.0 must be used!
 
     If you haven't used IPFS so far, initialize the IPFS repository     using the following command:
     ```
@@ -100,7 +102,9 @@ npm run test
 
 ### Backend Setup
 
-Ensure Kubo v0.27.0 is installed and that Go version 1.23.4 or later is installed on your system. 
+Ensure Kubo v0.27.0 is installed and that Go version 1.23.4 or later is installed on your system.
+ 
+Create a copy of the `sample.env` file named `.env` and change the JWT secret to a private one.
 
 Install the dependencies listed within the `go.mod` file and then run the project.
 
