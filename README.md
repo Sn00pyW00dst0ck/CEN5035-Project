@@ -59,7 +59,7 @@ Then, you can run the executable file/bundle which was generated and the applica
 2. Follow the [wails](https://wails.io/) installation instructions for your operating system! 
 
 > [!Warning]
-> Ensure that kubo version 0.27.0 is utilized, otherwise you may need to install migration tooling to run the databse.
+> Ensure that Kubo version 0.27.0 is utilized, otherwise you may need to install migration tooling to run the databse.
 
 ### Frontend Setup
 
