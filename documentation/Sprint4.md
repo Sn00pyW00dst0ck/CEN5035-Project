@@ -262,5 +262,7 @@ go test -p 1 ./...
 # Backend API Documentation
 
 The following API documentation is **auto-generated** using **Swagger UI** for this project, which is hosted by the server.
-A PDF printout of the Swagger UI has been inserted into the repository. Please view it here: [Swagger UI - 4.pdf](Swagger%20UI.pdf)
+
+A PDF printout of the Swagger UI has been inserted into the repository. Please view it here: [Swagger UI Documentation (PDF)](documentation/Swagger%20UI%20-%204.pdf)
+
 
