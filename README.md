@@ -37,9 +37,9 @@ Then, you can run the executable file/bundle which was generated and the applica
 
 ## Technology Stack
 
-<center>
+<div align="center">
 <img src="https://github-readme-tech-stack.vercel.app/api/cards?title=Sector+Tech+Stack&align=center&titleAlign=center&lineCount=2&line1=react%2Creact%2C61DAFB%3Bgo%2Cgo%2C00ADD8%3Bvite%2Cvite%2C646CFF%3Bipfs%2Cipfs%2C65C2CB%3B&line2=cypress%2Ccypress%2C69D3A7%3Bgithub%2Cgithub%2C181717%3Bgit%2Cgit%2CF05032%3Bvitest%2Cvitest%2C6E9F18%3B" alt="Sector Tech Stack" />
-</center>
+</div>
 
 ## Development Setup
 
