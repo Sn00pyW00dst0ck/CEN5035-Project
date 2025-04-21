@@ -70,6 +70,66 @@ API Documentation: Swagger UI
 
 Version Control: Git/GitHub
 
+## Installation and Setup
+
+# Frontend Setup
+
+Install Node.js and npm:
+
+For Linux/Mac
+
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+
+sudo apt-get install -y nodejs
+
+For Windows: Download from https://nodejs.org/ and run installer
+
+Navigate to the frontend directory:
+
+cd frontend
+
+Install dependencies:
+
+npm install
+
+Install Vite for development and building:
+
+npm install -D vite @vitejs/plugin-react
+
+Install React and related dependencies:
+
+Install other dependencies:
+
+npm install
+
+npm install react react-dom
+
+Install Vitest for unit testing:
+
+npm install -D vitest jsdom @testing-library/react @testing-library/jes
+
+Install Cypress for end-to-end and component testing:
+
+npm install -D cypress @cypress/react
+
+Install Material UI components:
+
+npm install @mui/material @emotion/react @emotion/styled @mui/icons-materi
+
+# Frontend Development
+
+Navigate to the frontend directory:
+
+cd frontend
+
+Start the development server:
+
+npm run dev
+
+Open your browser and navigate to:
+
+http://localhost:5173/
+
 ### Live Development
 
 To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
