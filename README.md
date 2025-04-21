@@ -4,6 +4,17 @@
 [![Issues][issues-shield]][issues-url]
 [![project_license][license-shield]][license-url]
 
+[contributors-shield]: https://img.shields.io/github/contributors/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[contributors-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[forks-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/network/members
+[stars-shield]: https://img.shields.io/github/stars/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[stars-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[issues-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues
+[license-shield]: https://img.shields.io/github/license/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[license-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/blob/master/LICENSE.txt
+
 # Sector
 
 Numerous communication platforms currently exist to allow groups to communicate effectively and rapidly. Being that they often rely upon centralized servers to store and transmit user messages, they require great funding. Many of these platforms decide to gain this funding by selling user data/analytics. Our solution ***Sector*** proposes the implementation of p2p technologies to provide users with a solution in which no user data is stored anywhere except on user devices. With this solution, users will be able to create group chats in which all members contain a complete record of all messages.
@@ -182,14 +193,3 @@ To build a redistributable, production mode package, use `wails build`.
 - Created a comprehensive test suite for authentication, account, group, channel, and message management.
 - Updated API documentation with detailed endpoint descriptions.
 
-
-[contributors-shield]: https://img.shields.io/github/contributors/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
-[contributors-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
-[forks-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/network/members
-[stars-shield]: https://img.shields.io/github/stars/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
-[stars-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/stargazers
-[issues-shield]: https://img.shields.io/github/issues/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
-[issues-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues
-[license-shield]: https://img.shields.io/github/license/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
-[license-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/blob/master/LICENSE.txt
