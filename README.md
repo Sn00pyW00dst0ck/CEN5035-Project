@@ -54,6 +54,21 @@ If you had used IPFS an already have an IPFS repository in place, either (re)mov
 export IPFS_PATH=~/.ipfs-sector
 ipfs init
 ```
+## Techonology Stack
+
+Backend: Go (Golang) for server-side development
+
+Frontend: React with Material UI for building the user interface
+
+Database: IPFS (InterPlanetary File System) with OrbitDB for distributed data storage
+
+Framework: Wails for cross-platform desktop application development
+
+Testing: Go testing framework, Vitest for React components, Cypress for E2E testing
+
+API Documentation: Swagger UI
+
+Version Control: Git/GitHub
 
 ### Live Development
 
