@@ -195,6 +195,9 @@ To build a redistributable, production mode package, use `wails build`.
 - Created a comprehensive test suite for authentication, account, group, channel, and message management.
 - Updated API documentation with detailed endpoint descriptions.
 
+### Project Flow
+
+
 ``` mermaid
 graph TD
     %% Main Application Flow
