@@ -19,12 +19,19 @@ Sector is a cross-platform desktop application built with Go and React that tack
 ## Key Features
 
 End-to-end encryption: All messages are encrypted, ensuring only the intended recipients can read them
+
 Decentralized architecture: No central server storing your messages or metadata
+
 Group chat functionality: Create and manage group conversations with multiple users
+
 Channel organization: Structure conversations by topic within groups
+
 Server handling: Create new servers or join existing servers.
+
 Cross-platform support: Available as a desktop application for Windows, macOS, and Linux
+
 User profiles: Customize your profile with username, status, and profile picture
+
 Message pinning: Pin important messages for easy reference
 
 ## Development Setup
