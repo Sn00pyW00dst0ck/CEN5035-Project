@@ -408,6 +408,7 @@ func searchItem(store orbitdb.DocumentStore, t reflect.Type, filter map[string]i
 			return false, nil
 		}
 
+
 		// Apply filters and discard 'entry' if not a match
 		for key, value := range filter {
 			entryKey := key

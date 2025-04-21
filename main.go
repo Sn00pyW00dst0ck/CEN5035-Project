@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Sector/internal/config"
 	"embed"
 
 	"github.com/wailsapp/wails/v2"
@@ -11,6 +12,8 @@ import (
 var assets embed.FS
 
 func main() {
+	config.LoadEnv()
+
 	// Create an instance of the app structure
 	app := NewApp()
 

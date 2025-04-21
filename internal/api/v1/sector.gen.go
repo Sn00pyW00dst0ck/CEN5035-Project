@@ -23,11 +23,16 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
 // Account User Account Details.
 type Account struct {
 	CreatedAt  *time.Time         `json:"created_at,omitempty"`
 	Id         openapi_types.UUID `json:"id"`
 	ProfilePic string             `json:"profile_pic"`
+	Pubkey     string             `json:"pubkey"`
 	Username   string             `json:"username"`
 }
 
@@ -127,6 +132,17 @@ type MessageUpdate struct {
 	Pinned *bool   `json:"pinned,omitempty"`
 }
 
+// GetChallengeParams defines parameters for GetChallenge.
+type GetChallengeParams struct {
+	Username string `form:"username" json:"username"`
+}
+
+// LoginJSONBody defines parameters for Login.
+type LoginJSONBody struct {
+	Signature *string `json:"signature,omitempty"`
+	Username  *string `json:"username,omitempty"`
+}
+
 // PutAccountJSONRequestBody defines body for PutAccount for application/json ContentType.
 type PutAccountJSONRequestBody = Account
 
@@ -159,6 +175,9 @@ type PutMessageJSONRequestBody = Message
 
 // UpdateMessageByIDJSONRequestBody defines body for UpdateMessageByID for application/json ContentType.
 type UpdateMessageByIDJSONRequestBody = MessageUpdate
+
+// LoginJSONRequestBody defines body for Login for application/json ContentType.
+type LoginJSONRequestBody LoginJSONBody
 
 // SearchMessagesJSONRequestBody defines body for SearchMessages for application/json ContentType.
 type SearchMessagesJSONRequestBody = MessageFilter
@@ -260,6 +279,9 @@ type ClientInterface interface {
 
 	UpdateAccountByID(ctx context.Context, id openapi_types.UUID, body UpdateAccountByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetChallenge request
+	GetChallenge(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SearchChannelsWithBody request with any body
 	SearchChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -326,6 +348,11 @@ type ClientInterface interface {
 
 	// GetHealth request
 	GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LoginWithBody request with any body
+	LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// SearchMessagesWithBody request with any body
 	SearchMessagesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -431,6 +458,18 @@ func (c *Client) UpdateAccountByIDWithBody(ctx context.Context, id openapi_types
 
 func (c *Client) UpdateAccountByID(ctx context.Context, id openapi_types.UUID, body UpdateAccountByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateAccountByIDRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetChallenge(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetChallengeRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -741,6 +780,30 @@ func (c *Client) GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (
 	return c.Client.Do(req)
 }
 
+func (c *Client) LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoginRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoginRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) SearchMessagesWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSearchMessagesRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -983,6 +1046,51 @@ func NewUpdateAccountByIDRequestWithBody(server string, id openapi_types.UUID, c
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetChallengeRequest generates requests for GetChallenge
+func NewGetChallengeRequest(server string, params *GetChallengeParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/challenge")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "username", runtime.ParamLocationQuery, params.Username); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -1725,6 +1833,46 @@ func NewGetHealthRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewLoginRequest calls the generic Login builder with application/json body
+func NewLoginRequest(server string, body LoginJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewLoginRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewLoginRequestWithBody generates requests for Login with any type of body
+func NewLoginRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/login")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewSearchMessagesRequest calls the generic SearchMessages builder with application/json body
 func NewSearchMessagesRequest(server string, body SearchMessagesJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -1832,6 +1980,9 @@ type ClientWithResponsesInterface interface {
 
 	UpdateAccountByIDWithResponse(ctx context.Context, id openapi_types.UUID, body UpdateAccountByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAccountByIDResponse, error)
 
+	// GetChallengeWithResponse request
+	GetChallengeWithResponse(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*GetChallengeResponse, error)
+
 	// SearchChannelsWithBodyWithResponse request with any body
 	SearchChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SearchChannelsResponse, error)
 
@@ -1898,6 +2049,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetHealthWithResponse request
 	GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error)
+
+	// LoginWithBodyWithResponse request with any body
+	LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error)
+
+	LoginWithResponse(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginResponse, error)
 
 	// SearchMessagesWithBodyWithResponse request with any body
 	SearchMessagesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SearchMessagesResponse, error)
@@ -2030,6 +2186,30 @@ func (r UpdateAccountByIDResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateAccountByIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetChallengeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Challenge *string `json:"challenge,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetChallengeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetChallengeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2404,6 +2584,30 @@ func (r GetHealthResponse) StatusCode() int {
 	return 0
 }
 
+type LoginResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Token *string `json:"token,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r LoginResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoginResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SearchMessagesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -2502,6 +2706,15 @@ func (c *ClientWithResponses) UpdateAccountByIDWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseUpdateAccountByIDResponse(rsp)
+}
+
+// GetChallengeWithResponse request returning *GetChallengeResponse
+func (c *ClientWithResponses) GetChallengeWithResponse(ctx context.Context, params *GetChallengeParams, reqEditors ...RequestEditorFn) (*GetChallengeResponse, error) {
+	rsp, err := c.GetChallenge(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetChallengeResponse(rsp)
 }
 
 // SearchChannelsWithBodyWithResponse request with arbitrary body returning *SearchChannelsResponse
@@ -2721,6 +2934,23 @@ func (c *ClientWithResponses) GetHealthWithResponse(ctx context.Context, reqEdit
 	return ParseGetHealthResponse(rsp)
 }
 
+// LoginWithBodyWithResponse request with arbitrary body returning *LoginResponse
+func (c *ClientWithResponses) LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginResponse, error) {
+	rsp, err := c.LoginWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoginResponse(rsp)
+}
+
+func (c *ClientWithResponses) LoginWithResponse(ctx context.Context, body LoginJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginResponse, error) {
+	rsp, err := c.Login(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoginResponse(rsp)
+}
+
 // SearchMessagesWithBodyWithResponse request with arbitrary body returning *SearchMessagesResponse
 func (c *ClientWithResponses) SearchMessagesWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SearchMessagesResponse, error) {
 	rsp, err := c.SearchMessagesWithBody(ctx, contentType, body, reqEditors...)
@@ -2874,6 +3104,34 @@ func ParseUpdateAccountByIDResponse(rsp *http.Response) (*UpdateAccountByIDRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Account
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetChallengeResponse parses an HTTP response from a GetChallengeWithResponse call
+func ParseGetChallengeResponse(rsp *http.Response) (*GetChallengeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetChallengeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Challenge *string `json:"challenge,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3266,6 +3524,34 @@ func ParseGetHealthResponse(rsp *http.Response) (*GetHealthResponse, error) {
 	return response, nil
 }
 
+// ParseLoginResponse parses an HTTP response from a LoginWithResponse call
+func ParseLoginResponse(rsp *http.Response) (*LoginResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoginResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Token *string `json:"token,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseSearchMessagesResponse parses an HTTP response from a SearchMessagesWithResponse call
 func ParseSearchMessagesResponse(rsp *http.Response) (*SearchMessagesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -3312,6 +3598,9 @@ type ServerInterface interface {
 	// Update Account By ID
 	// (PUT /account/{id})
 	UpdateAccountByID(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Get login challenge
+	// (GET /challenge)
+	GetChallenge(w http.ResponseWriter, r *http.Request, params GetChallengeParams)
 	// Search for channels satisfying various properties.
 	// (POST /channel/search)
 	SearchChannels(w http.ResponseWriter, r *http.Request)
@@ -3363,6 +3652,9 @@ type ServerInterface interface {
 	// Health Check
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
+	// Login using signed challenge
+	// (POST /login)
+	Login(w http.ResponseWriter, r *http.Request)
 	// Search for messages satisfying various properties.
 	// (POST /message/search)
 	SearchMessages(w http.ResponseWriter, r *http.Request)
@@ -3381,6 +3673,8 @@ type MiddlewareFunc func(http.Handler) http.Handler
 func (siw *ServerInterfaceWrapper) GetRoot(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetRoot(w, r)
 	}))
@@ -3396,6 +3690,8 @@ func (siw *ServerInterfaceWrapper) GetRoot(w http.ResponseWriter, r *http.Reques
 func (siw *ServerInterfaceWrapper) PutAccount(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PutAccount(w, r)
 	}))
@@ -3410,6 +3706,8 @@ func (siw *ServerInterfaceWrapper) PutAccount(w http.ResponseWriter, r *http.Req
 // SearchAccounts operation middleware
 func (siw *ServerInterfaceWrapper) SearchAccounts(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchAccounts(w, r)
@@ -3437,6 +3735,8 @@ func (siw *ServerInterfaceWrapper) DeleteAccountByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteAccountByID(w, r, id)
 	}))
@@ -3462,6 +3762,8 @@ func (siw *ServerInterfaceWrapper) GetAccountByID(w http.ResponseWriter, r *http
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetAccountByID(w, r, id)
@@ -3489,8 +3791,45 @@ func (siw *ServerInterfaceWrapper) UpdateAccountByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateAccountByID(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// GetChallenge operation middleware
+func (siw *ServerInterfaceWrapper) GetChallenge(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetChallengeParams
+
+	// ------------- Required query parameter "username" -------------
+
+	if paramValue := r.URL.Query().Get("username"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "username"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "username", r.URL.Query(), &params.Username)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "username", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetChallenge(w, r, params)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -3503,6 +3842,8 @@ func (siw *ServerInterfaceWrapper) UpdateAccountByID(w http.ResponseWriter, r *h
 // SearchChannels operation middleware
 func (siw *ServerInterfaceWrapper) SearchChannels(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchChannels(w, r)
@@ -3519,6 +3860,8 @@ func (siw *ServerInterfaceWrapper) SearchChannels(w http.ResponseWriter, r *http
 func (siw *ServerInterfaceWrapper) PutGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PutGroup(w, r)
 	}))
@@ -3533,6 +3876,8 @@ func (siw *ServerInterfaceWrapper) PutGroup(w http.ResponseWriter, r *http.Reque
 // SearchGroups operation middleware
 func (siw *ServerInterfaceWrapper) SearchGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchGroups(w, r)
@@ -3560,6 +3905,8 @@ func (siw *ServerInterfaceWrapper) DeleteGroupByID(w http.ResponseWriter, r *htt
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteGroupByID(w, r, groupId)
 	}))
@@ -3585,6 +3932,8 @@ func (siw *ServerInterfaceWrapper) GetGroupByID(w http.ResponseWriter, r *http.R
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetGroupByID(w, r, groupId)
@@ -3612,6 +3961,8 @@ func (siw *ServerInterfaceWrapper) UpdateGroupByID(w http.ResponseWriter, r *htt
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateGroupByID(w, r, groupId)
 	}))
@@ -3637,6 +3988,8 @@ func (siw *ServerInterfaceWrapper) PutChannel(w http.ResponseWriter, r *http.Req
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PutChannel(w, r, groupId)
@@ -3673,6 +4026,8 @@ func (siw *ServerInterfaceWrapper) DeleteChannelByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteChannelByID(w, r, groupId, channelId)
 	}))
@@ -3707,6 +4062,8 @@ func (siw *ServerInterfaceWrapper) GetChannelByID(w http.ResponseWriter, r *http
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "channelId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetChannelByID(w, r, groupId, channelId)
@@ -3743,6 +4100,8 @@ func (siw *ServerInterfaceWrapper) UpdateChannelByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateChannelByID(w, r, groupId, channelId)
 	}))
@@ -3777,6 +4136,8 @@ func (siw *ServerInterfaceWrapper) PutMessage(w http.ResponseWriter, r *http.Req
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "channelId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PutMessage(w, r, groupId, channelId)
@@ -3822,6 +4183,8 @@ func (siw *ServerInterfaceWrapper) DeleteMessageByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteMessageByID(w, r, groupId, channelId, messageId)
 	}))
@@ -3865,6 +4228,8 @@ func (siw *ServerInterfaceWrapper) GetMessageByID(w http.ResponseWriter, r *http
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "messageId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetMessageByID(w, r, groupId, channelId, messageId)
@@ -3910,6 +4275,8 @@ func (siw *ServerInterfaceWrapper) UpdateMessageByID(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateMessageByID(w, r, groupId, channelId, messageId)
 	}))
@@ -3944,6 +4311,8 @@ func (siw *ServerInterfaceWrapper) RemoveGroupMember(w http.ResponseWriter, r *h
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
 		return
 	}
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.RemoveGroupMember(w, r, groupId, memberId)
@@ -3980,6 +4349,8 @@ func (siw *ServerInterfaceWrapper) AddGroupMember(w http.ResponseWriter, r *http
 		return
 	}
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AddGroupMember(w, r, groupId, memberId)
 	}))
@@ -3995,8 +4366,25 @@ func (siw *ServerInterfaceWrapper) AddGroupMember(w http.ResponseWriter, r *http
 func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// Login operation middleware
+func (siw *ServerInterfaceWrapper) Login(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Login(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -4009,6 +4397,8 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 // SearchMessages operation middleware
 func (siw *ServerInterfaceWrapper) SearchMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SearchMessages(w, r)
@@ -4146,6 +4536,8 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 
 	r.HandleFunc(options.BaseURL+"/account/{id}", wrapper.UpdateAccountByID).Methods("PUT")
 
+	r.HandleFunc(options.BaseURL+"/challenge", wrapper.GetChallenge).Methods("GET")
+
 	r.HandleFunc(options.BaseURL+"/channel/search", wrapper.SearchChannels).Methods("POST")
 
 	r.HandleFunc(options.BaseURL+"/group/", wrapper.PutGroup).Methods("POST")
@@ -4180,6 +4572,8 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 
 	r.HandleFunc(options.BaseURL+"/health", wrapper.GetHealth).Methods("GET")
 
+	r.HandleFunc(options.BaseURL+"/login", wrapper.Login).Methods("POST")
+
 	r.HandleFunc(options.BaseURL+"/message/search", wrapper.SearchMessages).Methods("POST")
 
 	return r
@@ -4188,42 +4582,46 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"AP//Y2bvZt9GAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
