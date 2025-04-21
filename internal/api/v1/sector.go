@@ -23,6 +23,10 @@ type SectorAPI struct {
 	DB     *database.Database
 }
 
+//#region Authentication API
+
+//#endregion Authentication API
+
 //#region Account API
 
 // SearchAccounts implements ServerInterface.
