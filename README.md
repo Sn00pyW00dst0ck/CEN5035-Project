@@ -195,3 +195,84 @@ To build a redistributable, production mode package, use `wails build`.
 - Created a comprehensive test suite for authentication, account, group, channel, and message management.
 - Updated API documentation with detailed endpoint descriptions.
 
+``` mermaid
+graph TD
+    %% Main Application Flow
+    A[User] -->|Opens Application| B[Login Screen]
+    B -->|Authentication| C[Main Interface]
+    
+    %% Authentication Flow
+    subgraph "Authentication"
+        AUTH1[Enter Username] -->|Request Challenge| AUTH2[GetChallenge API]
+        AUTH2 -->|Return Challenge| AUTH3[Sign Challenge with Private Key]
+        AUTH3 -->|Submit Signature| AUTH4[Login API]
+        AUTH4 -->|Verify Signature| AUTH5[Generate JWT Token]
+        AUTH5 -->|Return Token| AUTH6[Store Token for Requests]
+    end
+    
+    %% Main Interface Components
+    subgraph "Main Interface"
+        UI1[Server List] -->|Select Server| UI2[Channel List]
+        UI2 -->|Select Channel| UI3[Message Display]
+        UI1 -->|Create New Group| UI4[Group Creation Form]
+        UI2 -->|Create New Channel| UI5[Channel Creation Form]
+        UI3 -->|Send Message| UI6[Message Input]
+    end
+    
+    %% Backend API Structure
+    subgraph "Backend API"
+        API1[Account API] 
+        API2[Group API]
+        API3[Channel API]
+        API4[Message API]
+        API5[Authentication API]
+        
+        API1 -->|Create/Read/Update/Delete| DB1[OrbitDB/IPFS]
+        API2 -->|Create/Read/Update/Delete| DB1
+        API3 -->|Create/Read/Update/Delete| DB1
+        API4 -->|Create/Read/Update/Delete| DB1
+        API5 -->|Verify Authentication| API1
+    end
+    
+    %% Data Models
+    subgraph "Data Models"
+        MODEL1[Account]
+        MODEL2[Group]
+        MODEL3[Channel]
+        MODEL4[Message]
+        
+        MODEL2 -->|Contains| MODEL3
+        MODEL3 -->|Contains| MODEL4
+        MODEL4 -->|Author| MODEL1
+        MODEL2 -->|Members| MODEL1
+    end
+    
+    %% Backend Components
+    subgraph "Backend Architecture"
+        BACKEND1[HTTP Server] -->|Route Requests| BACKEND2[API Handlers]
+        BACKEND2 -->|Auth Check| BACKEND3[JWT Middleware]
+        BACKEND3 -->|Authorized| BACKEND4[Request Processing]
+        BACKEND4 -->|Database Operations| BACKEND5[OrbitDB Interface]
+        BACKEND5 -->|P2P Storage| BACKEND6[IPFS Node]
+    end
+    
+    %% Frontend-Backend Communication
+    UI1 -->|Get Groups| API2
+    UI2 -->|Get Channels| API3
+    UI3 -->|Get Messages| API4
+    UI4 -->|Create Group| API2
+    UI5 -->|Create Channel| API3
+    UI6 -->|Create Message| API4
+    
+    %% Authentication Connection
+    AUTH6 -->|Add Auth Header| UI1
+    AUTH6 -->|Add Auth Header| UI2
+    AUTH6 -->|Add Auth Header| UI3
+    AUTH6 -->|Add Auth Header| UI4
+    AUTH6 -->|Add Auth Header| UI5
+    AUTH6 -->|Add Auth Header| UI6
+    
+    %% Initial Flow
+    B -->|Successful Auth| C
+
+
