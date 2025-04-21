@@ -62,7 +62,8 @@ jobs:
       uses: cypress-io/github-action@v6
       with:
         build: npm run build
-        start: npm start # TODO: ADD THE PROPER COMMAND TO RUN THE CYPRESS TESTS HERE! 
+        start: npm run cypress:run
+        working-directory: frontend
 
   test-backend:
     runs-on: ubuntu-latest
