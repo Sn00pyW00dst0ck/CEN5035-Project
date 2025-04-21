@@ -5,7 +5,7 @@
 ### Integration with Backend Endpoints and Furthered Unit Testing
 
 #### Overview
-In Sprint 3, we focused primarily on continued integration with the backend. This includes logging in, fetching user groups, fetching group channels, and creating new group channels. We also addressed our lack of both unit and cypress tests to ensure that future changes will not inadvertently cause component failures. In addition, the following changes to the interface were made:
+In Sprint 4, we focused primarily on continued integration with the backend. This includes logging in, fetching user groups, fetching group channels, and creating new group channels. We also addressed our lack of both unit and cypress tests to ensure that future changes will not inadvertently cause component failures. In addition, the following changes to the interface were made:
 
 - Initial login screen rendering
 - Successful login with credentials
@@ -131,36 +131,6 @@ Holds the messages of a selected channel in addition to a menu bar and member li
   
 - **Session Management**:  
   Created comprehensive session handling with **token expiration** and **refresh capabilities**.
-
-## **Encryption**
-- **End-to-End Encryption Support**:  
-  Implemented backend support for **end-to-end encrypted messaging**.
-  
-- **Key Management**:  
-  Developed secure storage and retrieval mechanisms for user **public keys** used in message encryption.
-  
-- **Message Integrity**:  
-  Added verification mechanisms to ensure **message integrity** during transmission.
-
-## **Database Enhancements**
-- **Optimized Queries**:  
-  Improved **database query performance** for faster message and channel retrieval.
-  
-- **Data Consistency**:  
-  Enhanced **data consistency checks** during create, update, and delete operations.
-  
-- **Relationship Management**:  
-  Strengthened **relationship handling** between users, groups, channels, and messages.
-
-## **API Improvements**
-- **Standardized Responses**:  
-  Implemented **consistent API response formats** across all endpoints.
-  
-- **Error Handling**:  
-  Enhanced **error reporting** and handling for more informative client feedback.
-  
-- **Documentation**:  
-  Updated **API documentation** with comprehensive endpoint descriptions and example usage.
 
 ---
 
