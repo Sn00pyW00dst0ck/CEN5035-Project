@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import UserBadge from "../../UserBadge/UserBadge.jsx";
-import { List, Paper, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Button, Avatar, Select, MenuItem } from "@mui/material";
+import { List, Paper, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Button, Avatar, Select, MenuItem, Typography } from "@mui/material";
 import ServerBadge from "./ServerBadge/ServerBadge.jsx";
 import Search from "../../CommonComponents/Search/Search.jsx";
 import "./ServerList.css";
@@ -116,6 +116,112 @@ function ProfileEditModal({
   );
 }
 
+// New component for creating a server
+function CreateServerModal({
+  open,
+  onClose,
+  onCreateServer
+}) {
+  const [newServer, setNewServer] = useState({
+    name: '',
+    icon: 'public/vite.svg',
+    channels: ['General']
+  });
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result);
+        setNewServer(prev => ({ ...prev, icon: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleInputChange = (field, value) => {
+    setNewServer(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = () => {
+    if (newServer.name.trim()) {
+      // Generate a unique ID for the new server
+      const newServerWithId = {
+        ...newServer,
+        id: Date.now() // Simple ID generation for demo
+      };
+      
+      onCreateServer(newServerWithId);
+      // Reset form
+      setNewServer({
+        name: '',
+        icon: 'public/vite.svg',
+        channels: ['General']
+      });
+      setSelectedImage(null);
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Create New Server</DialogTitle>
+      <DialogContent>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '1rem',
+          marginTop: '1rem'
+        }}>
+          <input
+            accept="image/*"
+            style={{ display: 'none' }}
+            id="server-image-upload"
+            type="file"
+            onChange={handleImageChange}
+          />
+          <label htmlFor="server-image-upload">
+            <Avatar 
+              src={selectedImage || newServer.icon} 
+              sx={{ 
+                width: 100, 
+                height: 100, 
+                cursor: 'pointer' 
+              }} 
+            />
+          </label>
+          
+          <TextField
+            fullWidth
+            label="Server Name"
+            value={newServer.name}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+          />
+          
+          <div style={{ width: '100%' }}>
+            <Typography variant="body2" color="textSecondary">
+              A "General" channel will be created automatically.
+            </Typography>
+          </div>
+        </div>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button 
+          onClick={handleSubmit} 
+          color="primary"
+          disabled={!newServer.name.trim()}
+        >
+          Create Server
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function CustomUserBadge({ 
   user, 
   status, 
@@ -197,6 +303,7 @@ function ServerList({ servers, onServerSelect, onChannelSelect }) {
     showAddChannelForm: false,
     joinServerInput: "",
     isProfileEditOpen: false,
+    isCreateServerOpen: false,
     YourUser: {
       name: "Your Username",
       status: "online",
@@ -205,6 +312,16 @@ function ServerList({ servers, onServerSelect, onChannelSelect }) {
       about: "Hello! I'm using the app."
     }
   });
+
+  // Use separate state for the server list to avoid conflicts
+  const [localServers, setLocalServers] = useState([]);
+
+  // Initialize localServers from props
+  useEffect(() => {
+    if (servers && servers.length > 0) {
+      setLocalServers(servers);
+    }
+  }, []);
 
   const handleServerSearch = useCallback((event) => {
     setState(prev => ({ ...prev, query: event.target.value }));
@@ -242,10 +359,10 @@ function ServerList({ servers, onServerSelect, onChannelSelect }) {
   }, []);
 
   const filteredServers = useMemo(() => 
-    servers.filter((server) => 
+    localServers.filter((server) => 
       server.name.toLowerCase().includes(state.query.toLowerCase())
     ), 
-    [servers, state.query]
+    [localServers, state.query]
   );
 
   const searchServer = useCallback((event) => {
@@ -268,6 +385,13 @@ function ServerList({ servers, onServerSelect, onChannelSelect }) {
         channels: [...(state.selectedServer.channels || []), channelName]
       };
 
+      // Update the local servers list
+      setLocalServers(prev => 
+        prev.map(server => 
+          server.id === updatedServer.id ? updatedServer : server
+        )
+      );
+
       setState(prev => ({
         ...prev,
         selectedServer: updatedServer,
@@ -279,6 +403,15 @@ function ServerList({ servers, onServerSelect, onChannelSelect }) {
       onServerSelect(updatedServer);
     }
   }, [state.newChannelName, state.selectedServer, onServerSelect]);
+
+  const handleCreateServer = useCallback((newServer) => {
+    // Add the new server to the local list
+    const updatedServers = [...localServers, newServer];
+    setLocalServers(updatedServers);
+    
+    // Optionally select the new server
+    handleServerClick(newServer);
+  }, [localServers, handleServerClick]);
 
   const handleUpdateUser = useCallback((updatedUser) => {
     setState(prev => ({
@@ -316,7 +449,7 @@ function ServerList({ servers, onServerSelect, onChannelSelect }) {
             display: "flex", 
             flexDirection: "column", 
             width: "100%", 
-            height: "100%", 
+            flexGrow: 1,
             overflow: "auto"
           }}>
             <div id="serverBadgeHolder">
@@ -331,16 +464,27 @@ function ServerList({ servers, onServerSelect, onChannelSelect }) {
               ))}
             </div>
           </List>
-          <div className="joinServer">
-            <form onSubmit={searchServer}>
-              <input 
-                name="serverID" 
-                placeholder="Enter a Server ID" 
-                value={state.joinServerInput}
-                onChange={(e) => handleInputChange('joinServerInput', e.target.value)}
-              />
-              <button type="submit">Join</button>
-            </form>
+          <div className="serverControls" style={{ padding: '0.5rem' }}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              fullWidth
+              sx={{ marginBottom: '0.5rem' }}
+              onClick={() => handleInputChange('isCreateServerOpen', true)}
+            >
+              Create Server
+            </Button>
+            <div className="joinServer">
+              <form onSubmit={searchServer}>
+                <input 
+                  name="serverID" 
+                  placeholder="Enter a Server ID" 
+                  value={state.joinServerInput}
+                  onChange={(e) => handleInputChange('joinServerInput', e.target.value)}
+                />
+                <button type="submit">Join</button>
+              </form>
+            </div>
           </div>
         </Paper>
         
@@ -409,11 +553,19 @@ function ServerList({ servers, onServerSelect, onChannelSelect }) {
         )}
       </div>
 
+      {/* Profile Edit Modal */}
       <ProfileEditModal 
         open={state.isProfileEditOpen}
         onClose={() => handleInputChange('isProfileEditOpen', false)}
         user={state.YourUser}
         onUpdateUser={handleUpdateUser}
+      />
+
+      {/* Create Server Modal */}
+      <CreateServerModal
+        open={state.isCreateServerOpen}
+        onClose={() => handleInputChange('isCreateServerOpen', false)}
+        onCreateServer={handleCreateServer}
       />
     </ServerContext.Provider>
   );
