@@ -1,5 +1,7 @@
 # Sector
 
+A peer-to-peer end-to-end encrypted communication application
+
 **Team Members:** 
 - Chase Hap - Frontend Engineer
 - Abhignan Sai Arcot - Frontend Engineer
