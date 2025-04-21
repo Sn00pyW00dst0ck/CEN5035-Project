@@ -26,6 +26,7 @@ dist-ssr
 
 # Exclusions from wiails
 build/bin
+build/*
 node_modules
 frontend/dist
 
