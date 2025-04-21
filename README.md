@@ -195,6 +195,7 @@ To build a redistributable, production mode package, use `wails build`.
 - Created a comprehensive test suite for authentication, account, group, channel, and message management.
 - Updated API documentation with detailed endpoint descriptions.
 
+
 ```mermaid
 graph TD
     %% Main Application Flow
@@ -203,6 +204,7 @@ graph TD
 
     %% Authentication Flow
     subgraph Authentication
+        style Authentication fill:#f9f,stroke:#333,stroke-width:2px
         B1[Enter Username] -->|Request Challenge| B2[Backend: Generate Challenge]
         B2 -->|Return Challenge| B3[Client: Sign Challenge with Private Key]
         B3 -->|Submit Signature| B4[Backend: Verify Signature]
@@ -213,6 +215,7 @@ graph TD
 
     %% Main Interface Components
     subgraph MainInterface
+        style MainInterface fill:#e0f7fa,stroke:#333,stroke-width:2px
         C1[Server List] -->|Select Server| C2[Channel List]
         C2 -->|Select Channel| C3[Message Display]
         C3 -->|Send Message| C4[Message Encryption]
@@ -224,6 +227,7 @@ graph TD
 
     %% Backend Components
     subgraph Backend
+        style Backend fill:#fff3e0,stroke:#333,stroke-width:2px
         D1[HTTP API Server] -->|Process Requests| D2[Authentication Middleware]
         D2 -->|Validate JWT| D3[Request Handler]
         D3 -->|Database Operations| D4[OrbitDB Interface]
@@ -234,6 +238,7 @@ graph TD
 
     %% Data Flow
     subgraph DataFlow
+        style DataFlow fill:#d1c4e9,stroke:#333,stroke-width:2px
         E1[User Input] -->|React Components| E2[Frontend State]
         E2 -->|API Requests| E3[Backend API]
         E3 -->|Process| E4[Database Operations]
@@ -244,6 +249,7 @@ graph TD
 
     %% Encryption Flow
     subgraph Encryption
+        style Encryption fill:#ffecb3,stroke:#333,stroke-width:2px
         F1[Plaintext Message] -->|RSA Encryption| F2[Encrypted Message]
         F2 -->|Transmit| F3[Receive Encrypted Message]
         F3 -->|RSA Decryption| F4[Plaintext Message]
