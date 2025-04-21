@@ -12,6 +12,21 @@ A peer-to-peer end-to-end encrypted communication application
 
 Numerous communication platforms currently exist to allow groups to communicate effectively and rapidly. Being that they often rely upon centralized servers to store and transmit user messages, they require great funding. Many of these platforms decide to gain this funding by selling user data/analytics. Our solution ***Sector*** proposes the implementation of p2p technologies to provide users with an end-to-end encrypted solution in which no user data is stored anywhere except on user devices. With this solution, users will be able to create group chats in which all participating members contain a complete record of all messages.
 
+## About
+
+Sector is a cross-platform desktop application built with Go and React that tackles the privacy concerns of modern messaging platforms. By leveraging peer-to-peer technologies and end-to-end encryption, Sector ensures that your conversations remain private and are stored only on the devices of the participants. The application provides a user-friendly interface for creating group chats, adding channels within those groups, and communicating securely with other users.
+
+## Key Features
+
+End-to-end encryption: All messages are encrypted, ensuring only the intended recipients can read them
+Decentralized architecture: No central server storing your messages or metadata
+Group chat functionality: Create and manage group conversations with multiple users
+Channel organization: Structure conversations by topic within groups
+Server handling: Create new servers or join existing servers.
+Cross-platform support: Available as a desktop application for Windows, macOS, and Linux
+User profiles: Customize your profile with username, status, and profile picture
+Message pinning: Pin important messages for easy reference
+
 ## Development Setup
 
 Utilize the `generate.sh` script to generate the frontend and backend data models/route representations.
