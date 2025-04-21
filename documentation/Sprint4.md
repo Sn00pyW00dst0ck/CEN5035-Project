@@ -266,5 +266,151 @@ A PDF printout of the Swagger UI has been inserted into the repository. Please v
 
 ## Overview of Backend API Documents
 
+### Authentication Endpoints
 
+#### GET /v1/api/challenge
+Retrieves a challenge for user authentication. The challenge is later signed by the client's private key to prove identity.
+- **Query Parameters**: `username` (required)
+- **Response**: A randomly generated challenge string for the user to sign
 
+#### POST /v1/api/login
+Authenticates a user with a signed challenge.
+- **Request Body**: `username` and `signature` (the signed challenge)
+- **Response**: JWT token for subsequent authenticated requests
+
+### Account Management
+
+#### POST /v1/api/account/
+Creates a new user account.
+- **Request Body**: Account details including username, public key, and profile picture
+- **Response**: Created account information
+
+#### GET /v1/api/account/{id}
+Retrieves account information by ID.
+- **Path Parameters**: `id` (UUID)
+- **Response**: Account details
+
+#### PUT /v1/api/account/{id}
+Updates an existing account.
+- **Path Parameters**: `id` (UUID)
+- **Request Body**: Updated account details
+- **Response**: Updated account information
+
+#### DELETE /v1/api/account/{id}
+Deletes an account.
+- **Path Parameters**: `id` (UUID)
+- **Response**: No content on success
+
+#### POST /v1/api/account/search
+Searches for accounts based on filter criteria.
+- **Request Body**: Filter parameters (username, creation date range, etc.)
+- **Response**: List of matching accounts
+
+### Group Management
+
+#### POST /v1/api/group/
+Creates a new group (server).
+- **Request Body**: Group details including name, description, and member list
+- **Response**: Created group information
+
+#### GET /v1/api/group/{groupId}
+Retrieves group information by ID.
+- **Path Parameters**: `groupId` (UUID)
+- **Response**: Group details
+
+#### PUT /v1/api/group/{groupId}
+Updates an existing group.
+- **Path Parameters**: `groupId` (UUID)
+- **Request Body**: Updated group details
+- **Response**: Updated group information
+
+#### DELETE /v1/api/group/{groupId}
+Deletes a group.
+- **Path Parameters**: `groupId` (UUID)
+- **Response**: No content on success
+
+#### POST /v1/api/group/search
+Searches for groups based on filter criteria.
+- **Request Body**: Filter parameters (name, creation date range, members, etc.)
+- **Response**: List of matching groups
+
+#### POST /v1/api/group/{groupId}/members/{memberId}
+Adds a member to a group.
+- **Path Parameters**: `groupId` (UUID), `memberId` (UUID)
+- **Response**: Updated group information
+
+#### DELETE /v1/api/group/{groupId}/members/{memberId}
+Removes a member from a group.
+- **Path Parameters**: `groupId` (UUID), `memberId` (UUID)
+- **Response**: No content on success
+
+### Channel Management
+
+#### POST /v1/api/group/{groupId}/channel/
+Creates a new channel within a group.
+- **Path Parameters**: `groupId` (UUID)
+- **Request Body**: Channel details including name and description
+- **Response**: Created channel information
+
+#### GET /v1/api/group/{groupId}/channel/{channelId}
+Retrieves channel information by ID.
+- **Path Parameters**: `groupId` (UUID), `channelId` (UUID)
+- **Response**: Channel details
+
+#### PUT /v1/api/group/{groupId}/channel/{channelId}
+Updates an existing channel.
+- **Path Parameters**: `groupId` (UUID), `channelId` (UUID)
+- **Request Body**: Updated channel details
+- **Response**: Updated channel information
+
+#### DELETE /v1/api/group/{groupId}/channel/{channelId}
+Deletes a channel.
+- **Path Parameters**: `groupId` (UUID), `channelId` (UUID)
+- **Response**: No content on success
+
+#### POST /v1/api/channel/search
+Searches for channels based on filter criteria.
+- **Request Body**: Filter parameters (name, group, creation date range, etc.)
+- **Response**: List of matching channels
+
+### Message Management
+
+#### POST /v1/api/group/{groupId}/channel/{channelId}/message
+Creates a new message in a channel.
+- **Path Parameters**: `groupId` (UUID), `channelId` (UUID)
+- **Request Body**: Message details including body, author, and pinned status
+- **Response**: Created message information
+
+#### GET /v1/api/group/{groupId}/channel/{channelId}/message/{messageId}
+Retrieves message information by ID.
+- **Path Parameters**: `groupId` (UUID), `channelId` (UUID), `messageId` (UUID)
+- **Response**: Message details
+
+#### PUT /v1/api/group/{groupId}/channel/{channelId}/message/{messageId}
+Updates an existing message.
+- **Path Parameters**: `groupId` (UUID), `channelId` (UUID), `messageId` (UUID)
+- **Request Body**: Updated message details
+- **Response**: Updated message information
+
+#### DELETE /v1/api/group/{groupId}/channel/{channelId}/message/{messageId}
+Deletes a message.
+- **Path Parameters**: `groupId` (UUID), `channelId` (UUID), `messageId` (UUID)
+- **Response**: No content on success
+
+#### POST /v1/api/message/search
+Searches for messages based on filter criteria.
+- **Request Body**: Filter parameters (body content, author, channel, pinned status, creation date range, etc.)
+- **Response**: List of matching messages
+
+### Miscellaneous
+
+#### GET /v1/api/
+Root endpoint returning a welcome message.
+- **Response**: Simple welcome message
+
+#### GET /v1/api/health
+Health check endpoint to verify API is operational.
+- **Response**: 200 OK if API is healthy
+
+### Authentication
+All endpoints except `/v1/api/challenge`, `/v1/api/login`, `/v1/api/health`, and `/v1/api/` require authentication via JWT token. The token must be included in the `Authorization` header as `Bearer {token}`.
