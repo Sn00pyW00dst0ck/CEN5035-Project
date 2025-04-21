@@ -76,7 +76,8 @@ Install Node.js and npm:
 
 For Linux/Mac
 ```
-curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - sudo apt-get install -y nodejs
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+sudo apt-get install -y nodejs
 ```
 For Windows: Download from https://nodejs.org/ and run installer
 
@@ -84,10 +85,7 @@ Navigate to the frontend directory:
 ```
 cd frontend
 ```
-Install dependencies:
-```
-npm install
-```
+
 Install Vite for development and building:
 ```
 npm install -D vite @vitejs/plugin-react
@@ -126,7 +124,6 @@ http://localhost:5173/
 ```
 For running tests during development:
 ```
-cd src/test
 npm run test
 ```
 
