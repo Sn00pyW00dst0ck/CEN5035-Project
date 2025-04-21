@@ -64,23 +64,24 @@ function ActiveServer({
             />
 
             {/* Message Display Area */}
-            <div style={{
-                flexGrow: 1,
-                overflowY: 'auto',
-                padding: '1rem'
-            }}>
-                {serverContext.messages && serverContext.messages.map(message => (
-                    <div
-                        key={message.id}
-                        style={{
-                            marginBottom: '0.5rem',
-                            textAlign: 'left'
-                        }}
-                    >
-                        <strong>{message.user}: </strong>
-                        {message.text}
-                    </div>
-                ))}
+            <div style={{ flexGrow: 1, overflowY: 'auto', padding: '1rem' }}>
+                {serverContext.messages.length === 0 ? (
+                    <p>No messages</p>
+                ) : (
+                    serverContext.messages.map(message => (
+                        <div
+                            key={message.id}
+                            style={{
+                                marginBottom: '0.5rem',
+                                textAlign: 'left',
+                                wordWrap: 'break-word',
+                                whiteSpace: 'pre-wrap',
+                            }}
+                        >
+                            <strong>{serverContext.userMap[message.author] || 'Unknown'}:</strong> {message.body}
+                        </div>
+                    ))
+                )}
             </div>
 
             <Paper

@@ -12,8 +12,10 @@ export const UserProvider = ({ children }) => {
     const [channelList, setChannelList] = useState([]);
 
     const [activeGroup, setActiveGroup] = useState({created_at:'', description:'', group:'', id:'', name:''});
-    const [activeChannel, setActiveChannel] = useState([]);
+    const [activeChannel, setActiveChannel] = useState({});
     const [messages, setMessages] = useState([]);
+
+    const [userMap, setUserMap] = useState({});
 
     async function FetchGroups() {
 
@@ -33,7 +35,6 @@ export const UserProvider = ({ children }) => {
             }
 
             const jsonData = await response.json();
-            console.log("Full JSON:", jsonData);
             setGroupList(jsonData); // ✅ Update state with response data
         } catch (error) {
             console.error("Error:", error.message);
@@ -58,7 +59,6 @@ export const UserProvider = ({ children }) => {
             }
 
             const jsonData = await response.json();
-            console.log("Full channel list JSON:", jsonData);
             setChannelList(jsonData); // ✅ Update state with response data
         } catch (error) {
             console.error("Error:", error.message);
@@ -97,8 +97,6 @@ export const UserProvider = ({ children }) => {
         if(activeGroup.id == null)
             return;
 
-        console.log("Active Group " + activeGroup.id);
-
         try {
             const response = await fetch("http://localhost:3000/v1/api/group/" + activeGroup.id + "/channel/", {
                 method: "POST",
@@ -129,6 +127,9 @@ export const UserProvider = ({ children }) => {
             return;
         }
 
+        if(activeChannel == null || activeChannel.id === '' || activeChannel.id ==='0'){
+            return;
+        }
         try {
             const response = await fetch("http://localhost:3000/v1/api/message/search", {
                 method: "POST",
@@ -141,16 +142,77 @@ export const UserProvider = ({ children }) => {
             }
 
             const jsonData = await response.json();
-            console.log("Full channel list JSON:", jsonData);
+
+            jsonData.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
             setMessages(jsonData); // ✅ Update state with response data
         } catch (error) {
+            setMessages([]);
             console.error("Error:", error.message);
         }
     }
 
-    async function SendMessage(message){
+    async function FetchUserFromId({userID}){
+        try {
+            const response = await fetch("http://localhost:3000/v1/api/account/search", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: {userID}
+                }),
+            });
 
-        console.log("Active group: " + activeGroup.id);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const jsonData = await response.json();
+
+            return jsonData[0].name;
+
+        } catch (error) {
+            console.error("Error:", error.message);
+        }
+    }
+    useEffect(() => {
+        if (activeGroup == null) return;
+
+        const FetchMessagesAndUsers = async () => {
+
+            try {
+
+                // Extract unique user IDs
+                const uniqueUserIds = [...new Set(messages.map(msg => msg.author))];
+
+                // Fetch all user names
+                const userEntries = await Promise.all(
+                    uniqueUserIds.map(async (userID) => {
+                        const res = await fetch("http://localhost:3000/v1/api/account/search", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id: [userID] }),
+                        });
+
+                        if (!res.ok) throw new Error(`User fetch failed for ${userID}`);
+
+                        const userData = await res.json();
+
+                        return [userID, userData[0]?.username ?? "Unknown"];
+                    })
+                );
+
+                const userMapObj = Object.fromEntries(userEntries);
+                setUserMap(userMapObj);
+            } catch (error) {
+                console.error("Error:", error.message);
+            }
+        };
+
+        FetchMessagesAndUsers();
+    }, [activeGroup, activeChannel]);
+
+
+    async function SendMessage(message){
 
         if(activeGroup.id == null)
             return;
@@ -203,7 +265,7 @@ export const UserProvider = ({ children }) => {
     }, [activeChannel])
 
     return (
-        <UserContext.Provider value={{ user, setUser, groupList, activeGroup, channelList, setActiveGroup, activeChannel, setActiveChannel, messages, CreateGroup, CreateChannel, SendMessage}}>
+        <UserContext.Provider value={{ user, userMap, setUser, groupList, activeGroup, channelList, setActiveGroup, activeChannel, setActiveChannel, messages, CreateGroup, CreateChannel, SendMessage, FetchUserFromId}}>
             {children}
         </UserContext.Provider>
     );
