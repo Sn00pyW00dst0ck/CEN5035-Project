@@ -204,7 +204,7 @@ graph TD
 
     %% Authentication Flow
     subgraph Authentication
-        style Authentication fill:#f9f,stroke:#333,stroke-width:2px
+        style Authentication fill:#f8bbd0,stroke:#333,stroke-width:2px
         B1[Enter Username] -->|Request Challenge| B2[Backend: Generate Challenge]
         B2 -->|Return Challenge| B3[Client: Sign Challenge with Private Key]
         B3 -->|Submit Signature| B4[Backend: Verify Signature]
