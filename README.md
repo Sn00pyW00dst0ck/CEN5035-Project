@@ -143,3 +143,75 @@ To build a redistributable, production mode package, use `wails build`.
 ## Notes
 
 - The http server listens on port `3000`.
+
+## Key Milestones
+
+### Sprint 1
+
+#### Frontend
+- Designed wireframes for the main and login pages.
+- Chose MUI component library for consistent and scalable design.
+- Developed a modular React template with reusable components (e.g., user badges, server selection window, message window).
+- Established a responsive desktop layout that adapts across different screen sizes.
+
+#### Backend
+- Evaluated and selected technology stack: Go and OrbitDB.
+- Chose oapi-codegen for generating REST-like architecture.
+- Set up the development process using openapi-typescript for frontend model generation.
+- Designed the initial database schema for common objects.
+
+---
+
+### Sprint 2
+
+#### Frontend
+- Implemented dynamic server list with search functionality.
+- Created a flexible user badge component.
+- Added active server top bar with server badge and search functionality.
+- Developed toggle functionality for member list visibility.
+- Resolved CSS wrapping issues for various window aspect ratios.
+- Added unit tests for key components using Cypress.
+
+#### Backend
+- Developed core API endpoints for account, group, channel, and message management.
+- Implemented CRUD operations for major entities.
+- Created comprehensive unit tests for all backend modules.
+- Generated auto-documentation with Swagger UI.
+- Encountered blockers with database mocking and complex data relationships.
+
+---
+
+### Sprint 3
+
+#### Frontend
+- Integrated backend endpoints for login, group fetching, and channel creation.
+- Implemented the main user interface with server selection and channel display.
+- Added user profile management functionality.
+- Developed the login page with username/password forms.
+- Created a complete test suite with unit tests and Cypress E2E tests.
+
+#### Backend
+- Integrated the Wails framework for cross-platform desktop support.
+- Restructured the application to align with Wails architecture.
+- Enhanced unit test coverage, including advanced search functionality.
+- Improved lifecycle management for the desktop application.
+- Maintained compatibility with the web interface alongside the desktop version.
+
+---
+
+### Sprint 4
+
+#### Frontend
+- Added a registration page for new user creation.
+- Retained all functionality from Sprint 3.
+- Continued integration with backend endpoints.
+- Enhanced user profile management capabilities.
+
+#### Backend
+- Implemented JWT authentication for secure token management.
+- Developed challenge-response authentication using public key cryptography.
+- Added end-to-end encryption support for messages.
+- Optimized database queries for improved performance.
+- Improved API error handling and response standardization.
+- Created a comprehensive test suite for authentication, account, group, channel, and message management.
+- Updated API documentation with detailed endpoint descriptions.
