@@ -189,9 +189,7 @@ To build a redistributable, production mode package, use `wails build`.
 #### Backend
 - Implemented JWT authentication for secure token management.
 - Developed challenge-response authentication using public key cryptography.
-- Added end-to-end encryption support for messages.
 - Optimized database queries for improved performance.
 - Improved API error handling and response standardization.
 - Created a comprehensive test suite for authentication, account, group, channel, and message management.
 - Updated API documentation with detailed endpoint descriptions.
-
