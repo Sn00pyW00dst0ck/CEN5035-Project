@@ -181,3 +181,15 @@ To build a redistributable, production mode package, use `wails build`.
 - Improved API error handling and response standardization.
 - Created a comprehensive test suite for authentication, account, group, channel, and message management.
 - Updated API documentation with detailed endpoint descriptions.
+
+
+[contributors-shield]: https://img.shields.io/github/contributors/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[contributors-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[forks-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/network/members
+[stars-shield]: https://img.shields.io/github/stars/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[stars-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[issues-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/issues
+[license-shield]: https://img.shields.io/github/license/Sn00pyW00dst0ck/CEN5035-Project.svg?style=for-the-badge
+[license-url]: https://github.com/Sn00pyW00dst0ck/CEN5035-Project/blob/master/LICENSE.txt
