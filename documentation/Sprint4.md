@@ -1,20 +1,22 @@
 # Sprint 4
 
-## Frontend -- needs to be edited , this is a copy of sprint 3 .md for sprint 4
-
+## Frontend
 
 ### Integration with Backend Endpoints and Furthered Unit Testing
 
 #### Overview
-In Sprint 4, we focused primarily on continued integration with the backend. This includes logging in, fetching user groups, fetching group channels, and creating new group channels. We also addressed our lack of both unit and cypress tests to ensure that future changes will not inadvertently cause component failures. In addition, the following changes to the interface were made:
+In Sprint 4, we focused primarily on continued integration with the backend. This includes logging in, registration page, adding new servers, messaging across peers, fetching user groups, fetching group channels, and creating new group channels. We also added more unit and cypress tests to ensure that future changes will not inadvertently cause component failures. In addition, the following changes to the interface were made:
 
-- Initial login screen rendering
+- Initial login screen rendering has been enhanced
+- User registration page
 - Successful login with credentials
-- Server and Channel Interaction
+- Can create new servers
+- Server and Channel Interaction for newly created servers
 - Displaying server list after authentication
 - Server selection and channel display
-- Adding new channels to existing servers
-- Switching between channels
+- Adding new channels to existing servers and to new servers
+- Switching between channels across various servers
+- Can post messages
 - Verifying correct message display for selected channels
 - User profile management, can edit user status, Name, and description
 - Servers and channels exist in the same state and messages are displayed appropriately for each selected channels
@@ -24,7 +26,7 @@ In Sprint 4, we focused primarily on continued integration with the backend. Thi
 The frontend has two primary pages: the Login Page and the Main Page.
 
 ## Login
-The login page consists of two forms: Username and Password. Currently, only the Username box must be filled to permit login as credentials have not been implemented. Upon sign in, a query is sent to the backend to fetch the user's data, before switching to the main page. We also intend to add a Register page in which the user can create a new account.
+The login page consists of two forms: Username and Password. Currently, only the Username box must be filled to permit login as credentials have not been implemented. Upon sign in, a query is sent to the backend to fetch the user's data, before switching to the main page. We also added a Register page in which the user can create a new account.
 
 ## Main
 This is where the user will spend most of their time. It displays the user's groups, channels, messages, etc.
@@ -54,6 +56,12 @@ Holds the messages of a selected channel in addition to a menu bar and member li
 **App.test**
 - Renders without exceptions
 
+**Login.test**
+- Renders login form with Username, Password, Sign In, and Register elements
+- Prevents login when form fields are empty
+- Calls onLogin with valid credentials
+- Calls onRegisterClick when Register button is clicked
+
 **MainScreen.test**
 - Renders without crashing
 - Initializes with no selected server and channel
@@ -77,6 +85,20 @@ Holds the messages of a selected channel in addition to a menu bar and member li
 - Marks the current selected channel as selected in the menu
 - Handles the case when selected Server has no channels
 - Handles the case when selectedServer is null
+
+**Registration.test**
+- Renders registration form with all required fields and buttons
+- Validates empty and invalid form inputs (required fields, short password, mismatched passwords)
+- Submits registration form with valid input and sends correct API request
+- Displays success message and triggers callback on successful registration
+- Displays error message when registration fails (e.g., username already exists, or password/username not valid, or too short)
+- Navigates to login page when Login button is clicked
+
+**Search.test**
+- Renders search input without crashing
+- Uses default id and label when none are provided
+- Accepts and displays custom id and label props
+- Calls provided return function on input change
 
 **ServerAndMembers.test**
 - Renders without crashing
