@@ -40,6 +40,7 @@ func (a *App) startup(ctx context.Context) {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
+		AllowedMethods:   []string{"HEAD", "GET", "POST", "PUT", "DELETE"},
 	})
 
 	// Serve HTTP

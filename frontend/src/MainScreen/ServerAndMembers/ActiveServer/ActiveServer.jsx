@@ -94,19 +94,7 @@ function ActiveServer({
                 }}
                 className="text"
             >
-                <Search onChange={handleUpdateMessage} label = "Message"/>
-
-                <TextField
-                    sx={{
-                        width: "100%",
-                        margin: ".5rem",
-                        marginLeft: "1rem",
-                    }}
-                    placeholder="Text Message"
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                />
+                <Search onChange={handleUpdateMessage} label = "Message" value={messageInput} />
                 <button
                     className="sendButton"
                     onClick={handleSendMessage}

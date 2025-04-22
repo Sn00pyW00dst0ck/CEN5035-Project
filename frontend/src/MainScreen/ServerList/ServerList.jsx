@@ -223,10 +223,6 @@ function ServerList({onChannelSelect}) {
         server.name.toLowerCase().includes(query.toLowerCase())
     );
 
-    const searchServer = useCallback((event) => {
-        event.preventDefault();
-    }, [/*state.joinServerInput*/]);
-
     const handleUpdateUser = useCallback((updatedUser) => {
         setState(prev => ({
             ...prev,

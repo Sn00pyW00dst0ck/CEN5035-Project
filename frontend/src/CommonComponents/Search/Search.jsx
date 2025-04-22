@@ -1,6 +1,6 @@
 import { TextField } from "@mui/material";
 
-function Search({ id = "Search", label = "Search", onChange }) {
+function Search({ id = "Search", label = "Search", onChange, value }) {
     return (
         <TextField
             id={id}
@@ -14,7 +14,6 @@ function Search({ id = "Search", label = "Search", onChange }) {
             type="search"
             size="small"
             //value={value}
-            onChange={(e) => onChange(e.target.value)}
         />
     );
 }

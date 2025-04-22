@@ -152,28 +152,6 @@ export const UserProvider = ({ children }) => {
         }
     }
 
-    async function FetchUserFromId({userID}){
-        try {
-            const response = await fetch("http://localhost:3000/v1/api/account/search", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: {userID}
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const jsonData = await response.json();
-
-            return jsonData[0].name;
-
-        } catch (error) {
-            console.error("Error:", error.message);
-        }
-    }
     useEffect(() => {
         if (activeGroup == null) return;
 
@@ -209,7 +187,7 @@ export const UserProvider = ({ children }) => {
         };
 
         FetchMessagesAndUsers();
-    }, [activeGroup, activeChannel]);
+    }, [activeGroup, activeChannel, messages]);
 
 
     async function SendMessage(message){
@@ -265,7 +243,7 @@ export const UserProvider = ({ children }) => {
     }, [activeChannel])
 
     return (
-        <UserContext.Provider value={{ user, userMap, setUser, groupList, activeGroup, channelList, setActiveGroup, activeChannel, setActiveChannel, messages, CreateGroup, CreateChannel, SendMessage, FetchUserFromId}}>
+        <UserContext.Provider value={{ user, userMap, setUser, groupList, activeGroup, channelList, setActiveGroup, activeChannel, setActiveChannel, messages, CreateGroup, CreateChannel, SendMessage}}>
             {children}
         </UserContext.Provider>
     );
