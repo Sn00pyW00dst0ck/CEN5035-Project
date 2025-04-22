@@ -1,5 +1,18 @@
 ﻿# Sprint 4
 
+## Running Sector
+
+### First, install any dependencies with npm:
+npm install
+
+### Next, install wails:
+go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+### Prepare the backend by running generate.sh
+
+### Run the program with wails:
+wails dev
+
 ## Frontend
 
 ### Integration with Backend Endpoints and Furthered Unit Testing
