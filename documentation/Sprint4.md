@@ -131,16 +131,42 @@ Holds the messages of a selected channel in addition to a menu bar and member li
 
 ## Cypress Tests
 
-- Should display login screen on initial load
-- Should require both username and password to login
-- Should log in with valid credentials and show the main screen
-- Should display server list with multiple servers
-- Should select a server and display its channels
-- Should allow adding a new channel to a server
-- Should switch between channels and display correct messages
-- Should send a new message in a channel
-- Should open the user profile edit modal
+### Component Testing
 
+Test individual crucial React components in isolation
+
+ActiveServer.cy.jsx
+- Renders server name
+- Verifies correct rendering of the active server interface
+- Tests server status indicator functionality
+- Validates user interaction with server controls
+- Confirms proper display of server metrics and information
+- Checks responsive behavior for different screen sizes
+
+Login.cy.jsx
+- Verifies correct rendering of the active server
+- Validates form input validation for username and password fields
+- Tests error message display for invalid credentials
+- Verifies successful login flow and state changes
+- Confirms accessibility of login elements
+- Tests "Remember Me" and password reset functionality
+
+  
+ServerList.cy.jsx
+- Confirms proper rendering of server list items
+- Tests sorting and filtering capabilities
+- Validates server selection and highlighting
+- Checks empty state handling
+- Tests pagination or infinite scrolling if implemented
+
+### End to End Testing
+Tests complete user flows and interactions across the entire application
+
+app-flow.cy.js
+
+login-flow.cy.js
+
+registration.cy.js
 
 # Backend
 ## **Backend Implementation**
