@@ -138,11 +138,10 @@ Test individual crucial React components in isolation
 
 ActiveServer.cy.jsx
 - Renders server name
+- displays a placeholder when no server is selected
 - Verifies correct rendering of the active server interface
-- Tests server status indicator functionality
-- Validates user interaction with server controls
-- Confirms proper display of server metrics and information
-- Checks responsive behavior for different screen sizes
+- displays the chat interface when a server and channel are selected
+- allows sending messages
 
 Login.cy.jsx
 - Verifies correct rendering of the active server
