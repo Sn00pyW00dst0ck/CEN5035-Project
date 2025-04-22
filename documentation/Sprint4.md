@@ -17,6 +17,7 @@ In Sprint 4, we focused primarily on continued integration with the backend. Thi
 - Adding new channels to existing servers and to new servers
 - Switching between channels across various servers
 - Can post messages
+- Can recieve messages
 - Verifying correct message display for selected channels
 - User profile management, can edit user status, Name, and description
 - Servers and channels exist in the same state and messages are displayed appropriately for each selected channels
@@ -163,10 +164,26 @@ ServerList.cy.jsx
 Tests complete user flows and interactions across the entire application
 
 app-flow.cy.js
+- Logging in
+- Selecting servers and channels
+- Confirms proper rendering of server list items
+- allows channel selection and message sendingpassed
+- allows adding a new channel
+- allows toggling members sidebar
+- can search for servers
 
 login-flow.cy.js
+- displays the login form
+- prevents login with empty fields
+- allows navigation to registration page
+- handles login and displays the main screen
 
 registration.cy.js
+- displays the registration form
+- validates form fields correctly
+- attempts registration with valid data
+- navigates back to login
+- debug registration form fields and buttons
 
 # Backend
 ## **Backend Implementation**
