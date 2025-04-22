@@ -144,20 +144,20 @@ ActiveServer.cy.jsx
 - allows sending messages
 
 Login.cy.jsx
-- Verifies correct rendering of the active server
-- Validates form input validation for username and password fields
-- Tests error message display for invalid credentials
-- Verifies successful login flow and state changes
-- Confirms accessibility of login elements
-- Tests "Remember Me" and password reset functionality
+- renders the login form correctly
+- prevents login with empty fields
+- allows login with valid credentials
+- navigates to registration when Register button is clicked
+- debug input fields
 
   
 ServerList.cy.jsx
-- Confirms proper rendering of server list items
-- Tests sorting and filtering capabilities
-- Validates server selection and highlighting
-- Checks empty state handling
-- Tests pagination or infinite scrolling if implemented
+- display all server initially
+- filter servers based on search input
+- selects a server and its first channel when clicked
+- can add a new channel to a selected server
+- debug selectors
+- allows editing user profile
 
 ### End to End Testing
 Tests complete user flows and interactions across the entire application
