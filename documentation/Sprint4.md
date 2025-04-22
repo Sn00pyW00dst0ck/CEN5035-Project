@@ -1,4 +1,4 @@
-# Sprint 4
+﻿# Sprint 4
 
 ## Frontend
 
@@ -36,10 +36,10 @@ This is where the user will spend most of their time. It displays the user's gro
 The main page is broken into two primary components: the Group List and the Active Server.
 
 ***Group List***  
-Consists of the user's info, a server search bar, and a list of all the servers the client is in. When a server is selected, it becomes the 'active server'.
+Consists of the user's info, a server search bar, and a list of all the servers the client is in. Users can create a new server using the text field and submission button at the bottom of the component. When a group is selected, it becomes the 'active server'. In addition, a new component window pops up revealing all of the channels of a server. A second text field and submission button are generated to allow users to create new channels.
 
-***Active Server***
-Holds the messages of a selected channel in addition to a menu bar and member list.
+***Active Group***
+Holds the messages of a selected channel in addition to a menu bar and member list. Once a group is selected, a menu on the right side of the component can be opened to reveal all of its members. A top bar also exists allowing for easy channel-switching and message filtering.
 
 ## Unit Tests
 
