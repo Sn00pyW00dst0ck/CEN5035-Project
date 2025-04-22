@@ -199,6 +199,12 @@ To build a redistributable, production mode package, use `wails build`.
 - Created a comprehensive test suite for authentication, account, group, channel, and message management.
 - Updated API documentation with detailed endpoint descriptions.
 
+### Video for Final Sprint
+
+[![Video](https://img.youtube.com/vi/cIDMRDH5mmY/0.jpg)](https://www.youtube.com/watch?v=cIDMRDH5mmY)
+
+
+
 ### Project Flow
 
 
