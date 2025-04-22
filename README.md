@@ -201,8 +201,7 @@ To build a redistributable, production mode package, use `wails build`.
 
 ### Video for Final Sprint
 
-![Video Title](https://img.youtube.com/vi/cIDMRDH5mmY/0.jpg)
-[Watch the video](https://www.youtube.com/watch?v=cIDMRDH5mmY)
+[![Video](https://img.youtube.com/vi/cIDMRDH5mmY/0.jpg)](https://www.youtube.com/watch?v=cIDMRDH5mmY)
 
 
 
