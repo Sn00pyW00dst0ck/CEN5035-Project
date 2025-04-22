@@ -92,8 +92,8 @@ Start the development server:
 ```
 npm run dev
 ```
-Open your browser and navigate to [http://localhost:5173/
-](http://localhost:5173/).
+Open your browser and navigate to [http://localhost:5174/
+](http://localhost:5174/).
 
 For running tests during development:
 ```
